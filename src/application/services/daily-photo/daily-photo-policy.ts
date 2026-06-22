@@ -1,0 +1,19 @@
+import type { DailyPhoto } from "@/application/services/daily-photo/types";
+
+export const dailyPhotoMessages = {
+  noPhoto: "오늘의 한 장을 남겨볼까요?",
+  saveConfirm: "이 사진을 오늘의 한 장으로 저장할까요?",
+  changeAvailable: "오늘 안에는 사진을 바꿀 수 있어요. 자정이 지나면 이 사진으로 잠겨요.",
+  firstSavePolicy: "오늘 안에는 사진을 다시 바꿀 수 있어요.\n자정이 지나면 이 날의 사진으로 잠겨요.",
+  locked: "이 날의 사진은 잠겼어요.",
+  saveFailed: "사진을 저장하지 못했어요. 잠시 후 다시 시도해주세요.",
+  unavailable: "과거·미래 날짜에는 사진을 추가할 수 없어요.",
+} as const;
+
+export function canEditDailyPhoto(dateKey: string, todayKey: string): boolean {
+  return dateKey === todayKey;
+}
+
+export function isDailyPhotoLocked(photo: DailyPhoto | null): boolean {
+  return Boolean(photo?.lockedAt);
+}
