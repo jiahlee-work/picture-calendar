@@ -35,6 +35,20 @@ export function createLocalDailyPhotoRepository(options: LocalDailyPhotoReposito
 
       return saved;
     },
+    async deleteByDate(userId, date) {
+      const photosByUserDate = await loadPhotosByUserDate(metadataStore);
+      const photoKey = toDailyPhotoKey(userId, date);
+      const deletedPhoto = photosByUserDate.get(photoKey) ?? null;
+
+      if (!deletedPhoto) {
+        return null;
+      }
+
+      photosByUserDate.delete(photoKey);
+      await metadataStore.save(Array.from(photosByUserDate.values()));
+
+      return deletedPhoto;
+    },
   };
 }
 

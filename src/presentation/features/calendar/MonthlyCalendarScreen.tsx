@@ -1,18 +1,28 @@
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { addMonths } from "@/application/services/calendar/calendar-grid";
 import { useTodayPhotoFlow } from "@/application/hooks/useTodayPhotoFlow";
-import { DailyPhotoDialog } from "@/presentation/components/molecules/daily-photo-dialog";
+import { DailyPhotoPolicyDialog } from "@/presentation/components/molecules/daily-photo-policy-dialog";
 import { AppMenuButton } from "@/presentation/components/organisms/app-menu-button";
+import { DailyPhotoDetailSheet } from "@/presentation/components/organisms/daily-photo-detail-sheet";
 import { MonthlyCalendar } from "@/presentation/components/organisms/monthly-calendar";
 import { dayjs } from "@/shared/date/dayjs";
 
 export function MonthlyCalendarScreen() {
   const [activeMonth, setActiveMonth] = useState(() => dayjs().startOf("month").toDate());
   const [isDecorating, setIsDecorating] = useState(false);
-  const { calendar, dialog, dismissDialog, handleSelectDate } = useTodayPhotoFlow(activeMonth);
+  const {
+    calendar,
+    photoDetail,
+    policyDialog,
+    dismissDialog,
+    dismissPhotoDetail,
+    handleChangeSelectedPhoto,
+    handleDeleteSelectedPhoto,
+    handleSelectDate,
+  } = useTodayPhotoFlow(activeMonth);
   const handlePreviousMonth = () => {
     setActiveMonth((current) => addMonths(current, -1));
   };
@@ -21,6 +31,25 @@ export function MonthlyCalendarScreen() {
   };
   const handleToggleDecorating = () => {
     setIsDecorating((current) => !current);
+  };
+  const handleRequestDeletePhoto = () => {
+    Alert.alert(
+      "사진 삭제",
+      "정말 삭제하시겠습니까? 삭제된 사진은 복구되지 않습니다",
+      [
+        {
+          text: "취소",
+          style: "cancel",
+        },
+        {
+          text: "확인",
+          style: "destructive",
+          onPress: () => {
+            void handleDeleteSelectedPhoto();
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -41,9 +70,18 @@ export function MonthlyCalendarScreen() {
           onSelectDate={handleSelectDate}
         />
       </View>
-      <DailyPhotoDialog
-        dialog={dialog}
+      <DailyPhotoPolicyDialog
+        dialog={policyDialog}
         onCancel={dismissDialog}
+      />
+      <DailyPhotoDetailSheet
+        dateLabel={photoDetail?.dateLabel ?? ""}
+        isToday={photoDetail?.isToday ?? false}
+        photo={photoDetail?.photo ?? null}
+        visible={Boolean(photoDetail)}
+        onChangePhoto={handleChangeSelectedPhoto}
+        onClose={dismissPhotoDetail}
+        onDeletePhoto={handleRequestDeletePhoto}
       />
     </SafeAreaView>
   );

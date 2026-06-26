@@ -1,23 +1,23 @@
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
-import type { DialogState } from "@/application/hooks/useTodayPhotoFlow";
+import type { DailyPhotoPolicyDialogState } from "@/application/hooks/useTodayPhotoFlow";
 
-type DailyPhotoDialogProps = {
-  dialog: DialogState;
+type DailyPhotoPolicyDialogProps = {
+  dialog?: DailyPhotoPolicyDialogState;
   onCancel: () => void;
 };
 
-export function DailyPhotoDialog(props: DailyPhotoDialogProps) {
+export function DailyPhotoPolicyDialog(props: DailyPhotoPolicyDialogProps) {
   const { dialog, onCancel } = props;
 
-  if (dialog.type === "none") {
+  if (!dialog || dialog.type === "none") {
     return null;
   }
 
   return (
     <Modal animationType="fade" transparent visible onRequestClose={onCancel}>
-      <View style={styles.backdrop}>
-        <View style={styles.card}>
+      <Pressable accessibilityLabel="안내 닫기" style={styles.backdrop} onPress={onCancel}>
+        <Pressable style={styles.card} onPress={(event) => event.stopPropagation()}>
           <Text style={styles.title}>{dialog.title}</Text>
           <Text style={styles.message}>{dialog.message}</Text>
           <View style={styles.actions}>
@@ -25,8 +25,8 @@ export function DailyPhotoDialog(props: DailyPhotoDialogProps) {
               <Text style={styles.primaryButtonText}>확인</Text>
             </Pressable>
           </View>
-        </View>
-      </View>
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 }

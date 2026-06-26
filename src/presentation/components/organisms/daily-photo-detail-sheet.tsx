@@ -1,0 +1,218 @@
+import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
+import type { BottomSheetBackdropProps } from "@gorhom/bottom-sheet";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { SymbolView } from "expo-symbols";
+import {
+  Platform,
+  Pressable,
+  StatusBar as NativeStatusBar,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import type { DailyPhoto } from "@/application/services/daily-photo/types";
+import { DailyPhotoImage } from "@/presentation/components/atoms/daily-photo-image";
+
+type DailyPhotoDetailSheetProps = {
+  dateLabel: string;
+  isToday: boolean;
+  photo: DailyPhoto | null;
+  visible: boolean;
+  onChangePhoto: () => void;
+  onClose: () => void;
+  onDeletePhoto: () => void;
+};
+
+export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
+  const { dateLabel, isToday, photo, visible, onChangePhoto, onClose, onDeletePhoto } = props;
+  const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
+  const sheetHeight = windowHeight * 0.9;
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const snapPoints = useMemo(() => ["90%"], []);
+  const renderBackdrop = useCallback(
+    (backdropProps: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...backdropProps}
+        appearsOnIndex={0}
+        disappearsOnIndex={-1}
+        opacity={0.35}
+        pressBehavior="close"
+      />
+    ),
+    [],
+  );
+
+  useEffect(() => {
+    if (visible && photo) {
+      bottomSheetRef.current?.present();
+      return;
+    }
+
+    bottomSheetRef.current?.dismiss();
+  }, [photo, visible]);
+
+  useEffect(() => {
+    if (Platform.OS !== "android" || !visible) {
+      return;
+    }
+
+    NativeStatusBar.setBarStyle("light-content");
+    NativeStatusBar.setBackgroundColor("transparent");
+    NativeStatusBar.setTranslucent(true);
+
+    return () => {
+      NativeStatusBar.setBarStyle("dark-content");
+      NativeStatusBar.setBackgroundColor("#ffffff");
+      NativeStatusBar.setTranslucent(false);
+    };
+  }, [visible]);
+
+  if (!photo) {
+    return null;
+  }
+
+  return (
+    <BottomSheetModal
+      ref={bottomSheetRef}
+      backdropComponent={renderBackdrop}
+      backgroundStyle={styles.sheetBackground}
+      enableDynamicSizing={false}
+      enablePanDownToClose
+      handleComponent={null}
+      index={0}
+      snapPoints={snapPoints}
+      style={styles.sheet}
+      onDismiss={onClose}
+    >
+      <BottomSheetView style={[styles.content, { height: sheetHeight }]}>
+        <DailyPhotoImage imagePath={photo.imagePath} />
+        <View style={styles.topOverlay}>
+          <View style={styles.topSpacer} />
+          <Text style={styles.dateText}>{dateLabel}</Text>
+          <Pressable accessibilityLabel="사진 삭제" style={styles.iconButton} onPress={onDeletePhoto}>
+            <SymbolView
+              colors={["#ffffff"]}
+              name={{ ios: "trash", android: "delete" }}
+              size={20}
+              tintColor="#ffffff"
+              type="monochrome"
+              weight="bold"
+            />
+          </Pressable>
+        </View>
+        {isToday && (
+          <View style={[styles.bottomOverlay, { bottom: insets.bottom + 22 }]}>
+            <Pressable accessibilityLabel="사진 변경" style={styles.changePanel} onPress={onChangePhoto}>
+              <Text style={styles.policyText}>오늘 안에는 사진을 바꿀 수 있어요.</Text>
+              <View style={styles.galleryIcon}>
+                <SymbolView
+                  colors={["#ffffff"]}
+                  name={{ ios: "photo.on.rectangle.angled", android: "photo_library" }}
+                  size={24}
+                  tintColor="#ffffff"
+                  type="monochrome"
+                  weight="bold"
+                />
+              </View>
+            </Pressable>
+          </View>
+        )}
+      </BottomSheetView>
+    </BottomSheetModal>
+  );
+}
+
+const styles = StyleSheet.create({
+  sheet: {
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    overflow: "hidden",
+  },
+  sheetBackground: {
+    backgroundColor: "#111111",
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+  },
+  content: {
+    flex: 1,
+    overflow: "hidden",
+  },
+  topOverlay: {
+    alignItems: "center",
+    elevation: 2,
+    flexDirection: "row",
+    gap: 12,
+    left: 0,
+    minHeight: 64,
+    paddingBottom: 10,
+    paddingHorizontal: 18,
+    paddingTop: 10,
+    position: "absolute",
+    right: 0,
+    top: 0,
+    zIndex: 2,
+  },
+  dateText: {
+    color: "#ffffff",
+    flex: 1,
+    fontSize: 16,
+    fontWeight: "800",
+    lineHeight: 24,
+    textAlign: "center",
+  },
+  topSpacer: {
+    height: 44,
+    width: 44,
+  },
+  iconButton: {
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.34)",
+    borderColor: "rgba(255,255,255,0.24)",
+    borderRadius: 22,
+    borderWidth: 1,
+    elevation: 3,
+    height: 40,
+    justifyContent: "center",
+    width: 40,
+    zIndex: 3,
+  },
+  bottomOverlay: {
+    elevation: 2,
+    left: 0,
+    paddingHorizontal: 22,
+    position: "absolute",
+    right: 0,
+    zIndex: 2,
+  },
+  changePanel: {
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.34)",
+    borderColor: "rgba(255,255,255,0.24)",
+    borderRadius: 24,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 14,
+    justifyContent: "space-between",
+    minHeight: 54,
+    paddingLeft: 18,
+    paddingRight: 10,
+  },
+  policyText: {
+    color: "#ffffff",
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  galleryIcon: {
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 20,
+    height: 40,
+    justifyContent: "center",
+    width: 40,
+  },
+});

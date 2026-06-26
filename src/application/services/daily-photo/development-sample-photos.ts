@@ -53,7 +53,7 @@ const toSamplePhotoDrafts = (monthKey: string) =>
     }
 
     const fileName = androidSamplePhotoFileNames[index];
-    const imagePath = `file:///sdcard/Android/data/host.exp.exponent/files/PicalSamples/${fileName}`;
+    const imagePath = `file:///data/user/0/com.jiahleework.pical/files/PicalSamples/${fileName}`;
 
     return [
       {

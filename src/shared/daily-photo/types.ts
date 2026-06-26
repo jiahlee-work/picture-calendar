@@ -26,6 +26,7 @@ export type DailyPhotoRepository = {
   listByMonth: (userId: string, month: string) => Promise<DailyPhoto[]>;
   hasAny: (userId: string) => Promise<boolean>;
   saveToday: (photo: DailyPhotoDraft) => Promise<DailyPhoto>;
+  deleteByDate: (userId: string, date: string) => Promise<DailyPhoto | null>;
 };
 
 export type DailyPhotoSyncStatus = "local" | "syncing" | "synced" | "failed";
