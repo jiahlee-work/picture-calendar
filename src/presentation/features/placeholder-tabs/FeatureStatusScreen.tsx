@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppMenuButton } from "@/presentation/components/organisms/app-menu-button";
+import { appColors } from "@/presentation/theme/colors";
 
 type FeatureStatusScreenProps = {
   title: string;
@@ -29,7 +30,7 @@ export function FeatureStatusScreen(props: FeatureStatusScreenProps) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f7f7f7",
+    backgroundColor: appColors.background,
   },
   appBar: {
     alignItems: "center",
@@ -40,7 +41,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   appTitle: {
-    color: "#202020",
+    color: appColors.black,
     fontSize: 28,
     fontWeight: "900",
   },

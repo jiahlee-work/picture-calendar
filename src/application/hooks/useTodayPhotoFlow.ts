@@ -2,17 +2,21 @@ import { useEffect, useMemo, useState } from "react";
 import { Platform } from "react-native";
 
 import { buildCalendarMonth } from "@/application/services/calendar/calendar-grid";
+import { createDailyPhotoFileStoreForRuntime } from "@/application/services/daily-photo/daily-photo-file-store-factory";
 import { canEditDailyPhoto, dailyPhotoMessages } from "@/application/services/daily-photo/daily-photo-policy";
+import {
+  isDevelopmentSampleStorageKey,
+  isDisplayableDailyPhoto,
+  toPhotosByDate,
+} from "@/application/services/daily-photo/daily-photo-records";
 import { seedDevelopmentSampleDailyPhotos } from "@/application/services/daily-photo/development-sample-photos";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
+import { createDailyPhotoRepositoryForRuntime } from "@/application/services/daily-photo/daily-photo-repository-factory";
+import { waitForNextFrame } from "@/application/utils/frame";
 import { pickImageFromLibrary } from "@/infrastructure/device/media/image-picker";
 import { logger } from "@/infrastructure/logging/logger";
-import { createLocalDailyPhotoFileStore } from "@/infrastructure/persistence/daily-photo/local-daily-photo-file-store";
-import { createLocalDailyPhotoMetadataStore } from "@/infrastructure/persistence/daily-photo/local-daily-photo-metadata-store";
-import { createLocalDailyPhotoRepository } from "@/infrastructure/persistence/daily-photo/local-daily-photo-repository";
 import { toDateKey, toMonthKey } from "@/shared/date/date-key";
 import { dayjs } from "@/shared/date/dayjs";
-import type { DailyPhotoFileStore, DailyPhotoRepository } from "@/shared/daily-photo/types";
 
 const localUserId = "local-user";
 
@@ -24,8 +28,8 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
   const [photosByDate, setPhotosByDate] = useState<Record<string, DailyPhoto>>({});
   const [policyDialog, setPolicyDialog] = useState<DailyPhotoPolicyDialogState>({ type: "none" });
   const [selectedPhotoDateKey, setSelectedPhotoDateKey] = useState<string | null>(null);
-  const fileStore = useMemo(createDailyPhotoFileStore, []);
-  const repository = useMemo(createDailyPhotoRepository, []);
+  const fileStore = useMemo(() => createDailyPhotoFileStoreForRuntime(Platform.OS), []);
+  const repository = useMemo(() => createDailyPhotoRepositoryForRuntime(Platform.OS), []);
   const todayKey = useMemo(() => toDateKey(today), [today]);
   const calendar = useMemo(() => buildCalendarMonth(activeMonth, today, photosByDate), [activeMonth, photosByDate, today]);
   const activeMonthKey = useMemo(() => toMonthKey(activeMonth), [activeMonth]);
@@ -74,7 +78,7 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
   const handleSelectDate = async (dateKey: string) => {
     const photo = photosByDate[dateKey] ?? null;
 
-    if (isDisplayablePhoto(photo)) {
+    if (isDisplayableDailyPhoto(photo)) {
       setSelectedPhotoDateKey(dateKey);
       return;
     }
@@ -235,58 +239,5 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
     handleChangeSelectedPhoto,
     handleDeleteSelectedPhoto,
     handleSelectDate,
-  };
-}
-
-function toPhotosByDate(photos: DailyPhoto[]): Record<string, DailyPhoto> {
-  return Object.fromEntries(photos.map((photo) => [photo.date, photo]));
-}
-
-function isDisplayablePhoto(photo: DailyPhoto | null) {
-  return Boolean(photo?.imagePath);
-}
-
-function isDevelopmentSampleStorageKey(storageKey: string) {
-  return storageKey.startsWith("development/");
-}
-
-function waitForNextFrame() {
-  return new Promise<void>((resolve) => {
-    requestAnimationFrame(() => resolve());
-  });
-}
-
-function createDailyPhotoRepository(): DailyPhotoRepository {
-  if (Platform.OS === "web") {
-    return createLocalDailyPhotoRepository();
-  }
-
-  return createLocalDailyPhotoRepository({
-    metadataStore: createLocalDailyPhotoMetadataStore(),
-  });
-}
-
-function createDailyPhotoFileStore(): DailyPhotoFileStore {
-  if (Platform.OS === "web") {
-    return createWebDailyPhotoFileStore();
-  }
-
-  return createLocalDailyPhotoFileStore();
-}
-
-function createWebDailyPhotoFileStore(): DailyPhotoFileStore {
-  return {
-    async save({ date, sourceUri, userId }) {
-      return {
-        imagePath: sourceUri,
-        localImagePath: sourceUri,
-        remoteImageUrl: null,
-        storageKey: `web/${userId}/${date}/${dayjs().valueOf().toString(36)}`,
-        syncStatus: "local",
-      };
-    },
-    async delete() {
-      return;
-    },
   };
 }

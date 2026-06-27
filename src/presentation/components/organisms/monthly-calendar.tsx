@@ -3,6 +3,7 @@ import {type LayoutChangeEvent, PanResponder, StyleSheet, Text, useWindowDimensi
 
 import type {CalendarMonth} from "@/application/services/calendar/calendar-grid";
 import {CalendarCell} from "@/presentation/components/molecules/calendar-cell";
+import { appColors } from "@/presentation/theme/colors";
 
 const weekDays = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const calendarCellAspectRatio = 0.58;
@@ -72,7 +73,7 @@ export function MonthlyCalendar(props: MonthlyCalendarProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#ffffff",
+    backgroundColor: appColors.background,
     borderRadius: 0,
     flex: 1,
     overflow: "hidden",
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   weekday: {
-    backgroundColor: "#ffffff",
+    backgroundColor: appColors.background,
     color: "#9a9a9a",
     flex: 1,
     fontSize: 15,
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   grid: {
-    backgroundColor: "#ffffff",
+    backgroundColor: appColors.background,
     flex: 1,
     flexDirection: "row",
     flexWrap: "wrap",

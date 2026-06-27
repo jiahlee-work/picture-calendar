@@ -1,6 +1,7 @@
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { DailyPhotoPolicyDialogState } from "@/application/hooks/useTodayPhotoFlow";
+import { appColors } from "@/presentation/theme/colors";
 
 type DailyPhotoPolicyDialogProps = {
   dialog?: DailyPhotoPolicyDialogState;
@@ -34,19 +35,19 @@ export function DailyPhotoPolicyDialog(props: DailyPhotoPolicyDialogProps) {
 const styles = StyleSheet.create({
   backdrop: {
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.26)",
+    backgroundColor: appColors.blackOverlay26,
     flex: 1,
     justifyContent: "center",
     padding: 24,
   },
   card: {
-    backgroundColor: "#ffffff",
+    backgroundColor: appColors.background,
     borderRadius: 24,
     padding: 20,
     width: "100%",
   },
   title: {
-    color: "#111111",
+    color: appColors.black,
     fontSize: 18,
     fontWeight: "900",
   },
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     alignItems: "center",
-    backgroundColor: "#202020",
+    backgroundColor: appColors.black,
     borderRadius: 16,
     minWidth: 72,
     paddingHorizontal: 18,

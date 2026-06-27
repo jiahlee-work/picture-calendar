@@ -8,6 +8,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "react-native-reanimated";
 
+import { appColors } from "@/presentation/theme/colors";
+
 export { ErrorBoundary } from "expo-router";
 
 export default function RootLayout() {
@@ -18,7 +20,7 @@ export default function RootLayout() {
 
     NativeStatusBar.setHidden(false);
     NativeStatusBar.setBarStyle("dark-content");
-    NativeStatusBar.setBackgroundColor("#ffffff");
+    NativeStatusBar.setBackgroundColor(appColors.background);
     NativeStatusBar.setTranslucent(false);
     NavigationBar.setHidden(false);
     NavigationBar.setStyle("light");
@@ -31,6 +33,7 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="index" />
             <Stack.Screen name="recap" />
+            <Stack.Screen name="recap/[year]/[month]" />
             <Stack.Screen name="stickers" />
             <Stack.Screen name="profile" />
           </Stack>

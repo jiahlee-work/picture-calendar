@@ -1,6 +1,8 @@
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { Pressable, StyleSheet } from "react-native";
 
+import { appColors } from "@/presentation/theme/colors";
+
 type SymbolIconButtonProps = {
   accessibilityLabel: string;
   icon: SymbolViewProps["name"];
@@ -20,10 +22,10 @@ export function SymbolIconButton(props: SymbolIconButtonProps) {
       onPress={onPress}
     >
       <SymbolView
-        colors={["#222222"]}
+        colors={[appColors.black]}
         name={icon}
         size={24}
-        tintColor="#222222"
+        tintColor={appColors.black}
         type="monochrome"
         weight="bold"
       />

@@ -8,6 +8,7 @@ import { DailyPhotoPolicyDialog } from "@/presentation/components/molecules/dail
 import { AppMenuButton } from "@/presentation/components/organisms/app-menu-button";
 import { DailyPhotoDetailSheet } from "@/presentation/components/organisms/daily-photo-detail-sheet";
 import { MonthlyCalendar } from "@/presentation/components/organisms/monthly-calendar";
+import { appColors } from "@/presentation/theme/colors";
 import { dayjs } from "@/shared/date/dayjs";
 
 export function MonthlyCalendarScreen() {
@@ -90,11 +91,11 @@ export function MonthlyCalendarScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: appColors.background,
   },
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: appColors.background,
     paddingTop: 10,
   },
   appBar: {
@@ -106,7 +107,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   appTitle: {
-    color: "#202020",
+    color: appColors.black,
     fontSize: 28,
     fontWeight: "900",
     textAlign: "left",

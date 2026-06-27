@@ -6,6 +6,7 @@ import Animated, { Easing, FadeOut, ZoomInEasyDown } from "react-native-reanimat
 
 import { SymbolIconButton } from "@/presentation/components/atoms/symbol-icon-button";
 import { AppMenuItem } from "@/presentation/components/molecules/app-menu-item";
+import { appColors } from "@/presentation/theme/colors";
 
 type AppRoute = "/" | "/recap" | "/stickers" | "/profile";
 type AppMenuButtonProps = {
@@ -123,7 +124,7 @@ const styles = StyleSheet.create({
     zIndex: 9,
   },
   panel: {
-    backgroundColor: "#ffffff",
+    backgroundColor: appColors.background,
     borderColor: "#eeeeee",
     borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,

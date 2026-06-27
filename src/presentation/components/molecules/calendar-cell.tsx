@@ -2,6 +2,7 @@ import {Pressable, StyleSheet, Text, View} from "react-native";
 
 import type {CalendarGridCell} from "@/application/services/calendar/calendar-grid";
 import {DailyPhotoImage} from "@/presentation/components/atoms/daily-photo-image";
+import { appColors } from "@/presentation/theme/colors";
 
 type CalendarCellProps = {
   cellHeight: number;
@@ -30,7 +31,7 @@ export function CalendarCell(props: CalendarCellProps) {
 
 const styles = StyleSheet.create({
   cell: {
-    backgroundColor: "#ffffff",
+    backgroundColor: appColors.background,
     borderColor: "#f0f0f0",
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderRightWidth: StyleSheet.hairlineWidth,
@@ -39,13 +40,13 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   emptyCell: {
-    backgroundColor: "#ffffff",
+    backgroundColor: appColors.background,
   },
   todayCell: {
     backgroundColor: "#eeeeee",
   },
   dateText: {
-    color: "#242424",
+    color: appColors.black,
     fontSize: 15,
     fontWeight: "400",
     left: 0,
@@ -56,7 +57,7 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   todayText: {
-    backgroundColor: "#222222",
+    backgroundColor: appColors.black,
     borderRadius: 999,
     color: "#ffffff",
     fontWeight: "900",

@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import { DailyPhotoImage } from "@/presentation/components/atoms/daily-photo-image";
+import { appColors } from "@/presentation/theme/colors";
 
 type DailyPhotoDetailSheetProps = {
   dateLabel: string;
@@ -66,7 +67,7 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
 
     return () => {
       NativeStatusBar.setBarStyle("dark-content");
-      NativeStatusBar.setBackgroundColor("#ffffff");
+      NativeStatusBar.setBackgroundColor(appColors.background);
       NativeStatusBar.setTranslucent(false);
     };
   }, [visible]);
@@ -133,7 +134,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   sheetBackground: {
-    backgroundColor: "#111111",
+    backgroundColor: appColors.black,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
   },
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.34)",
+    backgroundColor: appColors.blackOverlay34,
     borderColor: "rgba(255,255,255,0.24)",
     borderRadius: 22,
     borderWidth: 1,
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
   },
   changePanel: {
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.34)",
+    backgroundColor: appColors.blackOverlay34,
     borderColor: "rgba(255,255,255,0.24)",
     borderRadius: 24,
     borderWidth: 1,
