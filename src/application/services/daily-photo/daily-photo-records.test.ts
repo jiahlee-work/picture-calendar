@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  isDevelopmentSampleStorageKey,
-  isDisplayableDailyPhoto,
-  toPhotosByDate,
-} from "@/application/services/daily-photo/daily-photo-records";
+import { isDisplayableDailyPhoto, toPhotosByDate } from "@/application/services/daily-photo/daily-photo-records";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 
 describe("daily photo records", () => {
@@ -22,11 +18,6 @@ describe("daily photo records", () => {
     expect(isDisplayableDailyPhoto(createDailyPhoto({ imagePath: "file://photo.jpg" }))).toBe(true);
     expect(isDisplayableDailyPhoto(createDailyPhoto({ imagePath: "" }))).toBe(false);
     expect(isDisplayableDailyPhoto(null)).toBe(false);
-  });
-
-  it("detects development sample storage keys", () => {
-    expect(isDevelopmentSampleStorageKey("development/android-sample-23")).toBe(true);
-    expect(isDevelopmentSampleStorageKey("local/user/photo.jpg")).toBe(false);
   });
 });
 

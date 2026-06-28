@@ -53,37 +53,6 @@ describe("recap month list", () => {
     expect(june?.status).toBe("selected");
   });
 
-  it("keeps development sample records out of recap counts and previews", async () => {
-    const repository = createLocalDailyPhotoRepository();
-
-    await repository.saveToday({
-      date: "2026-06-02",
-      imagePath: "file:///data/user/0/com.jiahleework.pical/files/PicalSamples/10.jpg",
-      storageKey: "development/android-sample-2",
-      userId: "user-1",
-    });
-    await repository.saveToday({
-      date: "2026-06-04",
-      imagePath: "file:///data/user/0/com.jiahleework.pical/files/PicalSamples/44.jpg",
-      storageKey: "development/android-sample-4",
-      userId: "user-1",
-    });
-    await repository.saveToday({ date: "2026-06-14", imagePath: "file://real-14.jpg", userId: "user-1" });
-    await repository.saveToday({ date: "2026-06-21", imagePath: "file://real-21.jpg", userId: "user-1" });
-
-    const months = await createRecapMonthSummaries({
-      currentDate: dayjs("2026-06-28").toDate(),
-      previewPhotoLimit: 4,
-      repository,
-      userId: "user-1",
-      year: 2026,
-    });
-    const june = months.find((month) => month.month === "2026-06");
-
-    expect(june?.photoCount).toBe(2);
-    expect(june?.previewPhotos.map((photo) => photo.date)).toEqual(["2026-06-14", "2026-06-21"]);
-  });
-
   it("hides future months and months before the recap start month by default", () => {
     expect(createVisibleRecapYearMonths({
       currentDate: dayjs("2026-06-28").toDate(),
@@ -96,7 +65,7 @@ describe("recap month list", () => {
     }).map((month) => month.month)).toEqual(["2026-06", "2026-07", "2026-08"]);
   });
 
-  it("includes months before the recap start month only when requested for development", () => {
+  it("includes months before the recap start month only when requested", () => {
     expect(createVisibleRecapYearMonths({
       currentDate: dayjs("2026-06-28").toDate(),
       includeMonthsBeforeStart: true,

@@ -4,11 +4,7 @@ import { Platform } from "react-native";
 import { buildCalendarMonth } from "@/application/services/calendar/calendar-grid";
 import { createDailyPhotoFileStoreForRuntime } from "@/application/services/daily-photo/daily-photo-file-store-factory";
 import { canEditDailyPhoto, dailyPhotoMessages } from "@/application/services/daily-photo/daily-photo-policy";
-import {
-  isDevelopmentSampleStorageKey,
-  isDisplayableDailyPhoto,
-  toPhotosByDate,
-} from "@/application/services/daily-photo/daily-photo-records";
+import { isDisplayableDailyPhoto, toPhotosByDate } from "@/application/services/daily-photo/daily-photo-records";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import { createDailyPhotoRepositoryForRuntime } from "@/application/services/daily-photo/daily-photo-repository-factory";
 import { waitForNextFrame } from "@/application/utils/frame";
@@ -100,10 +96,6 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
   };
 
   const deleteStoredPhotoFile = async (storageKey: string, message: string) => {
-    if (isDevelopmentSampleStorageKey(storageKey)) {
-      return;
-    }
-
     try {
       await fileStore.delete(storageKey);
     } catch (error) {
