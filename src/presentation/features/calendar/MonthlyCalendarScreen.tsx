@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { addMonths } from "@/application/services/calendar/calendar-grid";
 import { useTodayPhotoFlow } from "@/application/hooks/useTodayPhotoFlow";
 import { DailyPhotoPolicyDialog } from "@/presentation/components/molecules/daily-photo-policy-dialog";
+import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { AppMenuButton } from "@/presentation/components/organisms/app-menu-button";
+import { CalendarMonthPickerSheet } from "@/presentation/components/organisms/calendar-month-picker-sheet";
 import { DailyPhotoDetailSheet } from "@/presentation/components/organisms/daily-photo-detail-sheet";
 import { MonthlyCalendar } from "@/presentation/components/organisms/monthly-calendar";
 import { appColors } from "@/presentation/theme/colors";
@@ -14,6 +16,7 @@ import { dayjs } from "@/shared/date/dayjs";
 export function MonthlyCalendarScreen() {
   const [activeMonth, setActiveMonth] = useState(() => dayjs().startOf("month").toDate());
   const [isDecorating, setIsDecorating] = useState(false);
+  const [isMonthPickerVisible, setIsMonthPickerVisible] = useState(false);
   const {
     calendar,
     photoDetail,
@@ -32,6 +35,16 @@ export function MonthlyCalendarScreen() {
   };
   const handleToggleDecorating = () => {
     setIsDecorating((current) => !current);
+  };
+  const handleOpenMonthPicker = () => {
+    setIsMonthPickerVisible(true);
+  };
+  const handleCloseMonthPicker = () => {
+    setIsMonthPickerVisible(false);
+  };
+  const handleConfirmMonth = (date: Date) => {
+    setActiveMonth(date);
+    setIsMonthPickerVisible(false);
   };
   const handleRequestDeletePhoto = () => {
     Alert.alert(
@@ -56,13 +69,15 @@ export function MonthlyCalendarScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <View style={styles.appBar}>
-          <Text style={styles.appTitle}>{calendar.title}</Text>
+        <AppBar style={styles.appBar}>
+          <AppBar.Title accessibilityLabel="연월 선택 열기" onPress={handleOpenMonthPicker}>
+            {calendar.title}
+          </AppBar.Title>
           <AppMenuButton
             decorationLabel={isDecorating ? "꾸미기 종료" : "꾸미기"}
             onToggleDecorating={handleToggleDecorating}
           />
-        </View>
+        </AppBar>
 
         <MonthlyCalendar
           calendar={calendar}
@@ -84,6 +99,12 @@ export function MonthlyCalendarScreen() {
         onClose={dismissPhotoDetail}
         onDeletePhoto={handleRequestDeletePhoto}
       />
+      <CalendarMonthPickerSheet
+        value={activeMonth}
+        visible={isMonthPickerVisible}
+        onClose={handleCloseMonthPicker}
+        onConfirm={handleConfirmMonth}
+      />
     </SafeAreaView>
   );
 }
@@ -99,17 +120,6 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   appBar: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
     marginBottom: 12,
-    minHeight: 52,
-    paddingHorizontal: 20,
-  },
-  appTitle: {
-    color: appColors.black,
-    fontSize: 28,
-    fontWeight: "900",
-    textAlign: "left",
   },
 });

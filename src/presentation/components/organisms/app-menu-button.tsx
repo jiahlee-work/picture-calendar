@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "absolute",
     right: 0,
-    top: 46,
+    top: 48,
     zIndex: 11,
   },
 });

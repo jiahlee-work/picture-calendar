@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { AppMenuButton } from "@/presentation/components/organisms/app-menu-button";
 import { appColors } from "@/presentation/theme/colors";
 
@@ -15,10 +16,10 @@ export function FeatureStatusScreen(props: FeatureStatusScreenProps) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.appBar}>
-        <Text style={styles.appTitle}>{title}</Text>
+      <AppBar style={styles.appBar}>
+        <AppBar.Title>{title}</AppBar.Title>
         <AppMenuButton />
-      </View>
+      </AppBar>
       <View style={styles.container}>
         <Text style={styles.eyebrow}>{eyebrow}</Text>
         <Text style={styles.body}>{body}</Text>
@@ -33,17 +34,7 @@ const styles = StyleSheet.create({
     backgroundColor: appColors.background,
   },
   appBar: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    minHeight: 52,
-    paddingHorizontal: 20,
     paddingTop: 10,
-  },
-  appTitle: {
-    color: appColors.black,
-    fontSize: 28,
-    fontWeight: "900",
   },
   container: {
     flex: 1,

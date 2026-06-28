@@ -22,10 +22,10 @@ export function SymbolIconButton(props: SymbolIconButtonProps) {
       onPress={onPress}
     >
       <SymbolView
-        colors={[appColors.black]}
+        colors={[appColors.white]}
         name={icon}
         size={24}
-        tintColor={appColors.black}
+        tintColor={appColors.white}
         type="monochrome"
         weight="bold"
       />
@@ -36,13 +36,13 @@ export function SymbolIconButton(props: SymbolIconButtonProps) {
 const styles = StyleSheet.create({
   button: {
     alignItems: "center",
-    backgroundColor: "#eeeeee",
-    borderRadius: 18,
-    height: 38,
+    backgroundColor: appColors.blackOverlay26,
+    borderRadius: 20,
+    height: 40,
     justifyContent: "center",
-    width: 48,
+    width: 40,
   },
   buttonPressed: {
-    backgroundColor: "#e2e2e2",
+    backgroundColor: appColors.blackOverlay34,
   },
 });

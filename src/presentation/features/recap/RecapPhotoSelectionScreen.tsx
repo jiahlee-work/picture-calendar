@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "rea
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useMonthlyRecapSelection } from "@/application/hooks/useMonthlyRecapSelection";
+import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { DailyPhotoDetailSheet } from "@/presentation/components/organisms/daily-photo-detail-sheet";
 import { MonthlyCalendar } from "@/presentation/components/organisms/monthly-calendar";
 import { appColors } from "@/presentation/theme/colors";
@@ -75,22 +76,10 @@ export function RecapPhotoSelectionScreen(props: RecapPhotoSelectionScreenProps)
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <View style={styles.appBar}>
-          <View style={styles.titleGroup}>
-            <Text style={styles.title}>{title}</Text>
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="대표 사진 선택 취소"
-            style={({ pressed }) => [
-              styles.actionButton,
-              pressed && styles.actionButtonPressed,
-            ]}
-            onPress={handleCancelPress}
-          >
-            <Text style={styles.actionText}>취소</Text>
-          </Pressable>
-        </View>
+        <AppBar style={styles.appBar}>
+          <AppBar.Title variant="small">{title}</AppBar.Title>
+          <AppBar.Action accessibilityLabel="대표 사진 선택 취소" label="취소" onPress={handleCancelPress} />
+        </AppBar>
 
         {isLoading ? (
           <View style={styles.statusPanel}>
@@ -151,39 +140,8 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   appBar: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 12,
     marginBottom: 12,
-    minHeight: 52,
     paddingHorizontal: 16,
-  },
-  titleGroup: {
-    flex: 1,
-  },
-  title: {
-    color: appColors.black,
-    fontSize: 24,
-    fontWeight: "900",
-    lineHeight: 30,
-  },
-  actionButton: {
-    alignItems: "center",
-    backgroundColor: "#eeeeee",
-    borderRadius: 18,
-    height: 38,
-    justifyContent: "center",
-    minWidth: 58,
-    paddingHorizontal: 14,
-  },
-  actionButtonPressed: {
-    opacity: 0.78,
-  },
-  actionText: {
-    color: appColors.black,
-    fontSize: 15,
-    fontWeight: "900",
-    lineHeight: 20,
   },
   selectionFooter: {
     backgroundColor: appColors.background,
