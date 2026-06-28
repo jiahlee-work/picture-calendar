@@ -3,8 +3,12 @@ import { Platform } from "react-native";
 
 import { buildCalendarMonth } from "@/application/services/calendar/calendar-grid";
 import { createDailyPhotoFileStoreForRuntime } from "@/application/services/daily-photo/daily-photo-file-store-factory";
-import { canEditDailyPhoto, dailyPhotoMessages } from "@/application/services/daily-photo/daily-photo-policy";
-import { isDisplayableDailyPhoto, toPhotosByDate } from "@/application/services/daily-photo/daily-photo-records";
+import {
+  canEditDailyPhoto,
+  canOpenDailyPhotoDetail,
+  dailyPhotoMessages,
+} from "@/application/services/daily-photo/daily-photo-policy";
+import { toPhotosByDate } from "@/application/services/daily-photo/daily-photo-records";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import { createDailyPhotoRepositoryForRuntime } from "@/application/services/daily-photo/daily-photo-repository-factory";
 import { waitForNextFrame } from "@/application/utils/frame";
@@ -64,11 +68,6 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
   const handleSelectDate = async (dateKey: string) => {
     const photo = photosByDate[dateKey] ?? null;
 
-    if (isDisplayableDailyPhoto(photo)) {
-      setSelectedPhotoDateKey(dateKey);
-      return;
-    }
-
     setSelectedPhotoDateKey(null);
 
     if (!canEditDailyPhoto(dateKey, todayKey)) {
@@ -77,6 +76,11 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
         title: "사진 추가 불가",
         message: dailyPhotoMessages.unavailable,
       });
+      return;
+    }
+
+    if (canOpenDailyPhotoDetail(dateKey, todayKey, photo)) {
+      setSelectedPhotoDateKey(dateKey);
       return;
     }
 
