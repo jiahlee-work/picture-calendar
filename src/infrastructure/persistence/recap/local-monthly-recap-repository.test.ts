@@ -24,6 +24,9 @@ describe("createLocalMonthlyRecapRepository", () => {
         "photo-10",
         "photo-11",
       ],
+      templateId: "calendar_collage",
+      calendarPhotoIds: ["photo-1", "photo-11", "missing-photo"],
+      backgroundPhotoIds: ["photo-2", "photo-3"],
     });
 
     expect(recap.selectionStatus).toBe("selected");
@@ -39,6 +42,9 @@ describe("createLocalMonthlyRecapRepository", () => {
       "photo-9",
       "photo-10",
     ]);
+    expect(recap.templateId).toBe("calendar_collage");
+    expect(recap.calendarPhotoIds).toEqual(["photo-1"]);
+    expect(recap.backgroundPhotoIds).toEqual(["photo-2", "photo-3"]);
     expect(recap.completedAt).not.toBeNull();
   });
 
@@ -103,6 +109,8 @@ describe("createLocalMonthlyRecapRepository", () => {
 
     expect(skippedRecap.selectionStatus).toBe("skipped");
     expect(skippedRecap.selectedPhotoIds).toEqual([]);
+    expect(skippedRecap.calendarPhotoIds).toEqual([]);
+    expect(skippedRecap.backgroundPhotoIds).toEqual([]);
     await expect(restoredRepository.getByMonth("user-1", "2026-06")).resolves.toMatchObject({
       month: "2026-06",
       selectedPhotoIds: [],

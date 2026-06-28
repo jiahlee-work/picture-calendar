@@ -1,10 +1,14 @@
 export type MonthlyRecapSelectionStatus = "not_started" | "prompted" | "selected" | "skipped";
+export type MonthlyRecapTemplateId = "message" | "calendar_collage";
 
 export type MonthlyRecap = {
   id: string;
   userId: string;
   month: string;
   selectedPhotoIds: string[];
+  templateId: MonthlyRecapTemplateId;
+  calendarPhotoIds: string[];
+  backgroundPhotoIds: string[];
   selectionStatus: MonthlyRecapSelectionStatus;
   promptedAt: string | null;
   completedAt: string | null;
@@ -16,6 +20,9 @@ export type MonthlyRecapSelectionDraft = {
   userId: string;
   month: string;
   selectedPhotoIds: string[];
+  templateId?: MonthlyRecapTemplateId;
+  calendarPhotoIds?: string[];
+  backgroundPhotoIds?: string[];
 };
 
 export type MonthlyRecapRepository = {

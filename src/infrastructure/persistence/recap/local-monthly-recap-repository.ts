@@ -4,6 +4,7 @@ import type {
   MonthlyRecapRepository,
   MonthlyRecapSelectionDraft,
   MonthlyRecapSelectionStatus,
+  MonthlyRecapTemplateId,
 } from "@/shared/recap/types";
 import { dayjs } from "@/shared/date/dayjs";
 
@@ -45,10 +46,15 @@ export function createLocalMonthlyRecapRepository(
       });
     },
     async saveSelection(selection) {
+      const selectedPhotoIds = toSelectedPhotoIds(selection);
+
       return upsertMonthlyRecap(metadataStore, now, {
         userId: selection.userId,
         month: selection.month,
-        selectedPhotoIds: toSelectedPhotoIds(selection),
+        selectedPhotoIds,
+        templateId: selection.templateId ?? toDefaultTemplateId(selectedPhotoIds),
+        calendarPhotoIds: toLayoutPhotoIds(selection.calendarPhotoIds ?? [], selectedPhotoIds),
+        backgroundPhotoIds: toLayoutPhotoIds(selection.backgroundPhotoIds ?? [], selectedPhotoIds),
         status: "selected",
         completedAt: now().toISOString(),
       });
@@ -58,6 +64,9 @@ export function createLocalMonthlyRecapRepository(
         userId,
         month,
         selectedPhotoIds: [],
+        templateId: "message",
+        calendarPhotoIds: [],
+        backgroundPhotoIds: [],
         status: "skipped",
         completedAt: now().toISOString(),
       });
@@ -91,6 +100,9 @@ async function upsertMonthlyRecap(
     userId: string;
     month: string;
     selectedPhotoIds?: string[];
+    templateId?: MonthlyRecapTemplateId;
+    calendarPhotoIds?: string[];
+    backgroundPhotoIds?: string[];
     status: MonthlyRecapSelectionStatus;
     promptedAt?: string;
     completedAt?: string;
@@ -113,6 +125,9 @@ function createMonthlyRecap(
     userId: string;
     month: string;
     selectedPhotoIds?: string[];
+    templateId?: MonthlyRecapTemplateId;
+    calendarPhotoIds?: string[];
+    backgroundPhotoIds?: string[];
     status: MonthlyRecapSelectionStatus;
     promptedAt?: string;
     completedAt?: string;
@@ -129,6 +144,9 @@ function createMonthlyRecap(
     userId: update.userId,
     month: update.month,
     selectedPhotoIds: update.selectedPhotoIds ?? existing?.selectedPhotoIds ?? [],
+    templateId: update.templateId ?? existing?.templateId ?? toDefaultTemplateId(update.selectedPhotoIds ?? existing?.selectedPhotoIds ?? []),
+    calendarPhotoIds: update.calendarPhotoIds ?? existing?.calendarPhotoIds ?? [],
+    backgroundPhotoIds: update.backgroundPhotoIds ?? existing?.backgroundPhotoIds ?? [],
     selectionStatus,
     promptedAt: update.promptedAt ?? existing?.promptedAt ?? null,
     completedAt: update.completedAt ?? existing?.completedAt ?? null,
@@ -146,6 +164,16 @@ function shouldKeepExistingSelectionStatus(
 
 function toSelectedPhotoIds(selection: MonthlyRecapSelectionDraft) {
   return Array.from(new Set(selection.selectedPhotoIds)).slice(0, monthlyRecapSelectionLimit);
+}
+
+function toLayoutPhotoIds(photoIds: string[], selectedPhotoIds: string[]): string[] {
+  const selectedPhotoIdsSet = new Set(selectedPhotoIds);
+
+  return Array.from(new Set(photoIds)).filter((photoId) => selectedPhotoIdsSet.has(photoId));
+}
+
+function toDefaultTemplateId(selectedPhotoIds: string[]): MonthlyRecapTemplateId {
+  return selectedPhotoIds.length > 0 && selectedPhotoIds.length <= 3 ? "message" : "calendar_collage";
 }
 
 function toMonthlyRecapKey(userId: string, month: string): string {

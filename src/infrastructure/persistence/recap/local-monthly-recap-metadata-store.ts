@@ -4,6 +4,7 @@ import type {
   MonthlyRecap,
   MonthlyRecapMetadataStore,
   MonthlyRecapSelectionStatus,
+  MonthlyRecapTemplateId,
 } from "@/shared/recap/types";
 
 const monthlyRecapsDirectoryName = "monthly-recaps";
@@ -66,11 +67,16 @@ function toMonthlyRecap(value: unknown): MonthlyRecap | null {
     return null;
   }
 
+  const selectedPhotoIds = stringArrayValue(value.selectedPhotoIds);
+
   return {
     id,
     userId,
     month,
-    selectedPhotoIds: stringArrayValue(value.selectedPhotoIds),
+    selectedPhotoIds,
+    templateId: templateIdValue(value.templateId, selectedPhotoIds),
+    calendarPhotoIds: stringArrayValue(value.calendarPhotoIds),
+    backgroundPhotoIds: stringArrayValue(value.backgroundPhotoIds),
     selectionStatus: selectionStatusValue(value.selectionStatus),
     promptedAt: stringValue(value.promptedAt),
     completedAt: stringValue(value.completedAt),
@@ -97,4 +103,12 @@ function selectionStatusValue(value: unknown): MonthlyRecapSelectionStatus {
   }
 
   return "not_started";
+}
+
+function templateIdValue(value: unknown, selectedPhotoIds: string[]): MonthlyRecapTemplateId {
+  if (value === "message" || value === "calendar_collage") {
+    return value;
+  }
+
+  return selectedPhotoIds.length > 0 && selectedPhotoIds.length <= 3 ? "message" : "calendar_collage";
 }

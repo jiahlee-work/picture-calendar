@@ -4,6 +4,7 @@ export type {
   MonthlyRecapRepository,
   MonthlyRecapSelectionDraft,
   MonthlyRecapSelectionStatus,
+  MonthlyRecapTemplateId,
 } from "@/shared/recap/types";
 
 export type RecapExportRequest = {

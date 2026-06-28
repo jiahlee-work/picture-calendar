@@ -1,8 +1,5 @@
 import type { DailyPhotoRepository, DailyPhoto } from "@/application/services/daily-photo/types";
-import {
-  isDevelopmentSampleStorageKey,
-  isDisplayableDailyPhoto,
-} from "@/application/services/daily-photo/daily-photo-records";
+import { sortRecapMonthPhotos } from "@/application/services/recap/monthly-recap-photos";
 import type { MonthlyRecapRepository } from "@/application/services/recap/types";
 import { toMonthKey } from "@/shared/date/date-key";
 import { dayjs } from "@/shared/date/dayjs";
@@ -99,8 +96,7 @@ export async function createRecapMonthSummaries({
   return Promise.all(
     months.map(async (month) => {
       const photos = await repository.listByMonth(userId, month.month);
-      const sortedPhotos = [...photos].sort((firstPhoto, secondPhoto) => firstPhoto.date.localeCompare(secondPhoto.date));
-      const recapPhotos = sortedPhotos.filter(isRecapPreviewPhoto);
+      const recapPhotos = sortRecapMonthPhotos(photos);
       const recap = await recapRepository?.getByMonth(userId, month.month);
       const recapPhotoIds = new Set(recapPhotos.map((photo) => photo.id));
       const selectedPhotoIds = recap?.selectionStatus === "selected"
@@ -127,14 +123,6 @@ export function createRecapYearOptions(currentYear = dayjs().year()): RecapYearO
   ];
 }
 
-function isRecapPreviewPhoto(photo: DailyPhoto): boolean {
-  if (!isDisplayableDailyPhoto(photo)) {
-    return false;
-  }
-
-  return !photo.storageKey || !isDevelopmentSampleStorageKey(photo.storageKey);
-}
-
 function isVisibleRecapMonth({
   currentDate,
   includeMonthsBeforeStart,
@@ -157,5 +145,9 @@ function toRecapMonthStatus(photoCount: number, selectedPhotoIds: string[]): Rec
     return "disabled";
   }
 
-  return selectedPhotoIds.length > 0 ? "selected" : "needs_selection";
+  if (selectedPhotoIds.length > 0 || photoCount < 10) {
+    return "selected";
+  }
+
+  return "needs_selection";
 }

@@ -50,7 +50,7 @@ describe("recap month list", () => {
     expect(june?.photoCount).toBe(5);
     expect(june?.previewPhotos).toHaveLength(3);
     expect(june?.previewPhotos.map((photo) => photo.date)).toEqual(["2026-06-01", "2026-06-02", "2026-06-03"]);
-    expect(june?.status).toBe("needs_selection");
+    expect(june?.status).toBe("selected");
   });
 
   it("keeps development sample records out of recap counts and previews", async () => {
@@ -132,6 +132,29 @@ describe("recap month list", () => {
       "2026-06",
     ]);
     expect(months.every((month) => month.status === "disabled")).toBe(true);
+  });
+
+  it("marks months with at least 10 photos and no selected photos as needing selection", async () => {
+    const repository = createLocalDailyPhotoRepository();
+
+    for (let index = 0; index < 10; index += 1) {
+      await repository.saveToday({
+        date: `2026-06-${String(index + 1).padStart(2, "0")}`,
+        imagePath: `file://real-${index + 1}.jpg`,
+        userId: "user-1",
+      });
+    }
+
+    const months = await createRecapMonthSummaries({
+      currentDate: dayjs("2026-06-28").toDate(),
+      repository,
+      userId: "user-1",
+      year: 2026,
+    });
+    const june = months.find((month) => month.month === "2026-06");
+
+    expect(june?.photoCount).toBe(10);
+    expect(june?.status).toBe("needs_selection");
   });
 
   it("marks a month with selected representative photos as selected", async () => {

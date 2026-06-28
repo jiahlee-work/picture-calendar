@@ -6,6 +6,7 @@ import { createDailyPhotoRepositoryForRuntime } from "@/application/services/dai
 import { isDisplayableDailyPhoto, toPhotosByDate } from "@/application/services/daily-photo/daily-photo-records";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import { createMonthlyRecapRepositoryForRuntime } from "@/application/services/recap/monthly-recap-repository-factory";
+import { createManualMonthlyRecapDraft } from "@/application/services/recap/monthly-recap-layout";
 import {
   applyMonthlyRecapSelectionLimit,
   monthlyRecapSelectionLimit,
@@ -125,11 +126,11 @@ export function useMonthlyRecapSelection(monthKey: string, today = dayjs().toDat
   }, [photosByDate, selectedPhotoIds.length, selectedPhotoIdsSet]);
 
   const handleSaveSelection = useCallback(async () => {
-    const savedRecap = await recapRepository.saveSelection({
+    const savedRecap = await recapRepository.saveSelection(createManualMonthlyRecapDraft({
       userId: localUserId,
       month: monthKey,
       selectedPhotoIds,
-    });
+    }));
 
     setSavedSelectedPhotoIds(savedRecap.selectedPhotoIds);
 
