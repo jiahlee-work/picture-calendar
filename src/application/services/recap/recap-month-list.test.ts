@@ -48,6 +48,36 @@ describe("recap month list", () => {
     expect(june?.previewPhotos.map((photo) => photo.date)).toEqual(["2026-06-01", "2026-06-02", "2026-06-03"]);
   });
 
+  it("keeps development sample records out of recap counts and previews", async () => {
+    const repository = createLocalDailyPhotoRepository();
+
+    await repository.saveToday({
+      date: "2026-06-02",
+      imagePath: "file:///data/user/0/com.jiahleework.pical/files/PicalSamples/10.jpg",
+      storageKey: "development/android-sample-2",
+      userId: "user-1",
+    });
+    await repository.saveToday({
+      date: "2026-06-04",
+      imagePath: "file:///data/user/0/com.jiahleework.pical/files/PicalSamples/44.jpg",
+      storageKey: "development/android-sample-4",
+      userId: "user-1",
+    });
+    await repository.saveToday({ date: "2026-06-14", imagePath: "file://real-14.jpg", userId: "user-1" });
+    await repository.saveToday({ date: "2026-06-21", imagePath: "file://real-21.jpg", userId: "user-1" });
+
+    const months = await createRecapMonthSummaries({
+      previewPhotoLimit: 4,
+      repository,
+      userId: "user-1",
+      year: 2026,
+    });
+    const june = months.find((month) => month.month === "2026-06");
+
+    expect(june?.photoCount).toBe(2);
+    expect(june?.previewPhotos.map((photo) => photo.date)).toEqual(["2026-06-14", "2026-06-21"]);
+  });
+
   it("offers the current year as the default year option", () => {
     expect(createRecapYearOptions(2026)).toEqual([
       {

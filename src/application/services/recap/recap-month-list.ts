@@ -1,4 +1,8 @@
 import type { DailyPhotoRepository, DailyPhoto } from "@/application/services/daily-photo/types";
+import {
+  isDevelopmentSampleStorageKey,
+  isDisplayableDailyPhoto,
+} from "@/application/services/daily-photo/daily-photo-records";
 import { toMonthKey } from "@/shared/date/date-key";
 import { dayjs } from "@/shared/date/dayjs";
 
@@ -54,11 +58,12 @@ export async function createRecapMonthSummaries({
     months.map(async (month) => {
       const photos = await repository.listByMonth(userId, month.month);
       const sortedPhotos = [...photos].sort((firstPhoto, secondPhoto) => firstPhoto.date.localeCompare(secondPhoto.date));
+      const recapPhotos = sortedPhotos.filter(isRecapPreviewPhoto);
 
       return {
         ...month,
-        photoCount: sortedPhotos.length,
-        previewPhotos: sortedPhotos.slice(0, previewPhotoLimit),
+        photoCount: recapPhotos.length,
+        previewPhotos: recapPhotos.slice(0, previewPhotoLimit),
       };
     }),
   );
@@ -71,4 +76,12 @@ export function createRecapYearOptions(currentYear = dayjs().year()): RecapYearO
       year: currentYear,
     },
   ];
+}
+
+function isRecapPreviewPhoto(photo: DailyPhoto): boolean {
+  if (!isDisplayableDailyPhoto(photo)) {
+    return false;
+  }
+
+  return !photo.storageKey || !isDevelopmentSampleStorageKey(photo.storageKey);
 }

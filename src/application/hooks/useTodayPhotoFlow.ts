@@ -9,7 +9,6 @@ import {
   isDisplayableDailyPhoto,
   toPhotosByDate,
 } from "@/application/services/daily-photo/daily-photo-records";
-import { seedDevelopmentSampleDailyPhotos } from "@/application/services/daily-photo/development-sample-photos";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import { createDailyPhotoRepositoryForRuntime } from "@/application/services/daily-photo/daily-photo-repository-factory";
 import { waitForNextFrame } from "@/application/utils/frame";
@@ -47,16 +46,7 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
     let isMounted = true;
 
     const loadMonthPhotos = async () => {
-      let monthPhotos = await repository.listByMonth(localUserId, activeMonthKey);
-
-      if (__DEV__ && Platform.OS === "android") {
-        await seedDevelopmentSampleDailyPhotos({
-          monthKey: activeMonthKey,
-          repository,
-          userId: localUserId,
-        });
-        monthPhotos = await repository.listByMonth(localUserId, activeMonthKey);
-      }
+      const monthPhotos = await repository.listByMonth(localUserId, activeMonthKey);
 
       if (!isMounted) {
         return;
