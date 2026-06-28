@@ -42,22 +42,22 @@ type RecapMonthFolderCardProps = {
 
 export function RecapMonthFolderCard(props: RecapMonthFolderCardProps) {
   const { month } = props;
-  const href = {
-    params: {
-      month: month.monthNumber,
-      year: String(month.year),
-    },
-    pathname: "/recap/[year]/[month]" as const,
-  };
-
-  return (
-    <Link href={href} asChild>
-      <Pressable accessibilityRole="button" accessibilityLabel={`${month.monthLabel} recap`} style={styles.card}>
-        <View style={styles.folder}>
-          <View pointerEvents="none" style={styles.folderBack}>
-            <View style={styles.backTabLeft} />
-            <View style={styles.backTabSlope} />
-          </View>
+  const isDisabled = month.status === "disabled";
+  const href = toRecapMonthHref(month);
+  const card = (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${month.monthLabel} recap`}
+      accessibilityState={isDisabled ? { disabled: true } : undefined}
+      disabled={isDisabled}
+      style={styles.card}
+    >
+      <View style={styles.folder}>
+        <View pointerEvents="none" style={[styles.folderBack, isDisabled && styles.disabledFolderBack]}>
+          <View style={[styles.backTabLeft, isDisabled && styles.disabledFolderBack]} />
+          <View style={[styles.backTabSlope, isDisabled && styles.disabledFolderBack]} />
+        </View>
+        {!isDisabled && (
           <View pointerEvents="none" style={styles.previewStack}>
             {month.previewPhotos.slice(0, previewSlots.length).map((photo, index) => {
               const slot = previewSlots[index];
@@ -76,18 +76,47 @@ export function RecapMonthFolderCard(props: RecapMonthFolderCardProps) {
               );
             })}
           </View>
-          <View pointerEvents="none" style={styles.frontPerspective}>
-            <View style={styles.folderFront}>
-              <View style={styles.frontContent}>
-                <Text style={styles.monthName}>{month.monthLabel}</Text>
-                <Text style={styles.countText}>{month.photoCount} photos</Text>
-              </View>
+        )}
+        <View pointerEvents="none" style={[styles.frontPerspective, isDisabled && styles.closedFrontPerspective]}>
+          <View style={[styles.folderFront, isDisabled && styles.closedFolderFront]}>
+            <View style={styles.frontContent}>
+              <Text style={[styles.monthName, isDisabled && styles.disabledText]}>{month.monthLabel}</Text>
+              <Text style={[styles.countText, isDisabled && styles.disabledText]}>{month.photoCount} photos</Text>
             </View>
           </View>
         </View>
-      </Pressable>
+      </View>
+    </Pressable>
+  );
+
+  if (isDisabled) {
+    return card;
+  }
+
+  return (
+    <Link href={href} asChild>
+      {card}
     </Link>
   );
+}
+
+function toRecapMonthHref(month: RecapMonthSummary) {
+  if (month.status === "needs_selection") {
+    return {
+      params: {
+        month: month.month,
+      },
+      pathname: "/recap/select" as const,
+    };
+  }
+
+  return {
+    params: {
+      month: month.monthNumber,
+      year: String(month.year),
+    },
+    pathname: "/recap/[year]/[month]" as const,
+  };
 }
 
 const styles = StyleSheet.create({
@@ -111,6 +140,9 @@ const styles = StyleSheet.create({
     top: 27,
     width: 148,
     zIndex: 1,
+  },
+  disabledFolderBack: {
+    backgroundColor: "rgba(224, 224, 224, 0.84)",
   },
   backTabLeft: {
     backgroundColor: folderBackColor,
@@ -159,6 +191,15 @@ const styles = StyleSheet.create({
     zIndex: 10,
     overflow: 'hidden',
   },
+  closedFrontPerspective: {
+    bottom: 0,
+    transform: [{ perspective: 550 }, { rotateX: "0deg" }],
+  },
+  closedFolderFront: {
+    backgroundColor: "rgba(232, 232, 232, 0.96)",
+    bottom: 0,
+    height: 92,
+  },
   frontContent: {
     flex: 1,
     justifyContent: 'space-between',
@@ -194,5 +235,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
     textAlign: "right",
+  },
+  disabledText: {
+    color: "#9a9a9a",
   },
 });
