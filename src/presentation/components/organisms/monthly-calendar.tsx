@@ -10,34 +10,50 @@ const calendarCellAspectRatio = 0.58;
 
 type MonthlyCalendarProps = {
   calendar: CalendarMonth;
-  onNextMonth: () => void;
-  onPreviousMonth: () => void;
+  canSwipeMonth?: boolean;
+  selectedDateKeys?: string[];
+  onLongPressDate?: (dateKey: string) => void;
+  onNextMonth?: () => void;
+  onPreviousMonth?: () => void;
   onSelectDate: (dateKey: string) => void;
 };
 
 export function MonthlyCalendar(props: MonthlyCalendarProps) {
-  const { calendar, onNextMonth, onPreviousMonth, onSelectDate } = props;
+  const {
+    calendar,
+    canSwipeMonth = true,
+    onLongPressDate,
+    onNextMonth,
+    onPreviousMonth,
+    onSelectDate,
+    selectedDateKeys = [],
+  } = props;
   const { width: windowWidth } = useWindowDimensions();
   const [gridHeight, setGridHeight] = useState(0);
   const rowCount = Math.max(1, calendar.days.length / 7);
   const cellWidth = windowWidth / 7;
   const fallbackCellHeight = cellWidth / calendarCellAspectRatio;
   const cellHeight = gridHeight > 0 ? gridHeight / rowCount : fallbackCellHeight;
+  const selectionOrderByDateKey = useMemo(
+    () => new Map(selectedDateKeys.map((dateKey, index) => [dateKey, index + 1])),
+    [selectedDateKeys],
+  );
   const swipeResponder = useMemo(
     () =>
       PanResponder.create({
-        onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 18 && Math.abs(gesture.dx) > Math.abs(gesture.dy),
+        onMoveShouldSetPanResponder: (_, gesture) =>
+          canSwipeMonth && Math.abs(gesture.dx) > 18 && Math.abs(gesture.dx) > Math.abs(gesture.dy),
         onPanResponderRelease: (_, gesture) => {
           if (gesture.dx > 52) {
-            onPreviousMonth();
+            onPreviousMonth?.();
           }
 
           if (gesture.dx < -52) {
-            onNextMonth();
+            onNextMonth?.();
           }
         },
       }),
-    [onNextMonth, onPreviousMonth],
+    [canSwipeMonth, onNextMonth, onPreviousMonth],
   );
 
   const handleGridLayout = (event: LayoutChangeEvent) => {
@@ -63,6 +79,8 @@ export function MonthlyCalendar(props: MonthlyCalendarProps) {
             cellHeight={cellHeight}
             cellWidth={cellWidth}
             day={day}
+            selectionOrder={day ? selectionOrderByDateKey.get(day.key) ?? null : null}
+            onLongPressDate={onLongPressDate}
             onPressDate={onSelectDate}
           />
         ))}

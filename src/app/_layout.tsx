@@ -33,6 +33,7 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="index" />
             <Stack.Screen name="recap" />
+            <Stack.Screen name="recap/select" />
             <Stack.Screen name="recap/[year]/[month]" />
             <Stack.Screen name="stickers" />
             <Stack.Screen name="profile" />

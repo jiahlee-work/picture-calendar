@@ -8,23 +8,38 @@ type CalendarCellProps = {
   cellHeight: number;
   cellWidth: number;
   day: CalendarGridCell;
+  selectionOrder?: number | null;
+  onLongPressDate?: (dateKey: string) => void;
   onPressDate: (dateKey: string) => void;
 };
 
 export function CalendarCell(props: CalendarCellProps) {
-  const { cellHeight, cellWidth, day, onPressDate } = props;
+  const { cellHeight, cellWidth, day, onLongPressDate, onPressDate, selectionOrder = null } = props;
   const isToday = day?.isToday;
   const photo = day?.photo;
+  const isSelected = typeof selectionOrder === "number";
 
   if (!day) {
     return <View style={[styles.cell, styles.emptyCell, { height: cellHeight, width: cellWidth }]} />;
   }
 
   return (
-    <Pressable style={[styles.cell, { height: cellHeight, width: cellWidth }, isToday && styles.todayCell]} onPress={() => onPressDate(day.key)}>
+    <Pressable
+      accessibilityState={isSelected ? { selected: true } : undefined}
+      style={[styles.cell, { height: cellHeight, width: cellWidth }, isToday && styles.todayCell]}
+      onLongPress={onLongPressDate ? () => onLongPressDate(day.key) : undefined}
+      onPress={() => onPressDate(day.key)}
+    >
       {isToday ? <View style={styles.todayMark} /> : null}
       {photo ? <DailyPhotoImage imagePath={photo.imagePath} /> : null}
       <Text style={[styles.dateText, isToday && styles.todayText]}>{day.dayOfMonth}</Text>
+      {isSelected ? (
+        <View pointerEvents="none" style={styles.selectedOverlay}>
+          <View style={styles.selectionBadge}>
+            <Text style={styles.selectionText}>{selectionOrder}</Text>
+          </View>
+        </View>
+      ) : null}
     </Pressable>
   );
 }
@@ -77,5 +92,34 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     zIndex: 0,
+  },
+  selectedOverlay: {
+    alignItems: "center",
+    backgroundColor: "rgba(18, 18, 18, 0.38)",
+    bottom: 0,
+    justifyContent: "flex-end",
+    left: 0,
+    padding: 6,
+    position: "absolute",
+    right: 0,
+    top: 0,
+    zIndex: 3,
+  },
+  selectionBadge: {
+    alignItems: "center",
+    backgroundColor: appColors.black,
+    borderColor: "#ffffff",
+    borderRadius: 14,
+    borderWidth: 2,
+    height: 28,
+    justifyContent: "center",
+    width: 28,
+  },
+  selectionText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "900",
+    lineHeight: 16,
+    textAlign: "center",
   },
 });

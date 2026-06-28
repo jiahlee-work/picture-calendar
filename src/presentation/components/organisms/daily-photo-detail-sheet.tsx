@@ -21,6 +21,7 @@ type DailyPhotoDetailSheetProps = {
   dateLabel: string;
   isToday: boolean;
   photo: DailyPhoto | null;
+  showActions?: boolean;
   visible: boolean;
   onChangePhoto: () => void;
   onClose: () => void;
@@ -28,7 +29,7 @@ type DailyPhotoDetailSheetProps = {
 };
 
 export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
-  const { dateLabel, isToday, photo, visible, onChangePhoto, onClose, onDeletePhoto } = props;
+  const { dateLabel, isToday, photo, showActions = true, visible, onChangePhoto, onClose, onDeletePhoto } = props;
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const sheetHeight = windowHeight * 0.9;
@@ -94,18 +95,22 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
         <View style={styles.topOverlay}>
           <View style={styles.topSpacer} />
           <Text style={styles.dateText}>{dateLabel}</Text>
-          <Pressable accessibilityLabel="사진 삭제" style={styles.iconButton} onPress={onDeletePhoto}>
-            <SymbolView
-              colors={["#ffffff"]}
-              name={{ ios: "trash", android: "delete" }}
-              size={20}
-              tintColor="#ffffff"
-              type="monochrome"
-              weight="bold"
-            />
-          </Pressable>
+          {showActions ? (
+            <Pressable accessibilityLabel="사진 삭제" style={styles.iconButton} onPress={onDeletePhoto}>
+              <SymbolView
+                colors={["#ffffff"]}
+                name={{ ios: "trash", android: "delete" }}
+                size={20}
+                tintColor="#ffffff"
+                type="monochrome"
+                weight="bold"
+              />
+            </Pressable>
+          ) : (
+            <View style={styles.topSpacer} />
+          )}
         </View>
-        {isToday && (
+        {showActions && isToday && (
           <View style={[styles.bottomOverlay, { bottom: insets.bottom + 22 }]}>
             <Pressable accessibilityLabel="사진 변경" style={styles.changePanel} onPress={onChangePhoto}>
               <Text style={styles.policyText}>오늘 안에는 사진을 바꿀 수 있어요.</Text>
