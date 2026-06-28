@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { isDisplayableDailyPhoto, toPhotosByDate } from "@/application/services/daily-photo/daily-photo-records";
+import {
+  isDisplayableDailyPhoto,
+  isLegacyDevelopmentDailyPhoto,
+  toPhotosByDate,
+} from "@/application/services/daily-photo/daily-photo-records";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 
 describe("daily photo records", () => {
@@ -18,6 +22,21 @@ describe("daily photo records", () => {
     expect(isDisplayableDailyPhoto(createDailyPhoto({ imagePath: "file://photo.jpg" }))).toBe(true);
     expect(isDisplayableDailyPhoto(createDailyPhoto({ imagePath: "" }))).toBe(false);
     expect(isDisplayableDailyPhoto(null)).toBe(false);
+  });
+
+  it("detects legacy development photos persisted from old app builds", () => {
+    expect(isLegacyDevelopmentDailyPhoto(createDailyPhoto({
+      imagePath: "file:///data/user/0/com.jiahleework.pical/files/PicalSamples/10.jpg",
+      storageKey: "development/android-sample-2",
+    }))).toBe(true);
+    expect(isLegacyDevelopmentDailyPhoto(createDailyPhoto({
+      imagePath: "file:///data/user/0/com.jiahleework.pical/files/PicalSamples/10.jpg",
+      storageKey: null,
+    }))).toBe(true);
+    expect(isLegacyDevelopmentDailyPhoto(createDailyPhoto({
+      imagePath: "file:///data/user/0/com.jiahleework.pical/files/daily-photos/local-user/2026-06-28.jpg",
+      storageKey: "local-user/2026-06-28.jpg",
+    }))).toBe(false);
   });
 });
 

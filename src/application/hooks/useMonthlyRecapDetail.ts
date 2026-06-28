@@ -3,7 +3,10 @@ import { Platform } from "react-native";
 
 import { createDailyPhotoRepositoryForRuntime } from "@/application/services/daily-photo/daily-photo-repository-factory";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
-import { createAutoMonthlyRecapDraft } from "@/application/services/recap/monthly-recap-layout";
+import {
+  createAutoMonthlyRecapDraft,
+  shouldRefreshAutoMonthlyRecap,
+} from "@/application/services/recap/monthly-recap-layout";
 import { createMonthlyRecapRepositoryForRuntime } from "@/application/services/recap/monthly-recap-repository-factory";
 import { sortRecapMonthPhotos } from "@/application/services/recap/monthly-recap-photos";
 import { logger } from "@/infrastructure/logging/logger";
@@ -68,7 +71,14 @@ export function useMonthlyRecapDetail(monthKey: string) {
           return;
         }
 
-        if (savedRecap?.selectionStatus === "selected" && savedSelectedPhotoIds.length > 0) {
+        const canUseSavedRecap = savedRecap?.selectionStatus === "selected"
+          && savedSelectedPhotoIds.length > 0
+          && !shouldRefreshAutoMonthlyRecap({
+            photoIds,
+            selectedPhotoIds: savedSelectedPhotoIds,
+          });
+
+        if (canUseSavedRecap) {
           setState({
             photos: monthPhotos,
             recap: savedRecap,

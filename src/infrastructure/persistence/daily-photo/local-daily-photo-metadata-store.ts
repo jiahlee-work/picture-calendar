@@ -1,5 +1,6 @@
 import { Directory, File, Paths } from "expo-file-system";
 
+import { isLegacyDevelopmentDailyPhoto } from "@/shared/daily-photo/legacy-development-photo";
 import type { DailyPhoto, DailyPhotoMetadataStore, DailyPhotoSyncStatus } from "@/shared/daily-photo/types";
 
 const dailyPhotosDirectoryName = "daily-photos";
@@ -23,24 +24,39 @@ export function createLocalDailyPhotoMetadataStore(): DailyPhotoMetadataStore {
 
       const parsed = JSON.parse(contents);
 
-      return Array.isArray(parsed) ? parsed.map(toDailyPhoto).filter(isDailyPhoto) : [];
-    },
-    async save(photos) {
-      directory.create({
-        idempotent: true,
-        intermediates: true,
-      });
-
-      if (!file.exists) {
-        file.create({
-          intermediates: true,
-          overwrite: true,
-        });
+      if (!Array.isArray(parsed)) {
+        return [];
       }
 
-      file.write(JSON.stringify(photos, null, 2));
+      const photos = parsed.map(toDailyPhoto).filter(isDailyPhoto);
+      const activePhotos = photos.filter((photo) => !isLegacyDevelopmentDailyPhoto(photo));
+
+      if (activePhotos.length !== parsed.length) {
+        writeMetadata(directory, file, activePhotos);
+      }
+
+      return activePhotos;
+    },
+    async save(photos) {
+      writeMetadata(directory, file, photos);
     },
   };
+}
+
+function writeMetadata(directory: Directory, file: File, photos: DailyPhoto[]) {
+  directory.create({
+    idempotent: true,
+    intermediates: true,
+  });
+
+  if (!file.exists) {
+    file.create({
+      intermediates: true,
+      overwrite: true,
+    });
+  }
+
+  file.write(JSON.stringify(photos, null, 2));
 }
 
 function isDailyPhoto(photo: DailyPhoto | null): photo is DailyPhoto {

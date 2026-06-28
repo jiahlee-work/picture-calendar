@@ -68,6 +68,25 @@ export function createManualMonthlyRecapDraft(
   };
 }
 
+export function shouldRefreshAutoMonthlyRecap({
+  photoIds,
+  selectedPhotoIds,
+}: {
+  photoIds: string[];
+  selectedPhotoIds: string[];
+}): boolean {
+  const currentPhotoIds = toUniquePhotoIds(photoIds);
+  const currentPhotoIdsSet = new Set(currentPhotoIds);
+  const currentSelectedPhotoIds = toUniquePhotoIds(selectedPhotoIds).filter((photoId) => currentPhotoIdsSet.has(photoId));
+
+  if (currentPhotoIds.length === 0 || currentPhotoIds.length >= monthlyRecapSelectionLimit) {
+    return false;
+  }
+
+  return currentPhotoIds.length !== currentSelectedPhotoIds.length
+    || currentPhotoIds.some((photoId, index) => currentSelectedPhotoIds[index] !== photoId);
+}
+
 function pickRandomPhotoIds(photoIds: string[], limit: number, random: RandomFn): string[] {
   return shufflePhotoIds(photoIds, random).slice(0, Math.min(limit, photoIds.length));
 }

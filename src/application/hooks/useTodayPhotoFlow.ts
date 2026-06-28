@@ -4,9 +4,8 @@ import { Platform } from "react-native";
 import { buildCalendarMonth } from "@/application/services/calendar/calendar-grid";
 import { createDailyPhotoFileStoreForRuntime } from "@/application/services/daily-photo/daily-photo-file-store-factory";
 import {
-  canEditDailyPhoto,
-  canOpenDailyPhotoDetail,
   dailyPhotoMessages,
+  getDailyPhotoSelectionAction,
 } from "@/application/services/daily-photo/daily-photo-policy";
 import { toPhotosByDate } from "@/application/services/daily-photo/daily-photo-records";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
@@ -67,20 +66,21 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
 
   const handleSelectDate = async (dateKey: string) => {
     const photo = photosByDate[dateKey] ?? null;
+    const selectionAction = getDailyPhotoSelectionAction(dateKey, todayKey, photo);
 
     setSelectedPhotoDateKey(null);
 
-    if (!canEditDailyPhoto(dateKey, todayKey)) {
+    if (selectionAction === "openDetail") {
+      setSelectedPhotoDateKey(dateKey);
+      return;
+    }
+
+    if (selectionAction === "showUnavailable") {
       setPolicyDialog({
         type: "info",
         title: "사진 추가 불가",
         message: dailyPhotoMessages.unavailable,
       });
-      return;
-    }
-
-    if (canOpenDailyPhotoDetail(dateKey, todayKey, photo)) {
-      setSelectedPhotoDateKey(dateKey);
       return;
     }
 

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createAutoMonthlyRecapDraft,
   createManualMonthlyRecapDraft,
+  shouldRefreshAutoMonthlyRecap,
 } from "@/application/services/recap/monthly-recap-layout";
 
 describe("monthly recap layout", () => {
@@ -56,6 +57,39 @@ describe("monthly recap layout", () => {
         "photo-10",
       ],
     })).toBeNull();
+  });
+
+  it("refreshes an automatic recap when monthly photos change", () => {
+    expect(shouldRefreshAutoMonthlyRecap({
+      photoIds: ["photo-1", "photo-2", "photo-3"],
+      selectedPhotoIds: ["photo-1", "photo-2"],
+    })).toBe(true);
+    expect(shouldRefreshAutoMonthlyRecap({
+      photoIds: ["photo-1", "photo-2", "photo-3"],
+      selectedPhotoIds: ["photo-1", "photo-2", "photo-3"],
+    })).toBe(false);
+    expect(shouldRefreshAutoMonthlyRecap({
+      photoIds: ["photo-1", "photo-2", "photo-3"],
+      selectedPhotoIds: ["photo-2", "photo-3", "photo-1"],
+    })).toBe(true);
+  });
+
+  it("does not refresh automatically when representative photo selection is needed", () => {
+    expect(shouldRefreshAutoMonthlyRecap({
+      photoIds: [
+        "photo-1",
+        "photo-2",
+        "photo-3",
+        "photo-4",
+        "photo-5",
+        "photo-6",
+        "photo-7",
+        "photo-8",
+        "photo-9",
+        "photo-10",
+      ],
+      selectedPhotoIds: ["photo-1"],
+    })).toBe(false);
   });
 
   it("creates a manual calendar collage draft from selected representative photos", () => {

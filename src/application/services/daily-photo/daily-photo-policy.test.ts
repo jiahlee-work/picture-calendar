@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   canEditDailyPhoto,
   canOpenDailyPhotoDetail,
+  getDailyPhotoSelectionAction,
   isDailyPhotoLocked,
 } from "@/application/services/daily-photo/daily-photo-policy";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
@@ -14,14 +15,27 @@ describe("daily photo policy", () => {
     expect(canEditDailyPhoto("2026-04-10", "2026-04-09")).toBe(false);
   });
 
-  it("opens photo detail only for today's displayable photo", () => {
-    const photo = createDailyPhoto({ date: "2026-06-28" });
+  it("opens photo detail for displayable photos up to today's date", () => {
+    const photo = createDailyPhoto({ date: "2026-06-29" });
 
-    expect(canOpenDailyPhotoDetail("2026-06-28", "2026-06-28", photo)).toBe(true);
-    expect(canOpenDailyPhotoDetail("2026-06-26", "2026-06-28", { ...photo, date: "2026-06-26" })).toBe(false);
-    expect(canOpenDailyPhotoDetail("2026-06-29", "2026-06-28", { ...photo, date: "2026-06-29" })).toBe(false);
-    expect(canOpenDailyPhotoDetail("2026-06-28", "2026-06-28", { ...photo, imagePath: "" })).toBe(false);
-    expect(canOpenDailyPhotoDetail("2026-06-28", "2026-06-28", null)).toBe(false);
+    expect(canOpenDailyPhotoDetail("2026-06-29", "2026-06-29", photo)).toBe(true);
+    expect(canOpenDailyPhotoDetail("2026-06-27", "2026-06-29", { ...photo, date: "2026-06-27" })).toBe(true);
+    expect(canOpenDailyPhotoDetail("2026-06-30", "2026-06-29", { ...photo, date: "2026-06-30" })).toBe(false);
+    expect(canOpenDailyPhotoDetail("2026-06-29", "2026-06-29", { ...photo, imagePath: "" })).toBe(false);
+    expect(canOpenDailyPhotoDetail("2026-06-29", "2026-06-29", null)).toBe(false);
+  });
+
+  it("resolves the calendar tap action from the date and photo state", () => {
+    const todayPhoto = createDailyPhoto({ date: "2026-06-29" });
+    const pastPhoto = createDailyPhoto({ date: "2026-06-27" });
+    const futurePhoto = createDailyPhoto({ date: "2026-06-30" });
+
+    expect(getDailyPhotoSelectionAction("2026-06-30", "2026-06-29", null)).toBe("showUnavailable");
+    expect(getDailyPhotoSelectionAction("2026-06-30", "2026-06-29", futurePhoto)).toBe("showUnavailable");
+    expect(getDailyPhotoSelectionAction("2026-06-29", "2026-06-29", null)).toBe("openPicker");
+    expect(getDailyPhotoSelectionAction("2026-06-29", "2026-06-29", todayPhoto)).toBe("openDetail");
+    expect(getDailyPhotoSelectionAction("2026-06-27", "2026-06-29", null)).toBe("showUnavailable");
+    expect(getDailyPhotoSelectionAction("2026-06-27", "2026-06-29", pastPhoto)).toBe("openDetail");
   });
 
   it("detects locked photos", () => {
