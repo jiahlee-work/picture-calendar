@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   dismissOverlay: {
+    backgroundColor: appColors.blackOverlay26,
     bottom: -3000,
     left: -3000,
     position: "absolute",
