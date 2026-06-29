@@ -12,7 +12,6 @@ import { buildCalendarMonth, type CalendarGridCell } from "@/application/service
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import { resolveMonthlyRecapTemplatePhotos } from "@/application/services/recap/monthly-recap-template-photos";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
-import { AppMenuButton } from "@/presentation/components/organisms/app-menu-button";
 import { appColors } from "@/presentation/theme/colors";
 import { dayjs } from "@/shared/date/dayjs";
 import type { MonthlyRecap } from "@/shared/recap/types";
@@ -62,9 +61,9 @@ export function RecapMonthDetailScreen(props: RecapMonthDetailScreenProps) {
         )}
       </View>
       <SafeAreaView edges={["top"]} pointerEvents="box-none" style={styles.overlay}>
-        <AppBar pointerEvents="box-none" style={styles.appBar}>
+        <AppBar pointerEvents="box-none" variant="overlay">
           <AppBar.Spacer />
-          <AppMenuButton />
+          <AppBar.Menu />
         </AppBar>
       </SafeAreaView>
     </View>
@@ -422,10 +421,6 @@ const styles = StyleSheet.create({
   overlay: {
     ...absoluteFillObject,
     zIndex: 20,
-  },
-  appBar: {
-    alignItems: "flex-start",
-    paddingTop: 20,
   },
   statusPanel: {
     alignItems: "center",

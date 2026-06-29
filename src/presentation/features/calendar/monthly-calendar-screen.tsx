@@ -6,7 +6,6 @@ import { useTodayPhotoFlow } from "@/application/hooks/use-today-photo-flow";
 import { addNavigableCalendarMonths, clampCalendarMonth } from "@/application/services/calendar/calendar-month-navigation";
 import { DailyPhotoPolicyDialog } from "@/presentation/components/molecules/daily-photo-policy-dialog";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
-import { AppMenuButton } from "@/presentation/components/organisms/app-menu-button";
 import { CalendarWheelPickerSheet } from "@/presentation/components/organisms/calendar-wheel-picker-sheet";
 import { DailyPhotoDetailSheet } from "@/presentation/components/organisms/daily-photo-detail-sheet";
 import { MonthlyCalendar } from "@/presentation/components/organisms/monthly-calendar";
@@ -15,7 +14,6 @@ import { dayjs } from "@/shared/date/dayjs";
 
 export function MonthlyCalendarScreen() {
   const [activeMonth, setActiveMonth] = useState(() => clampCalendarMonth(dayjs().startOf("month").toDate()));
-  const [isDecorating, setIsDecorating] = useState(false);
   const [isYearMonthPickerVisible, setIsYearMonthPickerVisible] = useState(false);
   const {
     calendar,
@@ -32,9 +30,6 @@ export function MonthlyCalendarScreen() {
   };
   const handleNextMonth = () => {
     setActiveMonth((current) => addNavigableCalendarMonths(current, 1));
-  };
-  const handleToggleDecorating = () => {
-    setIsDecorating((current) => !current);
   };
   const handleOpenYearMonthPicker = () => {
     setIsYearMonthPickerVisible(true);
@@ -69,14 +64,11 @@ export function MonthlyCalendarScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <AppBar style={styles.appBar}>
+        <AppBar>
           <AppBar.Title accessibilityLabel="연월 선택 열기" onPress={handleOpenYearMonthPicker}>
             {calendar.title}
           </AppBar.Title>
-          <AppMenuButton
-            decorationLabel={isDecorating ? "꾸미기 종료" : "꾸미기"}
-            onToggleDecorating={handleToggleDecorating}
-          />
+          <AppBar.Menu />
         </AppBar>
 
         <MonthlyCalendar
@@ -120,8 +112,5 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: appColors.background,
     paddingTop: 10,
-  },
-  appBar: {
-    marginBottom: 12,
   },
 });

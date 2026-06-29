@@ -1,14 +1,18 @@
 import type { ReactNode } from "react";
-import { SymbolView } from "expo-symbols";
-import { type GestureResponderEvent, Platform, Pressable, StyleSheet, type StyleProp, Text, type TextStyle, View, type ViewProps, type ViewStyle } from "react-native";
+import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import { useRouter } from "expo-router";
+import { type GestureResponderEvent, Platform, Pressable, StyleSheet, type StyleProp, Text, type TextStyle, View, type ViewProps } from "react-native";
 
+import { SymbolIconButton } from "@/presentation/components/atoms/symbol-icon-button";
+import { Menu } from "@/presentation/components/organisms/menu";
 import { appColors } from "@/presentation/theme/colors";
 
+type AppRoute = "/" | "/recap" | "/stickers" | "/settings";
+
 type AppBarProps = {
-  action?: ReactNode;
   children: ReactNode;
   pointerEvents?: ViewProps["pointerEvents"];
-  style?: StyleProp<ViewStyle>;
+  variant?: "default" | "overlay";
 };
 
 type AppBarTitleProps = {
@@ -19,33 +23,47 @@ type AppBarTitleProps = {
   variant?: "large" | "medium" | "small";
 };
 
-type AppBarActionProps = {
+type TextAppBarActionProps = {
   accessibilityLabel: string;
   label: string;
   onPress: () => void;
 };
 
+type IconAppBarActionProps = {
+  accessibilityLabel: string;
+  icon: SymbolViewProps["name"];
+  onPress: () => void;
+};
+
+type AppBarActionProps = IconAppBarActionProps | TextAppBarActionProps;
+
 type AppBarComponent = {
   (props: AppBarProps): ReactNode;
   Action: (props: AppBarActionProps) => ReactNode;
+  Menu: () => ReactNode;
   Spacer: () => ReactNode;
   Title: (props: AppBarTitleProps) => ReactNode;
 };
 
+const MENU_ICON: SymbolViewProps["name"] = { ios: "line.3.horizontal", android: "menu" };
+const CALENDAR_ICON: SymbolViewProps["name"] = { ios: "calendar", android: "calendar_month" };
+const RECAP_ICON: SymbolViewProps["name"] = { ios: "chart.bar", android: "summarize" };
+const STICKER_ICON: SymbolViewProps["name"] = { ios: "tag", android: "sell" };
+const SETTINGS_ICON: SymbolViewProps["name"] = { ios: "gearshape", android: "settings" };
+
 function AppBarRoot(props: AppBarProps) {
-  const { action, children, pointerEvents, style } = props;
+  const { children, pointerEvents, variant = "default" } = props;
 
   return (
-    <View pointerEvents={pointerEvents} style={[styles.root, style]}>
+    <View pointerEvents={pointerEvents} style={[styles.root, variant === "overlay" && styles.overlayRoot]}>
       {children}
-      {action}
     </View>
   );
 }
 
 function AppBarTitle(props: AppBarTitleProps) {
   const { accessibilityLabel, children, onPress, style, variant = "medium" } = props;
-  const variantStyle = titleVariantStyles[variant];
+  const variantStyle = TITLE_VARIANT_STYLES[variant];
   const title = (
     <Text style={[styles.title, variantStyle, style]} numberOfLines={1}>
       {children}
@@ -79,7 +97,11 @@ function AppBarTitle(props: AppBarTitleProps) {
 }
 
 function AppBarAction(props: AppBarActionProps) {
-  const { accessibilityLabel, label, onPress } = props;
+  const { accessibilityLabel, onPress } = props;
+
+  if ("icon" in props) {
+    return <SymbolIconButton accessibilityLabel={accessibilityLabel} icon={props.icon} onPress={onPress} />;
+  }
 
   return (
     <Pressable
@@ -88,8 +110,25 @@ function AppBarAction(props: AppBarActionProps) {
       style={({ pressed }) => [styles.actionButton, pressed && styles.actionButtonPressed]}
       onPress={onPress}
     >
-      <Text style={styles.actionText}>{label}</Text>
+      <Text style={styles.actionText}>{props.label}</Text>
     </Pressable>
+  );
+}
+
+function AppBarMenu() {
+  const router = useRouter();
+
+  const handleNavigate = (route: AppRoute) => {
+    router.replace(route);
+  };
+
+  return (
+    <Menu accessibilityLabel="앱 탐색 열기" trigger={{ icon: MENU_ICON }}>
+      <Menu.Item icon={CALENDAR_ICON} label="캘린더" onPress={() => handleNavigate("/")} />
+      <Menu.Item icon={RECAP_ICON} label="리캡" onPress={() => handleNavigate("/recap")} />
+      <Menu.Item icon={STICKER_ICON} label="스티커" onPress={() => handleNavigate("/stickers")} />
+      <Menu.Item icon={SETTINGS_ICON} label="설정" onPress={() => handleNavigate("/settings")} />
+    </Menu>
   );
 }
 
@@ -99,11 +138,12 @@ function AppBarSpacer() {
 
 export const AppBar = Object.assign(AppBarRoot, {
   Action: AppBarAction,
+  Menu: AppBarMenu,
   Spacer: AppBarSpacer,
   Title: AppBarTitle,
 }) as AppBarComponent;
 
-const titleVariantStyles = {
+const TITLE_VARIANT_STYLES = {
   large: {
     fontSize: 34,
     lineHeight: 40,
@@ -122,14 +162,19 @@ const styles = StyleSheet.create({
   root: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 12,
     justifyContent: "space-between",
     minHeight: 52,
     paddingHorizontal: 20,
+    paddingTop: 10,
+  },
+  overlayRoot: {
+    alignItems: "flex-start",
+    paddingTop: 20,
   },
   titleSlot: {
     flex: 1,
     minWidth: 0,
+    paddingRight: 12,
   },
   titleButton: {
     alignItems: "flex-start",
@@ -152,6 +197,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: appColors.blackOverlay26,
     borderRadius: 20,
+    flexShrink: 0,
     height: 40,
     justifyContent: "center",
     minWidth: 60,

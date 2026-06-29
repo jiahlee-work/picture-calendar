@@ -38,6 +38,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: appColors.blackOverlay26,
     borderRadius: 20,
+    flexShrink: 0,
     height: 40,
     justifyContent: "center",
     width: 40,

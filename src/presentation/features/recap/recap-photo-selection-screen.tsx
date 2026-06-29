@@ -76,7 +76,7 @@ export function RecapPhotoSelectionScreen(props: RecapPhotoSelectionScreenProps)
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <AppBar style={styles.appBar}>
+        <AppBar>
           <AppBar.Title variant="small">{title}</AppBar.Title>
           <AppBar.Action accessibilityLabel="대표 사진 선택 취소" label="취소" onPress={handleCancelPress} />
         </AppBar>
@@ -138,10 +138,6 @@ const styles = StyleSheet.create({
     backgroundColor: appColors.background,
     flex: 1,
     paddingTop: 10,
-  },
-  appBar: {
-    marginBottom: 12,
-    paddingHorizontal: 16,
   },
   selectionFooter: {
     backgroundColor: appColors.background,
