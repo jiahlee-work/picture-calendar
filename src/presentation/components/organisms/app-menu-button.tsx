@@ -33,7 +33,7 @@ export function AppMenuButton(props: AppMenuButtonProps) {
 
   const handleNavigate = (route: AppRoute) => {
     setIsOpen(false);
-    router.push(route);
+    router.replace(route);
   };
 
   const handleToggleDecorating = () => {

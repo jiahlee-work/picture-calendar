@@ -31,7 +31,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <BottomSheetModalProvider>
           <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
+            <Stack.Screen name="index" options={{ gestureEnabled: false }} />
             <Stack.Screen name="recap" />
             <Stack.Screen name="recap/select" />
             <Stack.Screen name="recap/[year]/[month]" />
