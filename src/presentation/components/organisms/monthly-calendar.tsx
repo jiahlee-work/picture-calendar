@@ -1,8 +1,8 @@
-import {useMemo, useState} from "react";
-import {type LayoutChangeEvent, PanResponder, StyleSheet, Text, useWindowDimensions, View} from "react-native";
+import { useMemo, useState } from "react";
+import { type LayoutChangeEvent, PanResponder, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 
-import type {CalendarMonth} from "@/application/services/calendar/calendar-grid";
-import {CalendarCell} from "@/presentation/components/molecules/calendar-cell";
+import type { CalendarMonth } from "@/application/services/calendar/calendar-grid";
+import { CalendarCell } from "@/presentation/components/molecules/calendar-cell";
 import { appColors } from "@/presentation/theme/colors";
 
 const weekDays = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];

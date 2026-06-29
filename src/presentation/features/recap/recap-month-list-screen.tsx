@@ -1,7 +1,7 @@
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useRecapMonthList } from "@/application/hooks/useRecapMonthList";
+import { useRecapMonthList } from "@/application/hooks/use-recap-month-list";
 import { RecapMonthFolderCard } from "@/presentation/components/molecules/recap-month-folder-card";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { AppMenuButton } from "@/presentation/components/organisms/app-menu-button";

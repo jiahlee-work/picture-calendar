@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useMonthlyRecapSelection } from "@/application/hooks/useMonthlyRecapSelection";
+import { useMonthlyRecapSelection } from "@/application/hooks/use-monthly-recap-selection";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { DailyPhotoDetailSheet } from "@/presentation/components/organisms/daily-photo-detail-sheet";
 import { MonthlyCalendar } from "@/presentation/components/organisms/monthly-calendar";

@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import {
   type MonthlyRecapDetailStatus,
   useMonthlyRecapDetail,
-} from "@/application/hooks/useMonthlyRecapDetail";
+} from "@/application/hooks/use-monthly-recap-detail";
 import { buildCalendarMonth, type CalendarGridCell } from "@/application/services/calendar/calendar-grid";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import { resolveMonthlyRecapTemplatePhotos } from "@/application/services/recap/monthly-recap-template-photos";

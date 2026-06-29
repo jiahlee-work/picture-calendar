@@ -1,9 +1,9 @@
-import {Link} from "expo-router";
-import {Platform, Pressable, StyleSheet, Text, View} from "react-native";
+import { Link } from "expo-router";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
-import type {RecapMonthSummary} from "@/application/services/recap/recap-month-list";
-import {PhotoPreviewCard} from "@/presentation/components/atoms/photo-preview-card";
-import {appColors} from "@/presentation/theme/colors";
+import type { RecapMonthSummary } from "@/application/services/recap/recap-month-list";
+import { PhotoPreviewCard } from "@/presentation/components/atoms/photo-preview-card";
+import { appColors } from "@/presentation/theme/colors";
 
 const folderBackColor = "rgba(231, 236, 234, 0.58)";
 const folderFrontColor = "rgba(255, 255, 255, 0.84)";

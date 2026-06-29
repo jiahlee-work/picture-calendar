@@ -1,4 +1,4 @@
-import {FeatureStatusScreen} from "@/presentation/features/placeholder-tabs/FeatureStatusScreen";
+import { FeatureStatusScreen } from "@/presentation/features/placeholder-tabs/feature-status-screen";
 
 export default function ProfileScreen() {
   return (

@@ -1,7 +1,7 @@
-import {Pressable, StyleSheet, Text, View} from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import type {CalendarGridCell} from "@/application/services/calendar/calendar-grid";
-import {DailyPhotoImage} from "@/presentation/components/atoms/daily-photo-image";
+import type { CalendarGridCell } from "@/application/services/calendar/calendar-grid";
+import { DailyPhotoImage } from "@/presentation/components/atoms/daily-photo-image";
 import { appColors } from "@/presentation/theme/colors";
 
 type CalendarCellProps = {

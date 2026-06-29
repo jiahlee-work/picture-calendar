@@ -1,6 +1,6 @@
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
-import type { DailyPhotoPolicyDialogState } from "@/application/hooks/useTodayPhotoFlow";
+import type { DailyPhotoPolicyDialogState } from "@/application/hooks/use-today-photo-flow";
 import { appColors } from "@/presentation/theme/colors";
 
 type DailyPhotoPolicyDialogProps = {

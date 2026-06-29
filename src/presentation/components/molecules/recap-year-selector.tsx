@@ -1,9 +1,9 @@
-import {useEffect, useRef, useState} from "react";
-import {SymbolView, type SymbolViewProps} from "expo-symbols";
-import {Animated, Pressable, StyleSheet, Text, View} from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 
-import type {RecapYearOption} from "@/application/services/recap/recap-month-list";
-import {appColors} from "@/presentation/theme/colors";
+import type { RecapYearOption } from "@/application/services/recap/recap-month-list";
+import { appColors } from "@/presentation/theme/colors";
 
 const chevronDownIcon: SymbolViewProps["name"] = { ios: "chevron.down", android: "keyboard_arrow_down" };
 const chevronUpIcon: SymbolViewProps["name"] = { ios: "chevron.up", android: "keyboard_arrow_up" };

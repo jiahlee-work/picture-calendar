@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from "expo-router";
 
-import { RecapPhotoSelectionScreen } from "@/presentation/features/recap/RecapPhotoSelectionScreen";
+import { RecapPhotoSelectionScreen } from "@/presentation/features/recap/recap-photo-selection-screen";
 import { dayjs } from "@/shared/date/dayjs";
 
 export default function RecapPhotoSelectionRoute() {

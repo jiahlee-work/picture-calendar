@@ -1,3 +1,3 @@
-import { MonthlyCalendarScreen } from "@/presentation/features/calendar/MonthlyCalendarScreen";
+import { MonthlyCalendarScreen } from "@/presentation/features/calendar/monthly-calendar-screen";
 
 export default MonthlyCalendarScreen;

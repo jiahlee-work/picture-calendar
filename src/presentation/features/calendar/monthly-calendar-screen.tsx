@@ -3,7 +3,7 @@ import { Alert, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { addMonths } from "@/application/services/calendar/calendar-grid";
-import { useTodayPhotoFlow } from "@/application/hooks/useTodayPhotoFlow";
+import { useTodayPhotoFlow } from "@/application/hooks/use-today-photo-flow";
 import { DailyPhotoPolicyDialog } from "@/presentation/components/molecules/daily-photo-policy-dialog";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { AppMenuButton } from "@/presentation/components/organisms/app-menu-button";
