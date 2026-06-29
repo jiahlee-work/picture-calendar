@@ -36,7 +36,7 @@ export default function RootLayout() {
             <Stack.Screen name="recap/select" />
             <Stack.Screen name="recap/[year]/[month]" />
             <Stack.Screen name="stickers" />
-            <Stack.Screen name="profile" />
+            <Stack.Screen name="settings" />
           </Stack>
           <NavigationBar hidden={false} style="light" />
           <StatusBar hidden={false} style="dark" />
