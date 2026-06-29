@@ -1,6 +1,5 @@
-import { BottomSheetBackdrop, BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
-import type { BottomSheetBackdropProps } from "@gorhom/bottom-sheet";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
+import { useEffect, useMemo, useRef } from "react";
 import { SymbolView } from "expo-symbols";
 import {
   Platform,
@@ -14,6 +13,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
+import { AppBottomSheetBackdrop } from "@/presentation/components/atoms/app-bottom-sheet-backdrop";
 import { DailyPhotoImage } from "@/presentation/components/atoms/daily-photo-image";
 import { appColors } from "@/presentation/theme/colors";
 
@@ -35,18 +35,6 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
   const sheetHeight = windowHeight * 0.9;
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => ["90%"], []);
-  const renderBackdrop = useCallback(
-    (backdropProps: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...backdropProps}
-        appearsOnIndex={0}
-        disappearsOnIndex={-1}
-        opacity={0.35}
-        pressBehavior="close"
-      />
-    ),
-    [],
-  );
 
   useEffect(() => {
     if (visible && photo) {
@@ -80,7 +68,7 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
   return (
     <BottomSheetModal
       ref={bottomSheetRef}
-      backdropComponent={renderBackdrop}
+      backdropComponent={AppBottomSheetBackdrop}
       backgroundStyle={styles.sheetBackground}
       enableDynamicSizing={false}
       enablePanDownToClose

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { SymbolView } from "expo-symbols";
-import { type GestureResponderEvent, Pressable, StyleSheet, type StyleProp, Text, type TextStyle, View, type ViewProps, type ViewStyle } from "react-native";
+import { type GestureResponderEvent, Platform, Pressable, StyleSheet, type StyleProp, Text, type TextStyle, View, type ViewProps, type ViewStyle } from "react-native";
 
 import { appColors } from "@/presentation/theme/colors";
 
@@ -68,7 +68,7 @@ function AppBarTitle(props: AppBarTitleProps) {
         <SymbolView
           colors={[appColors.black]}
           name={{ ios: "chevron.down", android: "arrow_drop_down" }}
-          size={16}
+          size={Platform.select({ android: 26, default: 16 })}
           tintColor={appColors.black}
           type="monochrome"
           weight="bold"

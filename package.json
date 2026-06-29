@@ -5,6 +5,7 @@
   "packageManager": "pnpm@11.5.2",
   "dependencies": {
     "@gorhom/bottom-sheet": "^5.2.14",
+    "@quidone/react-native-wheel-picker": "^1.7.0",
     "dayjs": "^1.11.21",
     "expo": "~56.0.12",
     "expo-constants": "~56.0.18",

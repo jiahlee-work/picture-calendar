@@ -2,21 +2,21 @@ import { useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { addMonths } from "@/application/services/calendar/calendar-grid";
 import { useTodayPhotoFlow } from "@/application/hooks/use-today-photo-flow";
+import { addNavigableCalendarMonths, clampCalendarMonth } from "@/application/services/calendar/calendar-month-navigation";
 import { DailyPhotoPolicyDialog } from "@/presentation/components/molecules/daily-photo-policy-dialog";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { AppMenuButton } from "@/presentation/components/organisms/app-menu-button";
-import { CalendarMonthPickerSheet } from "@/presentation/components/organisms/calendar-month-picker-sheet";
+import { CalendarWheelPickerSheet } from "@/presentation/components/organisms/calendar-wheel-picker-sheet";
 import { DailyPhotoDetailSheet } from "@/presentation/components/organisms/daily-photo-detail-sheet";
 import { MonthlyCalendar } from "@/presentation/components/organisms/monthly-calendar";
 import { appColors } from "@/presentation/theme/colors";
 import { dayjs } from "@/shared/date/dayjs";
 
 export function MonthlyCalendarScreen() {
-  const [activeMonth, setActiveMonth] = useState(() => dayjs().startOf("month").toDate());
+  const [activeMonth, setActiveMonth] = useState(() => clampCalendarMonth(dayjs().startOf("month").toDate()));
   const [isDecorating, setIsDecorating] = useState(false);
-  const [isMonthPickerVisible, setIsMonthPickerVisible] = useState(false);
+  const [isYearMonthPickerVisible, setIsYearMonthPickerVisible] = useState(false);
   const {
     calendar,
     photoDetail,
@@ -28,23 +28,23 @@ export function MonthlyCalendarScreen() {
     handleSelectDate,
   } = useTodayPhotoFlow(activeMonth);
   const handlePreviousMonth = () => {
-    setActiveMonth((current) => addMonths(current, -1));
+    setActiveMonth((current) => addNavigableCalendarMonths(current, -1));
   };
   const handleNextMonth = () => {
-    setActiveMonth((current) => addMonths(current, 1));
+    setActiveMonth((current) => addNavigableCalendarMonths(current, 1));
   };
   const handleToggleDecorating = () => {
     setIsDecorating((current) => !current);
   };
-  const handleOpenMonthPicker = () => {
-    setIsMonthPickerVisible(true);
+  const handleOpenYearMonthPicker = () => {
+    setIsYearMonthPickerVisible(true);
   };
-  const handleCloseMonthPicker = () => {
-    setIsMonthPickerVisible(false);
+  const handleCloseYearMonthPicker = () => {
+    setIsYearMonthPickerVisible(false);
   };
-  const handleConfirmMonth = (date: Date) => {
-    setActiveMonth(date);
-    setIsMonthPickerVisible(false);
+  const handleConfirmYearMonth = (date: Date) => {
+    setActiveMonth(clampCalendarMonth(date));
+    setIsYearMonthPickerVisible(false);
   };
   const handleRequestDeletePhoto = () => {
     Alert.alert(
@@ -70,7 +70,7 @@ export function MonthlyCalendarScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <AppBar style={styles.appBar}>
-          <AppBar.Title accessibilityLabel="연월 선택 열기" onPress={handleOpenMonthPicker}>
+          <AppBar.Title accessibilityLabel="연월 선택 열기" onPress={handleOpenYearMonthPicker}>
             {calendar.title}
           </AppBar.Title>
           <AppMenuButton
@@ -99,12 +99,14 @@ export function MonthlyCalendarScreen() {
         onClose={dismissPhotoDetail}
         onDeletePhoto={handleRequestDeletePhoto}
       />
-      <CalendarMonthPickerSheet
-        value={activeMonth}
-        visible={isMonthPickerVisible}
-        onClose={handleCloseMonthPicker}
-        onConfirm={handleConfirmMonth}
-      />
+      {isYearMonthPickerVisible && (
+        <CalendarWheelPickerSheet
+          value={activeMonth}
+          visible={isYearMonthPickerVisible}
+          onClose={handleCloseYearMonthPicker}
+          onConfirm={handleConfirmYearMonth}
+        />
+      )}
     </SafeAreaView>
   );
 }
