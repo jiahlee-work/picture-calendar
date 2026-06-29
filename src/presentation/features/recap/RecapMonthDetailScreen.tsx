@@ -10,6 +10,7 @@ import {
 } from "@/application/hooks/useMonthlyRecapDetail";
 import { buildCalendarMonth, type CalendarGridCell } from "@/application/services/calendar/calendar-grid";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
+import { resolveMonthlyRecapTemplatePhotos } from "@/application/services/recap/monthly-recap-template-photos";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { AppMenuButton } from "@/presentation/components/organisms/app-menu-button";
 import { appColors } from "@/presentation/theme/colors";
@@ -99,7 +100,7 @@ function MessageRecapTemplate({
   recap: MonthlyRecap;
   width: number;
 }) {
-  const selectedPhotos = toPhotosByIds(photos, recap.selectedPhotoIds);
+  const { selectedPhotos } = resolveMonthlyRecapTemplatePhotos({ photos, recap });
   const createdTimeLabel = dayjs(recap.createdAt).isValid() ? dayjs(recap.createdAt).format("HH:mm") : "09:00";
   const bubbleTop = toMessageBubbleTop(selectedPhotos.length, width);
 
@@ -139,17 +140,13 @@ function CalendarCollageRecapTemplate({
   recap: MonthlyRecap;
   width: number;
 }) {
-  const selectedPhotos = toPhotosByIds(photos, recap.selectedPhotoIds);
-  const backgroundPhotos = toPhotosByIds(photos, recap.backgroundPhotoIds);
-  const calendarPhotos = toPhotosByIds(photos, recap.calendarPhotoIds);
-  const resolvedBackgroundPhotos = backgroundPhotos.length > 0 ? backgroundPhotos : selectedPhotos.slice(0, 1);
-  const resolvedCalendarPhotos = calendarPhotos.length > 0 ? calendarPhotos : selectedPhotos.slice(0, 4);
+  const { backgroundPhotos, calendarPhotos } = resolveMonthlyRecapTemplatePhotos({ photos, recap });
   const calendar = buildCalendarMonth(monthDate.startOf("month").toDate());
   const calendarCardSize = toCalendarCardSize(width);
 
   return (
     <View style={[styles.collageCanvas, { width }]}>
-      <BackgroundCollage photos={resolvedBackgroundPhotos} />
+      <BackgroundCollage photos={backgroundPhotos} />
       <View style={styles.collageScrim} />
       <View style={styles.calendarStageCenter}>
         <View style={[styles.calendarStage, calendarCardSize]}>
@@ -158,12 +155,12 @@ function CalendarCollageRecapTemplate({
             <CalendarGrid cells={calendar.days} />
           </View>
           <View pointerEvents="none" style={styles.calendarPhotoLayer}>
-            {resolvedCalendarPhotos.slice(0, 4).map((photo, index) => (
+            {calendarPhotos.map((photo, index) => (
               <View
                 key={photo.id}
                 style={[
                   styles.collagePhotoFrame,
-                  toCalendarPhotoSlotStyle(index, resolvedCalendarPhotos.length, width),
+                  toCalendarPhotoSlotStyle(index, calendarPhotos.length, width),
                 ]}
               >
                 <Image contentFit="cover" source={{ uri: photo.imagePath }} style={styles.fillImage} />
@@ -245,16 +242,6 @@ function toStatusLabel(status: MonthlyRecapDetailStatus, photoCount: number, tem
   }
 
   return `${photoCount}장의 사진으로 ${templateId === "message" ? "메시지" : "캘린더"} 리캡을 준비했어요.`;
-}
-
-function toPhotosByIds(photos: DailyPhoto[], photoIds: string[]): DailyPhoto[] {
-  const photosById = new Map(photos.map((photo) => [photo.id, photo]));
-
-  return photoIds.flatMap((photoId) => {
-    const photo = photosById.get(photoId);
-
-    return photo ? [photo] : [];
-  });
 }
 
 function toMessagePhotoFrameStyle(index: number, photoCount: number, width: number) {
@@ -375,6 +362,38 @@ function toCalendarPhotoSlotStyle(index: number, photoCount: number, width: numb
       transform: [{ rotate: "-5deg" }],
       width: width * 0.3,
       zIndex: 9,
+    },
+    {
+      height: width * 0.21,
+      left: cardSize.width * 0.35,
+      top: cardSize.height - width * 0.15,
+      transform: [{ rotate: "-2deg" }],
+      width: width * 0.27,
+      zIndex: 10,
+    },
+    {
+      height: width * 0.21,
+      left: -width * 0.04,
+      top: protectedTitleBottom + width * 0.28,
+      transform: [{ rotate: "5deg" }],
+      width: width * 0.27,
+      zIndex: 11,
+    },
+    {
+      height: width * 0.21,
+      left: cardSize.width - width * 0.25,
+      top: protectedTitleBottom + width * 0.3,
+      transform: [{ rotate: "-4deg" }],
+      width: width * 0.27,
+      zIndex: 12,
+    },
+    {
+      height: width * 0.2,
+      left: cardSize.width * 0.36,
+      top: protectedTitleBottom + width * 0.2,
+      transform: [{ rotate: "3deg" }],
+      width: width * 0.25,
+      zIndex: 13,
     },
   ];
   const resolvedStyles = photoCount <= 2 ? twoPhotoStyles : stylesByIndex;
