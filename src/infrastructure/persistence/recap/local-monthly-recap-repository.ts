@@ -8,7 +8,7 @@ import type {
 } from "@/shared/recap/types";
 import { dayjs } from "@/shared/date/dayjs";
 
-const monthlyRecapSelectionLimit = 10;
+const MONTHLY_RECAP_SELECTION_LIMIT = 10;
 
 type LocalMonthlyRecapRepositoryOptions = {
   initialRecaps?: MonthlyRecap[];
@@ -163,7 +163,7 @@ function shouldKeepExistingSelectionStatus(
 }
 
 function toSelectedPhotoIds(selection: MonthlyRecapSelectionDraft) {
-  return Array.from(new Set(selection.selectedPhotoIds)).slice(0, monthlyRecapSelectionLimit);
+  return Array.from(new Set(selection.selectedPhotoIds)).slice(0, MONTHLY_RECAP_SELECTION_LIMIT);
 }
 
 function toLayoutPhotoIds(photoIds: string[], selectedPhotoIds: string[]): string[] {

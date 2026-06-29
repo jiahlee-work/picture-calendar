@@ -9,13 +9,13 @@ import { createMonthlyRecapRepositoryForRuntime } from "@/application/services/r
 import { createManualMonthlyRecapDraft } from "@/application/services/recap/monthly-recap-layout";
 import {
   applyMonthlyRecapSelectionLimit,
-  monthlyRecapSelectionLimit,
+  MONTHLY_RECAP_SELECTION_LIMIT,
   toggleMonthlyRecapSelectedPhotoId,
 } from "@/application/services/recap/recap-selection";
 import { logger } from "@/infrastructure/logging/logger";
 import { dayjs } from "@/shared/date/dayjs";
 
-const localUserId = "local-user";
+const LOCAL_USER_ID = "local-user";
 
 export type MonthlyRecapSelectionResult = "selected" | "selection_limit_reached" | "missing_photo";
 
@@ -57,10 +57,10 @@ export function useMonthlyRecapSelection(monthKey: string, today = dayjs().toDat
       setHasLoadFailed(false);
 
       try {
-        const monthPhotos = await dailyPhotoRepository.listByMonth(localUserId, monthKey);
+        const monthPhotos = await dailyPhotoRepository.listByMonth(LOCAL_USER_ID, monthKey);
         const displayablePhotos = monthPhotos.filter(isDisplayableDailyPhoto);
         const displayablePhotoIds = new Set(displayablePhotos.map((photo) => photo.id));
-        const recap = await recapRepository.getByMonth(localUserId, monthKey);
+        const recap = await recapRepository.getByMonth(LOCAL_USER_ID, monthKey);
         const nextSelectedPhotoIds = applyMonthlyRecapSelectionLimit(
           recap?.selectedPhotoIds.filter((photoId) => displayablePhotoIds.has(photoId)) ?? [],
         );
@@ -117,7 +117,7 @@ export function useMonthlyRecapSelection(monthKey: string, today = dayjs().toDat
 
     const isSelected = selectedPhotoIdsSet.has(photo.id);
 
-    if (!isSelected && selectedPhotoIds.length >= monthlyRecapSelectionLimit) {
+    if (!isSelected && selectedPhotoIds.length >= MONTHLY_RECAP_SELECTION_LIMIT) {
       return "selection_limit_reached";
     }
 
@@ -127,7 +127,7 @@ export function useMonthlyRecapSelection(monthKey: string, today = dayjs().toDat
 
   const handleSaveSelection = useCallback(async () => {
     const savedRecap = await recapRepository.saveSelection(createManualMonthlyRecapDraft({
-      userId: localUserId,
+      userId: LOCAL_USER_ID,
       month: monthKey,
       selectedPhotoIds,
     }));
@@ -157,6 +157,6 @@ export function useMonthlyRecapSelection(monthKey: string, today = dayjs().toDat
     photoDetail,
     selectedDateKeys,
     selectedPhotoCount: selectedPhotoIds.length,
-    selectionLimit: monthlyRecapSelectionLimit,
+    selectionLimit: MONTHLY_RECAP_SELECTION_LIMIT,
   };
 }

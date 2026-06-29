@@ -7,12 +7,12 @@ import type {
   MonthlyRecapTemplateId,
 } from "@/shared/recap/types";
 
-const monthlyRecapsDirectoryName = "monthly-recaps";
-const metadataFileName = "metadata.json";
+const MONTHLY_RECAPS_DIRECTORY_NAME = "monthly-recaps";
+const METADATA_FILE_NAME = "metadata.json";
 
 export function createLocalMonthlyRecapMetadataStore(): MonthlyRecapMetadataStore {
-  const directory = new Directory(Paths.document, monthlyRecapsDirectoryName);
-  const file = new File(directory, metadataFileName);
+  const directory = new Directory(Paths.document, MONTHLY_RECAPS_DIRECTORY_NAME);
+  const file = new File(directory, METADATA_FILE_NAME);
 
   return {
     async load() {

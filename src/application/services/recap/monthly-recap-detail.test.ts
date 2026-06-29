@@ -7,7 +7,7 @@ import { toMonthKey } from "@/shared/date/date-key";
 import { dayjs } from "@/shared/date/dayjs";
 
 const recapTimeline = createRecapTimeline();
-const localUserId = "user-1";
+const LOCAL_USER_ID = "user-1";
 
 describe("loadMonthlyRecapDetail", () => {
   it("keeps the first generated automatic layout when the same month is opened again", async () => {
@@ -19,7 +19,7 @@ describe("loadMonthlyRecapDetail", () => {
       month: recapTimeline.previousMonth,
       random: () => 0,
       recapRepository,
-      userId: localUserId,
+      userId: LOCAL_USER_ID,
     });
 
     const secondResult = await loadMonthlyRecapDetail({
@@ -28,7 +28,7 @@ describe("loadMonthlyRecapDetail", () => {
       month: recapTimeline.previousMonth,
       random: () => 0.999,
       recapRepository,
-      userId: localUserId,
+      userId: LOCAL_USER_ID,
     });
 
     expect(firstResult.status).toBe("ready");
@@ -48,11 +48,11 @@ describe("loadMonthlyRecapDetail", () => {
       month: recapTimeline.currentMonth,
       random: () => 0,
       recapRepository,
-      userId: localUserId,
+      userId: LOCAL_USER_ID,
     });
 
     expect(result.status).toBe("collecting");
-    await expect(recapRepository.getByMonth(localUserId, recapTimeline.currentMonth)).resolves.toBeNull();
+    await expect(recapRepository.getByMonth(LOCAL_USER_ID, recapTimeline.currentMonth)).resolves.toBeNull();
   });
 
   it("creates a recap for the current month in development", async () => {
@@ -66,11 +66,11 @@ describe("loadMonthlyRecapDetail", () => {
       month: recapTimeline.currentMonth,
       random: () => 0,
       recapRepository,
-      userId: localUserId,
+      userId: LOCAL_USER_ID,
     });
 
     expect(result.status).toBe("ready");
-    await expect(recapRepository.getByMonth(localUserId, recapTimeline.currentMonth)).resolves.toMatchObject({
+    await expect(recapRepository.getByMonth(LOCAL_USER_ID, recapTimeline.currentMonth)).resolves.toMatchObject({
       month: recapTimeline.currentMonth,
       selectionStatus: "selected",
     });
@@ -87,11 +87,11 @@ describe("loadMonthlyRecapDetail", () => {
       month: recapTimeline.futureMonth,
       random: () => 0,
       recapRepository,
-      userId: localUserId,
+      userId: LOCAL_USER_ID,
     });
 
     expect(result.status).toBe("collecting");
-    await expect(recapRepository.getByMonth(localUserId, recapTimeline.futureMonth)).resolves.toBeNull();
+    await expect(recapRepository.getByMonth(LOCAL_USER_ID, recapTimeline.futureMonth)).resolves.toBeNull();
   });
 
   it("refreshes an automatic layout only when the monthly photos change", async () => {
@@ -103,7 +103,7 @@ describe("loadMonthlyRecapDetail", () => {
       month: recapTimeline.previousMonth,
       random: () => 0,
       recapRepository,
-      userId: localUserId,
+      userId: LOCAL_USER_ID,
     });
 
     dailyPhotoRepository.setPhotos(createPhotos(recapTimeline.previousMonth, 5));
@@ -114,7 +114,7 @@ describe("loadMonthlyRecapDetail", () => {
       month: recapTimeline.previousMonth,
       random: () => 0.999,
       recapRepository,
-      userId: localUserId,
+      userId: LOCAL_USER_ID,
     });
 
     expect(firstResult.status).toBe("ready");
@@ -138,13 +138,13 @@ describe("loadMonthlyRecapDetail", () => {
       month: recapTimeline.previousMonth,
       random: () => 0,
       recapRepository,
-      userId: localUserId,
+      userId: LOCAL_USER_ID,
     });
 
     expect(firstResult.status).toBe("needs_selection");
 
     await recapRepository.saveSelection({
-      userId: localUserId,
+      userId: LOCAL_USER_ID,
       month: recapTimeline.previousMonth,
       selectedPhotoIds: createPhotoIds(10),
       calendarPhotoIds: ["photo-1", "photo-2", "photo-3", "photo-4"],
@@ -158,7 +158,7 @@ describe("loadMonthlyRecapDetail", () => {
       month: recapTimeline.previousMonth,
       random: () => 0.999,
       recapRepository,
-      userId: localUserId,
+      userId: LOCAL_USER_ID,
     });
 
     expect(secondResult.status).toBe("ready");
@@ -216,7 +216,7 @@ function createPhotos(month: string, count: number): DailyPhoto[] {
 
     return {
       id: `photo-${photoNumber}`,
-      userId: localUserId,
+      userId: LOCAL_USER_ID,
       date: `${month}-${String(photoNumber).padStart(2, "0")}`,
       imagePath: `file://photo-${photoNumber}.jpg`,
       localImagePath: `file://photo-${photoNumber}.jpg`,

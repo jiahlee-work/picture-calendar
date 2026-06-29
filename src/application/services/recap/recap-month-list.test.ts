@@ -13,7 +13,7 @@ import { toMonthKey } from "@/shared/date/date-key";
 import { dayjs } from "@/shared/date/dayjs";
 
 const recapTimeline = createRecapTimeline();
-const localUserId = "user-1";
+const LOCAL_USER_ID = "user-1";
 
 describe("recap month list", () => {
   it("creates 12 month summaries for the selected year", () => {
@@ -43,7 +43,7 @@ describe("recap month list", () => {
       currentDate: recapTimeline.currentDate,
       previewPhotoLimit: 3,
       repository,
-      userId: localUserId,
+      userId: LOCAL_USER_ID,
       year: recapTimeline.year,
     });
     const currentMonth = months.find((month) => month.month === recapTimeline.currentMonth);
@@ -97,7 +97,7 @@ describe("recap month list", () => {
       currentDate: recapTimeline.currentDate,
       includeMonthsBeforeStart: true,
       repository,
-      userId: localUserId,
+      userId: LOCAL_USER_ID,
       year: recapTimeline.year,
     });
 
@@ -166,7 +166,7 @@ describe("recap month list", () => {
         availabilityMode,
         currentDate: recapTimeline.currentDate,
         repository,
-        userId: localUserId,
+        userId: LOCAL_USER_ID,
         year: recapTimeline.year,
       });
       const targetMonthSummary = months.find((month) => month.month === targetMonth);
@@ -196,14 +196,14 @@ describe("recap month list", () => {
     await recapRepository.saveSelection({
       month: recapTimeline.previousMonth,
       selectedPhotoIds: [savedPhoto.id],
-      userId: localUserId,
+      userId: LOCAL_USER_ID,
     });
 
     const months = await createRecapMonthSummaries({
       currentDate: recapTimeline.currentDate,
       recapRepository,
       repository,
-      userId: localUserId,
+      userId: LOCAL_USER_ID,
       year: recapTimeline.year,
     });
     const previousMonth = months.find((month) => month.month === recapTimeline.previousMonth);
@@ -272,7 +272,7 @@ async function saveMonthPhoto(
   return repository.saveToday({
     date: toDayKey(month, day),
     imagePath: `file://${month}-${day}.jpg`,
-    userId: localUserId,
+    userId: LOCAL_USER_ID,
   });
 }
 

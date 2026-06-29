@@ -3,12 +3,12 @@ import { Directory, File, Paths } from "expo-file-system";
 import { isLegacyDevelopmentDailyPhoto } from "@/shared/daily-photo/legacy-development-photo";
 import type { DailyPhoto, DailyPhotoMetadataStore, DailyPhotoSyncStatus } from "@/shared/daily-photo/types";
 
-const dailyPhotosDirectoryName = "daily-photos";
-const metadataFileName = "metadata.json";
+const DAILY_PHOTOS_DIRECTORY_NAME = "daily-photos";
+const METADATA_FILE_NAME = "metadata.json";
 
 export function createLocalDailyPhotoMetadataStore(): DailyPhotoMetadataStore {
-  const directory = new Directory(Paths.document, dailyPhotosDirectoryName);
-  const file = new File(directory, metadataFileName);
+  const directory = new Directory(Paths.document, DAILY_PHOTOS_DIRECTORY_NAME);
+  const file = new File(directory, METADATA_FILE_NAME);
 
   return {
     async load() {

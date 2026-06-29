@@ -16,7 +16,7 @@ import { logger } from "@/infrastructure/logging/logger";
 import { toDateKey, toMonthKey } from "@/shared/date/date-key";
 import { dayjs } from "@/shared/date/dayjs";
 
-const localUserId = "local-user";
+const LOCAL_USER_ID = "local-user";
 
 export type DailyPhotoPolicyDialogState =
   | { type: "none" }
@@ -45,7 +45,7 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
     let isMounted = true;
 
     const loadMonthPhotos = async () => {
-      const monthPhotos = await repository.listByMonth(localUserId, activeMonthKey);
+      const monthPhotos = await repository.listByMonth(LOCAL_USER_ID, activeMonthKey);
 
       if (!isMounted) {
         return;
@@ -117,7 +117,7 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
     setSelectedPhotoDateKey(null);
     await waitForNextFrame();
 
-    const deletedPhoto = await repository.deleteByDate(localUserId, dateKey);
+    const deletedPhoto = await repository.deleteByDate(LOCAL_USER_ID, dateKey);
 
     setPhotosByDate((current) => {
       const next = { ...current };
@@ -166,7 +166,7 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
     try {
       const previousPhoto = photosByDate[dateKey] ?? null;
       nextStoredFile = await fileStore.save({
-        userId: localUserId,
+        userId: LOCAL_USER_ID,
         date: dateKey,
         fileName,
         base64,
@@ -174,12 +174,12 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
         sourceUri,
       });
       const savedPhoto = await repository.saveToday({
-        userId: localUserId,
+        userId: LOCAL_USER_ID,
         date: dateKey,
         ...nextStoredFile,
       });
 
-      const monthPhotos = await repository.listByMonth(localUserId, activeMonthKey);
+      const monthPhotos = await repository.listByMonth(LOCAL_USER_ID, activeMonthKey);
       const nextPhotosByDate = toPhotosByDate(monthPhotos);
 
       setPhotosByDate((current) => ({

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   addNavigableCalendarMonths,
-  calendarStartMonthKey,
+  CALENDAR_START_MONTH_KEY,
   canNavigateToCalendarMonth,
   clampCalendarMonth,
   createCalendarMonthOptions,
@@ -16,7 +16,7 @@ describe("calendar month navigation", () => {
   it("clamps months before the calendar start month", () => {
     const clampedMonth = clampCalendarMonth(dayjs("2025-12-01").toDate());
 
-    expect(toMonthKey(clampedMonth)).toBe(calendarStartMonthKey);
+    expect(toMonthKey(clampedMonth)).toBe(CALENDAR_START_MONTH_KEY);
   });
 
   it("prevents previous navigation before January 2026", () => {

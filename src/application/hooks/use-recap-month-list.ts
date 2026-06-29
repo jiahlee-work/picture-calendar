@@ -10,7 +10,7 @@ import {
 } from "@/application/services/recap/recap-month-list";
 import { dayjs } from "@/shared/date/dayjs";
 
-const localUserId = "local-user";
+const LOCAL_USER_ID = "local-user";
 
 type UseRecapMonthListOptions = {
   initialYear?: number;
@@ -40,7 +40,7 @@ export function useRecapMonthList(options: UseRecapMonthListOptions = {}) {
         includeMonthsBeforeStart: shouldIncludeMonthsBeforeStart,
         recapRepository,
         repository: dailyPhotoRepository,
-        userId: localUserId,
+        userId: LOCAL_USER_ID,
         year: selectedYear,
       });
 

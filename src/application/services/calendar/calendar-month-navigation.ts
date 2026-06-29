@@ -1,9 +1,9 @@
 import { dayjs } from "@/shared/date/dayjs";
 
-export const calendarStartMonthKey = "2026-01";
-export const calendarPickerFutureYearCount = 10;
+export const CALENDAR_START_MONTH_KEY = "2026-01";
+export const CALENDAR_PICKER_FUTURE_YEAR_COUNT = 10;
 
-const calendarStartMonth = dayjs(`${calendarStartMonthKey}-01`).startOf("month");
+const CALENDAR_START_MONTH = dayjs(`${CALENDAR_START_MONTH_KEY}-01`).startOf("month");
 
 export type CalendarMonthOption = {
   label: string;
@@ -15,14 +15,14 @@ export function addNavigableCalendarMonths(date: Date, amount: number): Date {
 }
 
 export function canNavigateToCalendarMonth(date: Date): boolean {
-  return !dayjs(date).startOf("month").isBefore(calendarStartMonth);
+  return !dayjs(date).startOf("month").isBefore(CALENDAR_START_MONTH);
 }
 
 export function clampCalendarMonth(date: Date): Date {
   const month = dayjs(date).startOf("month");
 
-  if (month.isBefore(calendarStartMonth)) {
-    return calendarStartMonth.toDate();
+  if (month.isBefore(CALENDAR_START_MONTH)) {
+    return CALENDAR_START_MONTH.toDate();
   }
 
   return month.toDate();
@@ -31,9 +31,9 @@ export function clampCalendarMonth(date: Date): Date {
 export function createCalendarYearOptions(
   selectedDate: Date,
   today = dayjs().toDate(),
-  futureYearCount = calendarPickerFutureYearCount,
+  futureYearCount = CALENDAR_PICKER_FUTURE_YEAR_COUNT,
 ): number[] {
-  const startYear = calendarStartMonth.year();
+  const startYear = CALENDAR_START_MONTH.year();
   const maxYear = Math.max(dayjs(selectedDate).year(), dayjs(today).year(), startYear) + futureYearCount;
 
   return Array.from({ length: maxYear - startYear + 1 }, (_, index) => startYear + index);

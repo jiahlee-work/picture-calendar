@@ -5,11 +5,11 @@ import type { RecapMonthSummary } from "@/application/services/recap/recap-month
 import { PhotoPreviewCard } from "@/presentation/components/atoms/photo-preview-card";
 import { appColors } from "@/presentation/theme/colors";
 
-const folderBackColor = "rgba(231, 236, 234, 0.58)";
-const folderFrontColor = "rgba(255, 255, 255, 0.84)";
-const androidFolderFrontColor = "rgba(255, 255, 255, 0.72)";
+const FOLDER_BACK_COLOR = "rgba(231, 236, 234, 0.58)";
+const FOLDER_FRONT_COLOR = "rgba(255, 255, 255, 0.84)";
+const ANDROID_FOLDER_FRONT_COLOR = "rgba(255, 255, 255, 0.72)";
 
-const previewSlots = [
+const PREVIEW_SLOTS = [
   {
     left: 15,
     rotate: "-8deg",
@@ -61,8 +61,8 @@ export function RecapMonthFolderCard(props: RecapMonthFolderCardProps) {
         </View>
         {shouldShowPreview && (
           <View pointerEvents="none" style={styles.previewStack}>
-            {month.previewPhotos.slice(0, previewSlots.length).map((photo, index) => {
-              const slot = previewSlots[index];
+            {month.previewPhotos.slice(0, PREVIEW_SLOTS.length).map((photo, index) => {
+              const slot = PREVIEW_SLOTS[index];
 
               return (
                 <PhotoPreviewCard
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     width: 172,
   },
   folderBack: {
-    backgroundColor: folderBackColor,
+    backgroundColor: FOLDER_BACK_COLOR,
     borderRadius: 14,
     height: 58,
     left: 12,
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(224, 224, 224, 0.84)",
   },
   backTabLeft: {
-    backgroundColor: folderBackColor,
+    backgroundColor: FOLDER_BACK_COLOR,
     borderTopLeftRadius: 14,
     height: 24,
     left: 0,
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     width: 64,
   },
   backTabSlope: {
-    backgroundColor: folderBackColor,
+    backgroundColor: FOLDER_BACK_COLOR,
     borderTopRightRadius: 10,
     height: 22,
     left: 52,
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
   folderFront: {
-    backgroundColor: Platform.OS === "android" ? androidFolderFrontColor : folderFrontColor,
+    backgroundColor: Platform.OS === "android" ? ANDROID_FOLDER_FRONT_COLOR : FOLDER_FRONT_COLOR,
     borderRadius: 14,
     bottom: -4,
     elevation: 0,

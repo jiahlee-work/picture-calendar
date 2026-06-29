@@ -4,9 +4,9 @@ import type { MonthlyRecapRepository } from "@/application/services/recap/types"
 import { toMonthKey } from "@/shared/date/date-key";
 import { dayjs } from "@/shared/date/dayjs";
 
-const monthCount = 12;
-const defaultPreviewPhotoLimit = 4;
-const defaultRecapStartMonth = "2026-06";
+const MONTH_COUNT = 12;
+const DEFAULT_PREVIEW_PHOTO_LIMIT = 4;
+const DEFAULT_RECAP_START_MONTH = "2026-06";
 
 export type RecapAvailabilityMode = "development" | "production";
 export type RecapMonthStatus = "disabled_collecting" | "disabled_empty" | "needs_selection" | "ready_auto" | "selected";
@@ -40,7 +40,7 @@ type CreateRecapMonthSummariesOptions = {
 };
 
 export function createRecapYearMonths(year: number): RecapMonthSummary[] {
-  return Array.from({ length: monthCount }, (_, index) => {
+  return Array.from({ length: MONTH_COUNT }, (_, index) => {
     const monthNumber = String(index + 1).padStart(2, "0");
     const monthDate = dayjs(`${year}-${monthNumber}-01`).toDate();
 
@@ -60,7 +60,7 @@ export function createRecapYearMonths(year: number): RecapMonthSummary[] {
 export function createVisibleRecapYearMonths({
   currentDate = dayjs().toDate(),
   includeMonthsBeforeStart = false,
-  startMonth = defaultRecapStartMonth,
+  startMonth = DEFAULT_RECAP_START_MONTH,
   year,
 }: {
   currentDate?: Date;
@@ -82,10 +82,10 @@ export async function createRecapMonthSummaries({
   availabilityMode = "production",
   currentDate = dayjs().toDate(),
   includeMonthsBeforeStart = false,
-  previewPhotoLimit = defaultPreviewPhotoLimit,
+  previewPhotoLimit = DEFAULT_PREVIEW_PHOTO_LIMIT,
   recapRepository,
   repository,
-  startMonth = defaultRecapStartMonth,
+  startMonth = DEFAULT_RECAP_START_MONTH,
   userId,
   year,
 }: CreateRecapMonthSummariesOptions): Promise<RecapMonthSummary[]> {

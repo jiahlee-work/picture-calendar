@@ -5,8 +5,8 @@ import type { CalendarMonth } from "@/application/services/calendar/calendar-gri
 import { CalendarCell } from "@/presentation/components/molecules/calendar-cell";
 import { appColors } from "@/presentation/theme/colors";
 
-const weekDays = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-const calendarCellAspectRatio = 0.58;
+const WEEK_DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+const CALENDAR_CELL_ASPECT_RATIO = 0.58;
 
 type MonthlyCalendarProps = {
   calendar: CalendarMonth;
@@ -32,7 +32,7 @@ export function MonthlyCalendar(props: MonthlyCalendarProps) {
   const [gridHeight, setGridHeight] = useState(0);
   const rowCount = Math.max(1, calendar.days.length / 7);
   const cellWidth = windowWidth / 7;
-  const fallbackCellHeight = cellWidth / calendarCellAspectRatio;
+  const fallbackCellHeight = cellWidth / CALENDAR_CELL_ASPECT_RATIO;
   const cellHeight = gridHeight > 0 ? gridHeight / rowCount : fallbackCellHeight;
   const selectionOrderByDateKey = useMemo(
     () => new Map(selectedDateKeys.map((dateKey, index) => [dateKey, index + 1])),
@@ -65,7 +65,7 @@ export function MonthlyCalendar(props: MonthlyCalendarProps) {
   return (
     <View style={styles.card} {...swipeResponder.panHandlers}>
       <View style={styles.weekHeader}>
-        {weekDays.map((day) => (
+        {WEEK_DAYS.map((day) => (
           <Text key={day} style={styles.weekday}>
             {day}
           </Text>

@@ -10,10 +10,10 @@ type WheelPickerColumnProps = {
   onValueChange: (value: number) => void;
 };
 
-export const wheelPickerItemHeight = 52;
-export const wheelPickerVisibleItemCount = 5;
-export const wheelPickerHeight = wheelPickerItemHeight * wheelPickerVisibleItemCount;
-export const wheelPickerSpacerHeight = (wheelPickerHeight - wheelPickerItemHeight) / 2;
+export const WHEEL_PICKER_ITEM_HEIGHT = 52;
+export const WHEEL_PICKER_VISIBLE_ITEM_COUNT = 5;
+export const WHEEL_PICKER_HEIGHT = WHEEL_PICKER_ITEM_HEIGHT * WHEEL_PICKER_VISIBLE_ITEM_COUNT;
+export const WHEEL_PICKER_SPACER_HEIGHT = (WHEEL_PICKER_HEIGHT - WHEEL_PICKER_ITEM_HEIGHT) / 2;
 
 export function WheelPickerColumn(props: WheelPickerColumnProps) {
   const { onValueChange, options, selectedValue } = props;
@@ -23,7 +23,7 @@ export function WheelPickerColumn(props: WheelPickerColumnProps) {
       data={options}
       enableScrollByTapOnItem
       extraValues={[selectedValue]}
-      itemHeight={wheelPickerItemHeight}
+      itemHeight={WHEEL_PICKER_ITEM_HEIGHT}
       keyExtractor={(item) => String(item.value)}
       renderItem={({ item }) => (
         <View style={styles.option}>
@@ -36,7 +36,7 @@ export function WheelPickerColumn(props: WheelPickerColumnProps) {
       renderOverlay={() => null}
       style={styles.optionColumn}
       value={selectedValue}
-      visibleItemCount={wheelPickerVisibleItemCount}
+      visibleItemCount={WHEEL_PICKER_VISIBLE_ITEM_COUNT}
       width="100%"
       onValueChanged={({ item }) => onValueChange(item.value)}
       onValueChanging={({ item }) => onValueChange(item.value)}
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
   },
   option: {
     alignItems: "center",
-    height: wheelPickerItemHeight,
+    height: WHEEL_PICKER_ITEM_HEIGHT,
     justifyContent: "center",
     paddingHorizontal: 14,
   },

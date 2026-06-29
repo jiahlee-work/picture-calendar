@@ -16,14 +16,14 @@ import { appColors } from "@/presentation/theme/colors";
 import { dayjs } from "@/shared/date/dayjs";
 import type { MonthlyRecap } from "@/shared/recap/types";
 
-const absoluteFillObject = {
+const ABSOLUTE_FILL_OBJECT = {
   bottom: 0,
   left: 0,
   position: "absolute",
   right: 0,
   top: 0,
 } as const;
-const messageBubblePhotoGap = 40;
+const MESSAGE_BUBBLE_PHOTO_GAP = 40;
 
 type RecapMonthDetailScreenProps = {
   month: string;
@@ -311,7 +311,7 @@ function toMessageBubbleTop(photoCount: number, width: number): number {
     ...frameStyles.map((frameStyle) => frameStyle.top + frameStyle.height),
   );
 
-  return photoGroupBottom + messageBubblePhotoGap;
+  return photoGroupBottom + MESSAGE_BUBBLE_PHOTO_GAP;
 }
 
 function toCalendarCardSize(width: number) {
@@ -425,10 +425,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   templateLayer: {
-    ...absoluteFillObject,
+    ...ABSOLUTE_FILL_OBJECT,
   },
   overlay: {
-    ...absoluteFillObject,
+    ...ABSOLUTE_FILL_OBJECT,
     zIndex: 20,
   },
   statusPanel: {
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     zIndex: 4,
   },
   messagePhotoStack: {
-    ...absoluteFillObject,
+    ...ABSOLUTE_FILL_OBJECT,
   },
   messagePhotoFrame: {
     backgroundColor: "#eeeeee",
@@ -516,10 +516,10 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   backgroundImage: {
-    ...absoluteFillObject,
+    ...ABSOLUTE_FILL_OBJECT,
   },
   backgroundGrid: {
-    ...absoluteFillObject,
+    ...ABSOLUTE_FILL_OBJECT,
     flexDirection: "row",
     flexWrap: "wrap",
   },
@@ -528,11 +528,11 @@ const styles = StyleSheet.create({
     width: "50%",
   },
   collageScrim: {
-    ...absoluteFillObject,
+    ...ABSOLUTE_FILL_OBJECT,
     backgroundColor: "rgba(0, 0, 0, 0.18)",
   },
   calendarStageCenter: {
-    ...absoluteFillObject,
+    ...ABSOLUTE_FILL_OBJECT,
     alignItems: "center",
     justifyContent: "center",
     zIndex: 4,
@@ -593,7 +593,7 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
   calendarPhotoLayer: {
-    ...absoluteFillObject,
+    ...ABSOLUTE_FILL_OBJECT,
     overflow: "visible",
   },
   fillImage: {

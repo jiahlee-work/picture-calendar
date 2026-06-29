@@ -11,7 +11,7 @@ import { createMonthlyRecapRepositoryForRuntime } from "@/application/services/r
 import { logger } from "@/infrastructure/logging/logger";
 import type { MonthlyRecap } from "@/shared/recap/types";
 
-const localUserId = "local-user";
+const LOCAL_USER_ID = "local-user";
 
 export type MonthlyRecapDetailStatus = LoadedMonthlyRecapDetailStatus | "loading" | "error";
 
@@ -46,7 +46,7 @@ export function useMonthlyRecapDetail(monthKey: string) {
           dailyPhotoRepository,
           month: monthKey,
           recapRepository,
-          userId: localUserId,
+          userId: LOCAL_USER_ID,
         });
 
         if (!isMounted) {

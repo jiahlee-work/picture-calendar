@@ -5,8 +5,8 @@ import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import type { RecapYearOption } from "@/application/services/recap/recap-month-list";
 import { appColors } from "@/presentation/theme/colors";
 
-const chevronDownIcon: SymbolViewProps["name"] = { ios: "chevron.down", android: "keyboard_arrow_down" };
-const chevronUpIcon: SymbolViewProps["name"] = { ios: "chevron.up", android: "keyboard_arrow_up" };
+const CHEVRON_DOWN_ICON: SymbolViewProps["name"] = { ios: "chevron.down", android: "keyboard_arrow_down" };
+const CHEVRON_UP_ICON: SymbolViewProps["name"] = { ios: "chevron.up", android: "keyboard_arrow_up" };
 
 type RecapYearSelectorProps = {
   onSelectYear: (year: number) => void;
@@ -82,7 +82,7 @@ export function RecapYearSelector(props: RecapYearSelectorProps) {
         <Text style={styles.triggerText}>{selectedOption?.label ?? String(selectedYear)}</Text>
         <SymbolView
           colors={["#6f6f6f"]}
-          name={isOpen ? chevronUpIcon : chevronDownIcon}
+          name={isOpen ? CHEVRON_UP_ICON : CHEVRON_DOWN_ICON}
           size={16}
           tintColor="#6f6f6f"
           type="monochrome"

@@ -1,5 +1,5 @@
 import type { MonthlyRecapSelectionDraft } from "@/application/services/recap/types";
-import { monthlyRecapSelectionLimit } from "@/application/services/recap/recap-selection";
+import { MONTHLY_RECAP_SELECTION_LIMIT } from "@/application/services/recap/recap-selection";
 
 type RandomFn = () => number;
 
@@ -23,7 +23,7 @@ export function createAutoMonthlyRecapDraft(
   const { month, random = Math.random, userId } = options;
   const selectedPhotoIds = toUniquePhotoIds(options.photoIds);
 
-  if (selectedPhotoIds.length === 0 || selectedPhotoIds.length >= monthlyRecapSelectionLimit) {
+  if (selectedPhotoIds.length === 0 || selectedPhotoIds.length >= MONTHLY_RECAP_SELECTION_LIMIT) {
     return null;
   }
 
@@ -54,7 +54,7 @@ export function createManualMonthlyRecapDraft(
   options: CreateManualMonthlyRecapDraftOptions,
 ): MonthlyRecapSelectionDraft {
   const { month, random = Math.random, userId } = options;
-  const selectedPhotoIds = toUniquePhotoIds(options.selectedPhotoIds).slice(0, monthlyRecapSelectionLimit);
+  const selectedPhotoIds = toUniquePhotoIds(options.selectedPhotoIds).slice(0, MONTHLY_RECAP_SELECTION_LIMIT);
   const calendarPhotoIds = pickRandomPhotoIds(selectedPhotoIds, 4, random);
   const calendarPhotoIdsSet = new Set(calendarPhotoIds);
 
@@ -79,7 +79,7 @@ export function shouldRefreshAutoMonthlyRecap({
   const currentPhotoIdsSet = new Set(currentPhotoIds);
   const currentSelectedPhotoIds = toUniquePhotoIds(selectedPhotoIds).filter((photoId) => currentPhotoIdsSet.has(photoId));
 
-  if (currentPhotoIds.length === 0 || currentPhotoIds.length >= monthlyRecapSelectionLimit) {
+  if (currentPhotoIds.length === 0 || currentPhotoIds.length >= MONTHLY_RECAP_SELECTION_LIMIT) {
     return false;
   }
 

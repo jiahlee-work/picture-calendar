@@ -9,7 +9,7 @@ import {
 } from "@/shared/daily-photo/storage-key";
 import { dayjs } from "@/shared/date/dayjs";
 
-const dailyPhotosDirectoryName = "daily-photos";
+const DAILY_PHOTOS_DIRECTORY_NAME = "daily-photos";
 
 export function createLocalDailyPhotoFileStore(): DailyPhotoFileStore {
   return {
@@ -23,7 +23,7 @@ export function createLocalDailyPhotoFileStore(): DailyPhotoFileStore {
       });
       const destination = toDailyPhotoFile(storageKey);
 
-      ensureDirectory(new Directory(Paths.document, dailyPhotosDirectoryName, sanitizeStoragePathSegment(userId)));
+      ensureDirectory(new Directory(Paths.document, DAILY_PHOTOS_DIRECTORY_NAME, sanitizeStoragePathSegment(userId)));
 
       if (destination.exists) {
         destination.delete();
@@ -106,7 +106,7 @@ function ensureDestinationFile(destination: File) {
 function toDailyPhotoFile(storageKey: string): File {
   const [userDirectory, fileName] = storageKey.split("/");
 
-  return new File(Paths.document, dailyPhotosDirectoryName, userDirectory, fileName);
+  return new File(Paths.document, DAILY_PHOTOS_DIRECTORY_NAME, userDirectory, fileName);
 }
 
 function ensureDirectory(directory: Directory) {

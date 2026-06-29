@@ -10,9 +10,9 @@ import {
 import { AppBottomSheetBackdrop } from "@/presentation/components/atoms/app-bottom-sheet-backdrop";
 import {
   WheelPickerColumn,
-  wheelPickerHeight,
-  wheelPickerItemHeight,
-  wheelPickerSpacerHeight,
+  WHEEL_PICKER_HEIGHT,
+  WHEEL_PICKER_ITEM_HEIGHT,
+  WHEEL_PICKER_SPACER_HEIGHT,
 } from "@/presentation/components/molecules/wheel-picker-column";
 import { appColors } from "@/presentation/theme/colors";
 import { dayjs } from "@/shared/date/dayjs";
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   pickerFrame: {
-    height: wheelPickerHeight,
+    height: WHEEL_PICKER_HEIGHT,
     position: "relative",
   },
   pickerRow: {
@@ -148,11 +148,11 @@ const styles = StyleSheet.create({
   selectionIndicator: {
     backgroundColor: "#f4f4f5",
     borderRadius: 12,
-    height: wheelPickerItemHeight,
+    height: WHEEL_PICKER_ITEM_HEIGHT,
     left: 0,
     position: "absolute",
     right: 0,
-    top: wheelPickerSpacerHeight,
+    top: WHEEL_PICKER_SPACER_HEIGHT,
   },
   actions: {
     flexDirection: "row",
