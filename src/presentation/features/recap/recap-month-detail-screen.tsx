@@ -23,6 +23,7 @@ const absoluteFillObject = {
   right: 0,
   top: 0,
 } as const;
+const messageBubblePhotoGap = 40;
 
 type RecapMonthDetailScreenProps = {
   month: string;
@@ -248,6 +249,12 @@ function toStatusLabel(status: MonthlyRecapDetailStatus, photoCount: number, tem
 }
 
 function toMessagePhotoFrameStyle(index: number, photoCount: number, width: number) {
+  const frameStyles = toMessagePhotoFrameStyles(photoCount, width);
+
+  return frameStyles[index] ?? frameStyles[frameStyles.length - 1];
+}
+
+function toMessagePhotoFrameStyles(photoCount: number, width: number) {
   const twoPhotoStyles = [
     {
       height: width * 0.92,
@@ -294,15 +301,17 @@ function toMessagePhotoFrameStyle(index: number, photoCount: number, width: numb
   ];
   const stylesByIndex = photoCount <= 2 ? twoPhotoStyles : threePhotoStyles;
 
-  return stylesByIndex[index] ?? stylesByIndex[stylesByIndex.length - 1];
+  return stylesByIndex.slice(0, photoCount);
 }
 
 function toMessageBubbleTop(photoCount: number, width: number): number {
-  if (photoCount <= 2) {
-    return width * 1.85 + 40;
-  }
+  const frameStyles = toMessagePhotoFrameStyles(photoCount, width);
+  const photoGroupBottom = Math.max(
+    0,
+    ...frameStyles.map((frameStyle) => frameStyle.top + frameStyle.height),
+  );
 
-  return width * 1.61 + 36;
+  return photoGroupBottom + messageBubblePhotoGap;
 }
 
 function toCalendarCardSize(width: number) {
