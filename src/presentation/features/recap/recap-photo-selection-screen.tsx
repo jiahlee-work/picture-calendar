@@ -2,7 +2,10 @@ import { useRouter } from "expo-router";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useMonthlyRecapSelection } from "@/application/hooks/use-monthly-recap-selection";
+import {
+  MonthlyRecapSelectionResult,
+  useMonthlyRecapSelection,
+} from "@/application/hooks/use-monthly-recap-selection";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { DailyPhotoDetailSheet } from "@/presentation/components/organisms/daily-photo-detail-sheet";
 import { MonthlyCalendar } from "@/presentation/components/organisms/monthly-calendar";
@@ -68,7 +71,7 @@ export function RecapPhotoSelectionScreen(props: RecapPhotoSelectionScreenProps)
   const handleSelectDate = (dateKey: string) => {
     const result = handleTogglePhotoSelection(dateKey);
 
-    if (result === "selection_limit_reached") {
+    if (result === MonthlyRecapSelectionResult.selectionLimitReached) {
       Alert.alert("선택 제한", `대표 사진은 최대 ${selectionLimit}개까지 선택할 수 있습니다.`);
     }
   };

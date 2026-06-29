@@ -17,7 +17,14 @@ import { dayjs } from "@/shared/date/dayjs";
 
 const LOCAL_USER_ID = "local-user";
 
-export type MonthlyRecapSelectionResult = "selected" | "selection_limit_reached" | "missing_photo";
+export const MonthlyRecapSelectionResult = {
+  missingPhoto: "missing_photo",
+  selected: "selected",
+  selectionLimitReached: "selection_limit_reached",
+} as const;
+
+export type MonthlyRecapSelectionResult =
+  (typeof MonthlyRecapSelectionResult)[keyof typeof MonthlyRecapSelectionResult];
 
 export function useMonthlyRecapSelection(monthKey: string, today = dayjs().toDate()) {
   const [photosByDate, setPhotosByDate] = useState<Record<string, DailyPhoto>>({});
@@ -112,17 +119,17 @@ export function useMonthlyRecapSelection(monthKey: string, today = dayjs().toDat
     const photo = photosByDate[dateKey] ?? null;
 
     if (!photo) {
-      return "missing_photo";
+      return MonthlyRecapSelectionResult.missingPhoto;
     }
 
     const isSelected = selectedPhotoIdsSet.has(photo.id);
 
     if (!isSelected && selectedPhotoIds.length >= MONTHLY_RECAP_SELECTION_LIMIT) {
-      return "selection_limit_reached";
+      return MonthlyRecapSelectionResult.selectionLimitReached;
     }
 
     setSelectedPhotoIds((current) => toggleMonthlyRecapSelectedPhotoId(current, photo.id));
-    return "selected";
+    return MonthlyRecapSelectionResult.selected;
   }, [photosByDate, selectedPhotoIds.length, selectedPhotoIdsSet]);
 
   const handleSaveSelection = useCallback(async () => {

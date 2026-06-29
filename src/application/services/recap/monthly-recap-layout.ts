@@ -1,4 +1,4 @@
-import type { MonthlyRecapSelectionDraft } from "@/application/services/recap/types";
+import { MonthlyRecapTemplateId, type MonthlyRecapSelectionDraft } from "@/application/services/recap/types";
 import { MONTHLY_RECAP_SELECTION_LIMIT } from "@/application/services/recap/recap-selection";
 
 type RandomFn = () => number;
@@ -32,7 +32,7 @@ export function createAutoMonthlyRecapDraft(
       userId,
       month,
       selectedPhotoIds,
-      templateId: "message",
+      templateId: MonthlyRecapTemplateId.message,
       calendarPhotoIds: [],
       backgroundPhotoIds: [],
     };
@@ -44,7 +44,7 @@ export function createAutoMonthlyRecapDraft(
     userId,
     month,
     selectedPhotoIds,
-    templateId: "calendar_collage",
+    templateId: MonthlyRecapTemplateId.calendarCollage,
     calendarPhotoIds: selectedPhotoIds.filter((photoId) => photoId !== backgroundPhotoId),
     backgroundPhotoIds: [backgroundPhotoId],
   };
@@ -62,7 +62,7 @@ export function createManualMonthlyRecapDraft(
     userId,
     month,
     selectedPhotoIds,
-    templateId: "calendar_collage",
+    templateId: MonthlyRecapTemplateId.calendarCollage,
     calendarPhotoIds,
     backgroundPhotoIds: selectedPhotoIds.filter((photoId) => !calendarPhotoIdsSet.has(photoId)),
   };

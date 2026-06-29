@@ -7,17 +7,32 @@ import {
 import { sortRecapMonthPhotos } from "@/application/services/recap/monthly-recap-photos";
 import {
   canCreateRecapForMonth,
-  type RecapAvailabilityMode,
+  RecapAvailabilityMode,
 } from "@/application/services/recap/recap-month-list";
 import type { MonthlyRecapRepository } from "@/application/services/recap/types";
-import type { MonthlyRecap } from "@/shared/recap/types";
+import { MonthlyRecapSelectionStatus, type MonthlyRecap } from "@/shared/recap/types";
 
-export type MonthlyRecapDetailStatus = "collecting" | "ready" | "empty" | "needs_selection";
+export const MonthlyRecapDetailStatus = {
+  collecting: "collecting",
+  empty: "empty",
+  error: "error",
+  loading: "loading",
+  needsSelection: "needs_selection",
+  ready: "ready",
+} as const;
+
+export type MonthlyRecapDetailStatus =
+  (typeof MonthlyRecapDetailStatus)[keyof typeof MonthlyRecapDetailStatus];
+
+export type LoadedMonthlyRecapDetailStatus = Exclude<
+  MonthlyRecapDetailStatus,
+  typeof MonthlyRecapDetailStatus.error | typeof MonthlyRecapDetailStatus.loading
+>;
 
 export type MonthlyRecapDetailResult = {
   photos: DailyPhoto[];
   recap: MonthlyRecap | null;
-  status: MonthlyRecapDetailStatus;
+  status: LoadedMonthlyRecapDetailStatus;
 };
 
 type LoadMonthlyRecapDetailOptions = {
@@ -34,7 +49,7 @@ export async function loadMonthlyRecapDetail(
   options: LoadMonthlyRecapDetailOptions,
 ): Promise<MonthlyRecapDetailResult> {
   const {
-    availabilityMode = "production",
+    availabilityMode = RecapAvailabilityMode.production,
     currentDate,
     dailyPhotoRepository,
     month,
@@ -46,7 +61,7 @@ export async function loadMonthlyRecapDetail(
   const photoIds = monthPhotos.map((photo) => photo.id);
   const photoIdsSet = new Set(photoIds);
   const savedRecap = await recapRepository.getByMonth(userId, month);
-  const savedSelectedPhotoIds = savedRecap?.selectionStatus === "selected"
+  const savedSelectedPhotoIds = savedRecap?.selectionStatus === MonthlyRecapSelectionStatus.selected
     ? savedRecap.selectedPhotoIds.filter((photoId) => photoIdsSet.has(photoId))
     : [];
 
@@ -54,7 +69,7 @@ export async function loadMonthlyRecapDetail(
     return {
       photos: [],
       recap: null,
-      status: "empty",
+      status: MonthlyRecapDetailStatus.empty,
     };
   }
 
@@ -66,7 +81,7 @@ export async function loadMonthlyRecapDetail(
     return {
       photos: monthPhotos,
       recap: savedRecap,
-      status: "collecting",
+      status: MonthlyRecapDetailStatus.collecting,
     };
   }
 
@@ -74,11 +89,11 @@ export async function loadMonthlyRecapDetail(
     return {
       photos: monthPhotos,
       recap: savedRecap,
-      status: "needs_selection",
+      status: MonthlyRecapDetailStatus.needsSelection,
     };
   }
 
-  const canUseSavedRecap = savedRecap?.selectionStatus === "selected"
+  const canUseSavedRecap = savedRecap?.selectionStatus === MonthlyRecapSelectionStatus.selected
     && savedSelectedPhotoIds.length > 0
     && !shouldRefreshMonthlyRecap({
       photoIds,
@@ -90,7 +105,7 @@ export async function loadMonthlyRecapDetail(
     return {
       photos: monthPhotos,
       recap: savedRecap,
-      status: "ready",
+      status: MonthlyRecapDetailStatus.ready,
     };
   }
 
@@ -112,14 +127,14 @@ export async function loadMonthlyRecapDetail(
     return {
       photos: monthPhotos,
       recap: savedRecap,
-      status: "needs_selection",
+      status: MonthlyRecapDetailStatus.needsSelection,
     };
   }
 
   return {
     photos: monthPhotos,
     recap: await recapRepository.saveSelection(draft),
-    status: "ready",
+    status: MonthlyRecapDetailStatus.ready,
   };
 }
 

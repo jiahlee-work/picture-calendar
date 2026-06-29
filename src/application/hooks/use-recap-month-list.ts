@@ -7,6 +7,7 @@ import {
   createRecapMonthSummaries,
   createVisibleRecapYearMonths,
   createRecapYearOptions,
+  RecapAvailabilityMode,
 } from "@/application/services/recap/recap-month-list";
 import { dayjs } from "@/shared/date/dayjs";
 
@@ -21,7 +22,7 @@ export function useRecapMonthList(options: UseRecapMonthListOptions = {}) {
   const dailyPhotoRepository = useMemo(() => createDailyPhotoRepositoryForRuntime(Platform.OS), []);
   const recapRepository = useMemo(() => createMonthlyRecapRepositoryForRuntime(Platform.OS), []);
   const shouldIncludeMonthsBeforeStart = __DEV__;
-  const availabilityMode = __DEV__ ? "development" : "production";
+  const availabilityMode = __DEV__ ? RecapAvailabilityMode.development : RecapAvailabilityMode.production;
   const yearOptions = useMemo(() => createRecapYearOptions(initialYear), [initialYear]);
   const [selectedYear, setSelectedYear] = useState(initialYear);
   const [months, setMonths] = useState(() =>

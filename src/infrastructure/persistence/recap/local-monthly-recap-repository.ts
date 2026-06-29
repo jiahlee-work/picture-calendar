@@ -6,6 +6,10 @@ import type {
   MonthlyRecapSelectionStatus,
   MonthlyRecapTemplateId,
 } from "@/shared/recap/types";
+import {
+  MonthlyRecapSelectionStatus as MonthlyRecapSelectionStatusValue,
+  MonthlyRecapTemplateId as MonthlyRecapTemplateIdValue,
+} from "@/shared/recap/types";
 import { dayjs } from "@/shared/date/dayjs";
 
 const MONTHLY_RECAP_SELECTION_LIMIT = 10;
@@ -41,7 +45,7 @@ export function createLocalMonthlyRecapRepository(
         userId,
         month,
         selectedPhotoIds: undefined,
-        status: "prompted",
+        status: MonthlyRecapSelectionStatusValue.prompted,
         promptedAt: now().toISOString(),
       });
     },
@@ -55,7 +59,7 @@ export function createLocalMonthlyRecapRepository(
         templateId: selection.templateId ?? toDefaultTemplateId(selectedPhotoIds),
         calendarPhotoIds: toLayoutPhotoIds(selection.calendarPhotoIds ?? [], selectedPhotoIds),
         backgroundPhotoIds: toLayoutPhotoIds(selection.backgroundPhotoIds ?? [], selectedPhotoIds),
-        status: "selected",
+        status: MonthlyRecapSelectionStatusValue.selected,
         completedAt: now().toISOString(),
       });
     },
@@ -64,10 +68,10 @@ export function createLocalMonthlyRecapRepository(
         userId,
         month,
         selectedPhotoIds: [],
-        templateId: "message",
+        templateId: MonthlyRecapTemplateIdValue.message,
         calendarPhotoIds: [],
         backgroundPhotoIds: [],
-        status: "skipped",
+        status: MonthlyRecapSelectionStatusValue.skipped,
         completedAt: now().toISOString(),
       });
     },
@@ -159,7 +163,11 @@ function shouldKeepExistingSelectionStatus(
   existing: MonthlyRecap | undefined,
   nextStatus: MonthlyRecapSelectionStatus,
 ) {
-  return nextStatus === "prompted" && (existing?.selectionStatus === "selected" || existing?.selectionStatus === "skipped");
+  return nextStatus === MonthlyRecapSelectionStatusValue.prompted
+    && (
+      existing?.selectionStatus === MonthlyRecapSelectionStatusValue.selected
+      || existing?.selectionStatus === MonthlyRecapSelectionStatusValue.skipped
+    );
 }
 
 function toSelectedPhotoIds(selection: MonthlyRecapSelectionDraft) {
@@ -173,7 +181,9 @@ function toLayoutPhotoIds(photoIds: string[], selectedPhotoIds: string[]): strin
 }
 
 function toDefaultTemplateId(selectedPhotoIds: string[]): MonthlyRecapTemplateId {
-  return selectedPhotoIds.length > 0 && selectedPhotoIds.length <= 3 ? "message" : "calendar_collage";
+  return selectedPhotoIds.length > 0 && selectedPhotoIds.length <= 3
+    ? MonthlyRecapTemplateIdValue.message
+    : MonthlyRecapTemplateIdValue.calendarCollage;
 }
 
 function toMonthlyRecapKey(userId: string, month: string): string {

@@ -3,6 +3,8 @@ export type {
   MonthlyRecapMetadataStore,
   MonthlyRecapRepository,
   MonthlyRecapSelectionDraft,
+} from "@/shared/recap/types";
+export {
   MonthlyRecapSelectionStatus,
   MonthlyRecapTemplateId,
 } from "@/shared/recap/types";

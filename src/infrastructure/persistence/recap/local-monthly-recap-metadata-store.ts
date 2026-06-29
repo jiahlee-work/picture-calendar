@@ -6,6 +6,10 @@ import type {
   MonthlyRecapSelectionStatus,
   MonthlyRecapTemplateId,
 } from "@/shared/recap/types";
+import {
+  MonthlyRecapSelectionStatus as MonthlyRecapSelectionStatusValue,
+  MonthlyRecapTemplateId as MonthlyRecapTemplateIdValue,
+} from "@/shared/recap/types";
 
 const MONTHLY_RECAPS_DIRECTORY_NAME = "monthly-recaps";
 const METADATA_FILE_NAME = "metadata.json";
@@ -98,17 +102,23 @@ function stringArrayValue(value: unknown): string[] {
 }
 
 function selectionStatusValue(value: unknown): MonthlyRecapSelectionStatus {
-  if (value === "prompted" || value === "selected" || value === "skipped") {
+  if (
+    value === MonthlyRecapSelectionStatusValue.prompted
+    || value === MonthlyRecapSelectionStatusValue.selected
+    || value === MonthlyRecapSelectionStatusValue.skipped
+  ) {
     return value;
   }
 
-  return "not_started";
+  return MonthlyRecapSelectionStatusValue.notStarted;
 }
 
 function templateIdValue(value: unknown, selectedPhotoIds: string[]): MonthlyRecapTemplateId {
-  if (value === "message" || value === "calendar_collage") {
+  if (value === MonthlyRecapTemplateIdValue.message || value === MonthlyRecapTemplateIdValue.calendarCollage) {
     return value;
   }
 
-  return selectedPhotoIds.length > 0 && selectedPhotoIds.length <= 3 ? "message" : "calendar_collage";
+  return selectedPhotoIds.length > 0 && selectedPhotoIds.length <= 3
+    ? MonthlyRecapTemplateIdValue.message
+    : MonthlyRecapTemplateIdValue.calendarCollage;
 }

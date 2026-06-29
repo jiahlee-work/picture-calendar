@@ -1,7 +1,7 @@
 import { Link } from "expo-router";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
-import type { RecapMonthSummary } from "@/application/services/recap/recap-month-list";
+import { RecapMonthStatus, type RecapMonthSummary } from "@/application/services/recap/recap-month-list";
 import { PhotoPreviewCard } from "@/presentation/components/atoms/photo-preview-card";
 import { appColors } from "@/presentation/theme/colors";
 
@@ -42,8 +42,9 @@ type RecapMonthFolderCardProps = {
 
 export function RecapMonthFolderCard(props: RecapMonthFolderCardProps) {
   const { month } = props;
-  const isClickDisabled = month.status === "disabled_empty" || month.status === "disabled_collecting";
-  const isClosed = month.status === "disabled_empty";
+  const isClickDisabled = month.status === RecapMonthStatus.disabledEmpty
+    || month.status === RecapMonthStatus.disabledCollecting;
+  const isClosed = month.status === RecapMonthStatus.disabledEmpty;
   const shouldShowPreview = month.previewPhotos.length > 0;
   const href = toRecapMonthHref(month);
   const card = (
@@ -103,7 +104,7 @@ export function RecapMonthFolderCard(props: RecapMonthFolderCardProps) {
 }
 
 function toRecapMonthHref(month: RecapMonthSummary) {
-  if (month.status === "needs_selection") {
+  if (month.status === RecapMonthStatus.needsSelection) {
     return {
       params: {
         month: month.month,

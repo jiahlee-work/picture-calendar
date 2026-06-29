@@ -1,5 +1,19 @@
-export type MonthlyRecapSelectionStatus = "not_started" | "prompted" | "selected" | "skipped";
-export type MonthlyRecapTemplateId = "message" | "calendar_collage";
+export const MonthlyRecapSelectionStatus = {
+  notStarted: "not_started",
+  prompted: "prompted",
+  selected: "selected",
+  skipped: "skipped",
+} as const;
+
+export type MonthlyRecapSelectionStatus =
+  (typeof MonthlyRecapSelectionStatus)[keyof typeof MonthlyRecapSelectionStatus];
+
+export const MonthlyRecapTemplateId = {
+  calendarCollage: "calendar_collage",
+  message: "message",
+} as const;
+
+export type MonthlyRecapTemplateId = (typeof MonthlyRecapTemplateId)[keyof typeof MonthlyRecapTemplateId];
 
 export type MonthlyRecap = {
   id: string;

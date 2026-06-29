@@ -5,30 +5,33 @@ import { createDailyPhotoRepositoryForRuntime } from "@/application/services/dai
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import {
   loadMonthlyRecapDetail,
-  type MonthlyRecapDetailStatus as LoadedMonthlyRecapDetailStatus,
+  MonthlyRecapDetailStatus as MonthlyRecapDetailStatusValue,
+  type MonthlyRecapDetailStatus as MonthlyRecapDetailStatusType,
 } from "@/application/services/recap/monthly-recap-detail";
 import { createMonthlyRecapRepositoryForRuntime } from "@/application/services/recap/monthly-recap-repository-factory";
+import { RecapAvailabilityMode } from "@/application/services/recap/recap-month-list";
 import { logger } from "@/infrastructure/logging/logger";
 import type { MonthlyRecap } from "@/shared/recap/types";
 
 const LOCAL_USER_ID = "local-user";
 
-export type MonthlyRecapDetailStatus = LoadedMonthlyRecapDetailStatus | "loading" | "error";
+export const MonthlyRecapDetailStatus = MonthlyRecapDetailStatusValue;
+export type MonthlyRecapDetailStatus = MonthlyRecapDetailStatusType;
 
 type MonthlyRecapDetailState = {
   photos: DailyPhoto[];
   recap: MonthlyRecap | null;
-  status: MonthlyRecapDetailStatus;
+  status: MonthlyRecapDetailStatusType;
 };
 
 export function useMonthlyRecapDetail(monthKey: string) {
   const dailyPhotoRepository = useMemo(() => createDailyPhotoRepositoryForRuntime(Platform.OS), []);
   const recapRepository = useMemo(() => createMonthlyRecapRepositoryForRuntime(Platform.OS), []);
-  const availabilityMode = __DEV__ ? "development" : "production";
+  const availabilityMode = __DEV__ ? RecapAvailabilityMode.development : RecapAvailabilityMode.production;
   const [state, setState] = useState<MonthlyRecapDetailState>({
     photos: [],
     recap: null,
-    status: "loading",
+    status: MonthlyRecapDetailStatus.loading,
   });
 
   useEffect(() => {
@@ -37,7 +40,7 @@ export function useMonthlyRecapDetail(monthKey: string) {
     const loadRecap = async () => {
       setState((current) => ({
         ...current,
-        status: "loading",
+        status: MonthlyRecapDetailStatus.loading,
       }));
 
       try {
@@ -64,7 +67,7 @@ export function useMonthlyRecapDetail(monthKey: string) {
         setState({
           photos: [],
           recap: null,
-          status: "error",
+          status: MonthlyRecapDetailStatus.error,
         });
       }
     };
