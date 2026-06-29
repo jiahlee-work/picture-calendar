@@ -241,6 +241,10 @@ function toStatusLabel(status: MonthlyRecapDetailStatus, photoCount: number, tem
     return "대표 사진 선택 화면으로 이동 중이에요.";
   }
 
+  if (status === "collecting") {
+    return "이 달의 사진을 모으는 중이에요.";
+  }
+
   return `${photoCount}장의 사진으로 ${templateId === "message" ? "메시지" : "캘린더"} 리캡을 준비했어요.`;
 }
 

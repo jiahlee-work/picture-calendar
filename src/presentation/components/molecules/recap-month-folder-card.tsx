@@ -42,22 +42,24 @@ type RecapMonthFolderCardProps = {
 
 export function RecapMonthFolderCard(props: RecapMonthFolderCardProps) {
   const { month } = props;
-  const isDisabled = month.status === "disabled";
+  const isClickDisabled = month.status === "disabled_empty" || month.status === "disabled_collecting";
+  const isClosed = month.status === "disabled_empty";
+  const shouldShowPreview = month.previewPhotos.length > 0;
   const href = toRecapMonthHref(month);
   const card = (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${month.monthLabel} recap`}
-      accessibilityState={isDisabled ? { disabled: true } : undefined}
-      disabled={isDisabled}
+      accessibilityState={isClickDisabled ? { disabled: true } : undefined}
+      disabled={isClickDisabled}
       style={styles.card}
     >
       <View style={styles.folder}>
-        <View pointerEvents="none" style={[styles.folderBack, isDisabled && styles.disabledFolderBack]}>
-          <View style={[styles.backTabLeft, isDisabled && styles.disabledFolderBack]} />
-          <View style={[styles.backTabSlope, isDisabled && styles.disabledFolderBack]} />
+        <View pointerEvents="none" style={[styles.folderBack, isClosed && styles.disabledFolderBack]}>
+          <View style={[styles.backTabLeft, isClosed && styles.disabledFolderBack]} />
+          <View style={[styles.backTabSlope, isClosed && styles.disabledFolderBack]} />
         </View>
-        {!isDisabled && (
+        {shouldShowPreview && (
           <View pointerEvents="none" style={styles.previewStack}>
             {month.previewPhotos.slice(0, previewSlots.length).map((photo, index) => {
               const slot = previewSlots[index];
@@ -77,11 +79,11 @@ export function RecapMonthFolderCard(props: RecapMonthFolderCardProps) {
             })}
           </View>
         )}
-        <View pointerEvents="none" style={[styles.frontPerspective, isDisabled && styles.closedFrontPerspective]}>
-          <View style={[styles.folderFront, isDisabled && styles.closedFolderFront]}>
+        <View pointerEvents="none" style={[styles.frontPerspective, isClosed && styles.closedFrontPerspective]}>
+          <View style={[styles.folderFront, isClosed && styles.closedFolderFront]}>
             <View style={styles.frontContent}>
-              <Text style={[styles.monthName, isDisabled && styles.disabledText]}>{month.monthLabel}</Text>
-              <Text style={[styles.countText, isDisabled && styles.disabledText]}>{month.photoCount} photos</Text>
+              <Text style={[styles.monthName, isClosed && styles.disabledText]}>{month.monthLabel}</Text>
+              <Text style={[styles.countText, isClosed && styles.disabledText]}>{month.photoCount} photos</Text>
             </View>
           </View>
         </View>
@@ -89,7 +91,7 @@ export function RecapMonthFolderCard(props: RecapMonthFolderCardProps) {
     </Pressable>
   );
 
-  if (isDisabled) {
+  if (isClickDisabled) {
     return card;
   }
 

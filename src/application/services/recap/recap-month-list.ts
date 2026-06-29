@@ -8,7 +8,8 @@ const monthCount = 12;
 const defaultPreviewPhotoLimit = 4;
 const defaultRecapStartMonth = "2026-06";
 
-export type RecapMonthStatus = "disabled" | "needs_selection" | "selected";
+export type RecapAvailabilityMode = "development" | "production";
+export type RecapMonthStatus = "disabled_collecting" | "disabled_empty" | "needs_selection" | "ready_auto" | "selected";
 
 export type RecapMonthSummary = {
   month: string;
@@ -27,6 +28,7 @@ export type RecapYearOption = {
 };
 
 type CreateRecapMonthSummariesOptions = {
+  availabilityMode?: RecapAvailabilityMode;
   currentDate?: Date;
   includeMonthsBeforeStart?: boolean;
   previewPhotoLimit?: number;
@@ -49,7 +51,7 @@ export function createRecapYearMonths(year: number): RecapMonthSummary[] {
       photoCount: 0,
       previewPhotos: [],
       selectedPhotoIds: [],
-      status: "disabled",
+      status: "disabled_empty",
       year,
     };
   });
@@ -77,6 +79,7 @@ export function createVisibleRecapYearMonths({
 }
 
 export async function createRecapMonthSummaries({
+  availabilityMode = "production",
   currentDate = dayjs().toDate(),
   includeMonthsBeforeStart = false,
   previewPhotoLimit = defaultPreviewPhotoLimit,
@@ -108,7 +111,13 @@ export async function createRecapMonthSummaries({
         photoCount: recapPhotos.length,
         previewPhotos: recapPhotos.slice(0, previewPhotoLimit),
         selectedPhotoIds,
-        status: toRecapMonthStatus(recapPhotos.length, selectedPhotoIds),
+        status: toRecapMonthStatus({
+          availabilityMode,
+          currentDate,
+          month: month.month,
+          photoCount: recapPhotos.length,
+          selectedPhotoIds,
+        }),
       };
     }),
   );
@@ -140,14 +149,44 @@ function isVisibleRecapMonth({
   return month <= currentMonth && (includeMonthsBeforeStart || !isBeforeStartMonth);
 }
 
-function toRecapMonthStatus(photoCount: number, selectedPhotoIds: string[]): RecapMonthStatus {
+function toRecapMonthStatus({
+  availabilityMode,
+  currentDate,
+  month,
+  photoCount,
+  selectedPhotoIds,
+}: {
+  availabilityMode: RecapAvailabilityMode;
+  currentDate: Date;
+  month: string;
+  photoCount: number;
+  selectedPhotoIds: string[];
+}): RecapMonthStatus {
   if (photoCount === 0) {
-    return "disabled";
+    return "disabled_empty";
   }
 
-  if (selectedPhotoIds.length > 0 || photoCount < 10) {
+  if (!canCreateRecapForMonth({ availabilityMode, currentDate, month })) {
+    return "disabled_collecting";
+  }
+
+  if (selectedPhotoIds.length > 0) {
     return "selected";
   }
 
-  return "needs_selection";
+  return photoCount < 10 ? "ready_auto" : "needs_selection";
+}
+
+export function canCreateRecapForMonth({
+  availabilityMode,
+  currentDate,
+  month,
+}: {
+  availabilityMode: RecapAvailabilityMode;
+  currentDate: Date;
+  month: string;
+}): boolean {
+  const currentMonth = toMonthKey(dayjs(currentDate).startOf("month").toDate());
+
+  return availabilityMode === "development" ? month <= currentMonth : month < currentMonth;
 }
