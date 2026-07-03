@@ -4,22 +4,12 @@ import { StyleSheet, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { MonthlyRecapDetailStatus, useMonthlyRecapDetail } from "@/application/hooks/use-monthly-recap-detail";
-import { MonthlyRecapStatusPanel } from "@/presentation/components/molecules/monthly-recap-status-panel";
+import { MonthlyRecapTemplateFallback } from "@/presentation/components/molecules/monthly-recap-template-fallback";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { MonthlyRecapTemplate } from "@/presentation/components/organisms/monthly-recap-template";
 import { ShareCaptureMenu } from "@/presentation/components/organisms/share-capture-menu";
 import { appColors } from "@/presentation/theme/colors";
 import { dayjs } from "@/shared/date/dayjs";
-
-const ABSOLUTE_FILL_OBJECT = {
-  bottom: 0,
-  left: 0,
-  position: "absolute",
-  right: 0,
-  top: 0,
-} as const;
-const RECAP_SHARE_WIDTH = 1080;
-const RECAP_SHARE_HEIGHT = 1920;
 
 type RecapMonthDetailScreenProps = {
   month: string;
@@ -35,7 +25,7 @@ export function RecapMonthDetailScreen(props: RecapMonthDetailScreenProps) {
   const { photos, recap, status } = useMonthlyRecapDetail(monthKey);
   const monthDate = dayjs(`${year}-${month}-01`);
   const canvasWidth = width;
-  const isShareReady = status === MonthlyRecapDetailStatus.ready && Boolean(recap);
+  const isShareReady = status === MonthlyRecapDetailStatus.ready;
 
   useEffect(() => {
     if (status !== MonthlyRecapDetailStatus.needsSelection) {
@@ -50,14 +40,38 @@ export function RecapMonthDetailScreen(props: RecapMonthDetailScreenProps) {
     });
   }, [monthKey, router, status]);
 
+  if (!recap) {
+    const fallbackStatus = status === MonthlyRecapDetailStatus.ready ? MonthlyRecapDetailStatus.error : status;
+
+    return (
+      <View style={styles.screen}>
+        <SafeAreaView edges={["top"]}>
+          <AppBar>
+            <AppBar.Spacer />
+            <AppBar.Menu />
+          </AppBar>
+        </SafeAreaView>
+        <View style={styles.fallbackContainer}>
+          <MonthlyRecapTemplateFallback photoCount={photos.length} status={fallbackStatus} />
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.screen}>
-      <View style={styles.templateLayer}>
-        {status === MonthlyRecapDetailStatus.ready && recap ? (
-          <MonthlyRecapTemplate monthDate={monthDate} photos={photos} recap={recap} width={canvasWidth} />
-        ) : (
-          <MonthlyRecapStatusPanel status={status} />
-        )}
+      <View
+        ref={shareCaptureRef}
+        collapsable={false}
+        renderToHardwareTextureAndroid
+        style={styles.templateLayer}
+      >
+        <MonthlyRecapTemplate
+          monthDate={monthDate}
+          photos={photos}
+          recap={recap}
+          width={canvasWidth}
+        />
       </View>
       <SafeAreaView edges={["top"]} pointerEvents="box-none" style={styles.overlay}>
         <AppBar pointerEvents="box-none" variant="overlay">
@@ -65,9 +79,7 @@ export function RecapMonthDetailScreen(props: RecapMonthDetailScreenProps) {
           <View pointerEvents="box-none" style={styles.appBarActions}>
             <ShareCaptureMenu
               accessibilityLabel="리캡 공유 메뉴 열기"
-              captureHeight={RECAP_SHARE_HEIGHT}
               captureRef={shareCaptureRef}
-              captureWidth={RECAP_SHARE_WIDTH}
               fileName={monthKey}
               isReady={isShareReady}
             />
@@ -75,22 +87,6 @@ export function RecapMonthDetailScreen(props: RecapMonthDetailScreenProps) {
           </View>
         </AppBar>
       </SafeAreaView>
-      {isShareReady && recap ? (
-        <View
-          ref={shareCaptureRef}
-          collapsable={false}
-          pointerEvents="none"
-          renderToHardwareTextureAndroid
-          style={styles.shareCaptureCanvas}
-        >
-          <MonthlyRecapTemplate
-            monthDate={monthDate}
-            photos={photos}
-            recap={recap}
-            width={RECAP_SHARE_WIDTH}
-          />
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -101,22 +97,21 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   overlay: {
-    ...ABSOLUTE_FILL_OBJECT,
+    bottom: 0,
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 0,
     zIndex: 20,
+  },
+  fallbackContainer: {
+    flex: 1,
   },
   screen: {
     backgroundColor: appColors.background,
     flex: 1,
   },
-  shareCaptureCanvas: {
-    height: RECAP_SHARE_HEIGHT,
-    left: 0,
-    position: "absolute",
-    top: 0,
-    transform: [{ translateX: -(RECAP_SHARE_WIDTH + 120) }],
-    width: RECAP_SHARE_WIDTH,
-  },
   templateLayer: {
-    ...ABSOLUTE_FILL_OBJECT,
+    height: "100%",
   },
 });

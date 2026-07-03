@@ -1,7 +1,7 @@
 import { useRef, useState, type RefObject } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 import { type SymbolViewProps } from "expo-symbols";
-import { captureRef as captureViewRef, releaseCapture } from "react-native-view-shot";
+import { captureRef as captureViewRef, releaseCapture, type CaptureOptions } from "react-native-view-shot";
 
 import {
   MediaLibraryWritePermissionType,
@@ -18,12 +18,13 @@ import {
   type ShareSaveToastState as ShareSaveToastStateType,
 } from "@/presentation/components/molecules/share-save-toast";
 import { Menu } from "@/presentation/components/organisms/menu";
+import { ShareCaptureSaveMenuItem } from "@/presentation/components/organisms/share-capture-save-menu-item";
 
 type ShareCaptureMenuProps = {
   accessibilityLabel: string;
-  captureHeight: number;
+  captureHeight?: number;
   captureRef: RefObject<View | null>;
-  captureWidth: number;
+  captureWidth?: number;
   fileName: string;
   isReady: boolean;
 };
@@ -41,7 +42,6 @@ type PermissionAlertState = {
 };
 
 const SHARE_ICON: SymbolViewProps["name"] = { android: "share", ios: "square.and.arrow.up" };
-const SAVE_ICON: SymbolViewProps["name"] = { android: "download", ios: "square.and.arrow.down" };
 
 export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
   const { accessibilityLabel, captureHeight, captureRef, captureWidth, fileName, isReady } = props;
@@ -60,14 +60,22 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
       return null;
     }
 
-    const uri = await captureViewRef(captureRef, {
+    const captureOptions: CaptureOptions = {
       fileName,
       format: "png",
-      height: captureHeight,
       quality: 1,
       result: "tmpfile",
-      width: captureWidth,
-    });
+    };
+
+    if (captureHeight) {
+      captureOptions.height = captureHeight;
+    }
+
+    if (captureWidth) {
+      captureOptions.width = captureWidth;
+    }
+
+    const uri = await captureViewRef(captureRef, captureOptions);
 
     latestCaptureUriRef.current = uri;
     return uri;
@@ -162,7 +170,7 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
   return (
     <View style={styles.root}>
       <Menu accessibilityLabel={accessibilityLabel} trigger={{ icon: SHARE_ICON }}>
-        <Menu.Item icon={SAVE_ICON} label="이미지 저장" onPress={handleSaveImage} />
+        <ShareCaptureSaveMenuItem onPress={handleSaveImage} />
         <Menu.Item icon={SHARE_ICON} label="공유하기" onPress={handleShareImage} />
       </Menu>
       <MediaLibraryPermissionAlert

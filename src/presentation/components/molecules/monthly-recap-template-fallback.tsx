@@ -8,13 +8,13 @@ import { MonthlyRecapDetailStatus } from "@/application/services/recap/monthly-r
 import { appColors } from "@/presentation/theme/colors";
 import type { MonthlyRecap } from "@/shared/recap/types";
 
-type MonthlyRecapStatusPanelProps = {
+type MonthlyRecapTemplateFallbackProps = {
   photoCount?: number;
   status: MonthlyRecapStatusLabelStatus;
   templateId?: MonthlyRecap["templateId"] | null;
 };
 
-export function MonthlyRecapStatusPanel(props: MonthlyRecapStatusPanelProps) {
+export function MonthlyRecapTemplateFallback(props: MonthlyRecapTemplateFallbackProps) {
   const { photoCount = 0, status, templateId = null } = props;
 
   if (status === MonthlyRecapDetailStatus.loading) {

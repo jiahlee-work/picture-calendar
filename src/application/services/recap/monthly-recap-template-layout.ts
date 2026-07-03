@@ -1,8 +1,6 @@
 import { MonthlyRecapDetailStatus } from "@/application/services/recap/monthly-recap-detail";
 import { MonthlyRecapTemplateId, type MonthlyRecap } from "@/shared/recap/types";
 
-const MESSAGE_BUBBLE_PHOTO_GAP = 40;
-
 export type MonthlyRecapStatusLabelStatus = MonthlyRecapDetailStatus;
 
 export type MonthlyRecapPhotoFrameLayout = {
@@ -61,14 +59,16 @@ export function getMessageRecapPhotoFrameLayout(
   return frameLayouts[index] ?? frameLayouts[frameLayouts.length - 1];
 }
 
-export function getMessageRecapBubbleTop(photoCount: number, width: number): number {
+export function getMessageRecapPhotoGroupSize(photoCount: number, width: number): MonthlyRecapCardSize {
   const frameLayouts = getMessageRecapPhotoFrameLayouts(photoCount, width);
-  const photoGroupBottom = Math.max(
-    0,
-    ...frameLayouts.map((frameLayout) => frameLayout.top + frameLayout.height),
-  );
 
-  return photoGroupBottom + MESSAGE_BUBBLE_PHOTO_GAP;
+  return {
+    height: Math.max(
+      0,
+      ...frameLayouts.map((frameLayout) => frameLayout.top + frameLayout.height),
+    ),
+    width,
+  };
 }
 
 export function getCalendarRecapCardSize(width: number): MonthlyRecapCardSize {
@@ -181,21 +181,31 @@ export function getMonthlyRecapSeasonEmojis(monthIndex: number): string {
 }
 
 function getMessageRecapPhotoFrameLayouts(photoCount: number, width: number): MonthlyRecapPhotoFrameLayout[] {
-  const twoPhotoLayouts: MonthlyRecapPhotoFrameLayout[] = [
+  const onePhotoLayouts: MonthlyRecapPhotoFrameLayout[] = [
     {
       height: width * 0.92,
       left: width * 0.2,
+      rotation: "0deg",
+      top: 0,
+      width: width * 0.74,
+      zIndex: 2,
+    },
+  ];
+  const twoPhotoLayouts: MonthlyRecapPhotoFrameLayout[] = [
+    {
+      height: width * 0.76,
+      left: width * 0.22,
       rotation: "-4deg",
-      top: width * 0.48,
-      width: width * 0.62,
+      top: 0,
+      width: width * 0.52,
       zIndex: 2,
     },
     {
-      height: width * 0.82,
-      left: width * 0.39,
+      height: width * 0.7,
+      left: width * 0.43,
       rotation: "5deg",
-      top: width * 1.03,
-      width: width * 0.57,
+      top: width * 0.46,
+      width: width * 0.5,
       zIndex: 3,
     },
   ];
@@ -204,7 +214,7 @@ function getMessageRecapPhotoFrameLayouts(photoCount: number, width: number): Mo
       height: width * 0.47,
       left: width * 0.48,
       rotation: "1deg",
-      top: width * 0.37,
+      top: 0,
       width: width * 0.38,
       zIndex: 2,
     },
@@ -212,7 +222,7 @@ function getMessageRecapPhotoFrameLayouts(photoCount: number, width: number): Mo
       height: width * 0.47,
       left: width * 0.34,
       rotation: "-3deg",
-      top: width * 0.76,
+      top: width * 0.39,
       width: width * 0.38,
       zIndex: 3,
     },
@@ -220,12 +230,18 @@ function getMessageRecapPhotoFrameLayouts(photoCount: number, width: number): Mo
       height: width * 0.46,
       left: width * 0.48,
       rotation: "2deg",
-      top: width * 1.12,
+      top: width * 0.75,
       width: width * 0.38,
       zIndex: 4,
     },
   ];
-  const layoutsByIndex = photoCount <= 2 ? twoPhotoLayouts : threePhotoLayouts;
+  if (photoCount === 1) {
+    return onePhotoLayouts;
+  }
 
-  return layoutsByIndex.slice(0, photoCount);
+  if (photoCount === 2) {
+    return twoPhotoLayouts;
+  }
+
+  return threePhotoLayouts.slice(0, photoCount);
 }

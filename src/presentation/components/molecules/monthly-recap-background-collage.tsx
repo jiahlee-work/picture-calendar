@@ -3,14 +3,6 @@ import { StyleSheet, View } from "react-native";
 
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 
-const ABSOLUTE_FILL_OBJECT = {
-  bottom: 0,
-  left: 0,
-  position: "absolute",
-  right: 0,
-  top: 0,
-} as const;
-
 type MonthlyRecapBackgroundCollageProps = {
   photos: DailyPhoto[];
 };
@@ -39,15 +31,23 @@ export function MonthlyRecapBackgroundCollage(props: MonthlyRecapBackgroundColla
 
 const styles = StyleSheet.create({
   backgroundGrid: {
-    ...ABSOLUTE_FILL_OBJECT,
+    bottom: 0,
     flexDirection: "row",
     flexWrap: "wrap",
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 0,
   },
   backgroundGridImage: {
     height: "50%",
     width: "50%",
   },
   backgroundImage: {
-    ...ABSOLUTE_FILL_OBJECT,
+    bottom: 0,
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 0,
   },
 });

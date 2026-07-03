@@ -11,6 +11,7 @@ const CALENDAR_CELL_ASPECT_RATIO = 0.58;
 type MonthlyCalendarProps = {
   calendar: CalendarMonth;
   canSwipeMonth?: boolean;
+  contentWidth?: number;
   selectedDateKeys?: string[];
   onLongPressDate?: (dateKey: string) => void;
   onNextMonth?: () => void;
@@ -22,6 +23,7 @@ export function MonthlyCalendar(props: MonthlyCalendarProps) {
   const {
     calendar,
     canSwipeMonth = true,
+    contentWidth,
     onLongPressDate,
     onNextMonth,
     onPreviousMonth,
@@ -31,7 +33,7 @@ export function MonthlyCalendar(props: MonthlyCalendarProps) {
   const { width: windowWidth } = useWindowDimensions();
   const [gridHeight, setGridHeight] = useState(0);
   const rowCount = Math.max(1, calendar.days.length / 7);
-  const cellWidth = windowWidth / 7;
+  const cellWidth = (contentWidth ?? windowWidth) / 7;
   const fallbackCellHeight = cellWidth / CALENDAR_CELL_ASPECT_RATIO;
   const cellHeight = gridHeight > 0 ? gridHeight / rowCount : fallbackCellHeight;
   const selectionOrderByDateKey = useMemo(
