@@ -35,7 +35,10 @@
     "react-native-worklets": "0.8.3"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.2",
     "@types/react": "~19.2.2",
+    "postcss": "^8.5.16",
+    "tailwindcss": "^4.3.2",
     "typescript": "~6.0.3",
     "vitest": "^4.1.9"
   },
