@@ -24,10 +24,21 @@ type MessageRecapTemplateProps = {
 
 export function MessageRecapTemplate(props: MessageRecapTemplateProps) {
   const { monthDate, photos, recap, width } = props;
-  const { selectedPhotos } = resolveMonthlyRecapTemplatePhotos({ photos, recap });
-  const createdTimeLabel = dayjs(recap.createdAt).isValid() ? dayjs(recap.createdAt).format("HH:mm") : "09:00";
-  const contentWidth = Math.max(0, width - MESSAGE_CANVAS_HORIZONTAL_PADDING * 2);
-  const photoGroupSize = getMessageRecapPhotoGroupSize(selectedPhotos.length, contentWidth);
+  const { selectedPhotos } = resolveMonthlyRecapTemplatePhotos({
+    photos,
+    recap,
+  });
+  const createdTimeLabel = dayjs(recap.createdAt).isValid()
+    ? dayjs(recap.createdAt).format("HH:mm")
+    : "09:00";
+  const contentWidth = Math.max(
+    0,
+    width - MESSAGE_CANVAS_HORIZONTAL_PADDING * 2,
+  );
+  const photoGroupSize = getMessageRecapPhotoGroupSize(
+    selectedPhotos.length,
+    contentWidth,
+  );
 
   return (
     <View style={[styles.canvas, { width }]}>
@@ -39,16 +50,27 @@ export function MessageRecapTemplate(props: MessageRecapTemplateProps) {
               key={photo.id}
               style={[
                 styles.photoFrame,
-                toMonthlyRecapPhotoFrameStyle(getMessageRecapPhotoFrameLayout(index, selectedPhotos.length, contentWidth)),
+                toMonthlyRecapPhotoFrameStyle(
+                  getMessageRecapPhotoFrameLayout(
+                    index,
+                    selectedPhotos.length,
+                    contentWidth,
+                  ),
+                ),
               ]}
             >
-              <Image contentFit="cover" source={{ uri: photo.imagePath }} style={styles.fillImage} />
+              <Image
+                contentFit="cover"
+                source={{ uri: photo.imagePath }}
+                style={styles.fillImage}
+              />
             </View>
           ))}
         </View>
         <View style={styles.bubble}>
           <Text style={styles.bubbleText}>
-            My {monthDate.format("MMMM YYYY")} {getMonthlyRecapSeasonEmojis(monthDate.month())}
+            My {monthDate.format("MMMM YYYY")}{" "}
+            {getMonthlyRecapSeasonEmojis(monthDate.month())}
           </Text>
           <View style={styles.bubbleTail} />
           <View style={styles.bubbleTailCutout} />

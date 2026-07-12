@@ -21,7 +21,9 @@ export function MonthlyRecapCalendarGrid(props: MonthlyRecapCalendarGridProps) {
       ))}
       {cells.map((cell, index) => (
         <View key={cell?.key ?? `empty-${index}`} style={styles.calendarCell}>
-          {cell ? <Text style={styles.calendarDayText}>{cell.dayOfMonth}</Text> : null}
+          {cell ? (
+            <Text style={styles.calendarDayText}>{cell.dayOfMonth}</Text>
+          ) : null}
         </View>
       ))}
     </View>

@@ -7,14 +7,22 @@ type MonthlyRecapBackgroundCollageProps = {
   photos: DailyPhoto[];
 };
 
-export function MonthlyRecapBackgroundCollage(props: MonthlyRecapBackgroundCollageProps) {
+export function MonthlyRecapBackgroundCollage(
+  props: MonthlyRecapBackgroundCollageProps,
+) {
   const { photos } = props;
 
   if (photos.length <= 1) {
+    const photo = photos[0];
+
+    if (!photo) {
+      return null;
+    }
+
     return (
       <Image
         contentFit="cover"
-        source={{ uri: photos[0]?.imagePath }}
+        source={{ uri: photo.imagePath }}
         style={styles.backgroundImage}
       />
     );
@@ -23,7 +31,12 @@ export function MonthlyRecapBackgroundCollage(props: MonthlyRecapBackgroundColla
   return (
     <View style={styles.backgroundGrid}>
       {photos.slice(0, 6).map((photo) => (
-        <Image key={photo.id} contentFit="cover" source={{ uri: photo.imagePath }} style={styles.backgroundGridImage} />
+        <Image
+          key={photo.id}
+          contentFit="cover"
+          source={{ uri: photo.imagePath }}
+          style={styles.backgroundGridImage}
+        />
       ))}
     </View>
   );

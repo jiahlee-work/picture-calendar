@@ -1,6 +1,8 @@
 import type { MonthlyRecapPhotoFrameLayout } from "@/application/services/recap/monthly-recap-template-layout";
 
-export function toMonthlyRecapPhotoFrameStyle(layout: MonthlyRecapPhotoFrameLayout) {
+export function toMonthlyRecapPhotoFrameStyle(
+  layout: MonthlyRecapPhotoFrameLayout,
+) {
   return {
     height: layout.height,
     left: layout.left,

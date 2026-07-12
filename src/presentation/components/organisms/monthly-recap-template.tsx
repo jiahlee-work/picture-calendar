@@ -1,8 +1,12 @@
 import type { Dayjs } from "dayjs";
 
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
-import MonthlyRecapTemplateDom from "@/presentation/components/organisms/monthly-recap-template-dom";
-import type { MonthlyRecap } from "@/shared/recap/types";
+import { CalendarCollageRecapTemplate } from "@/presentation/components/organisms/calendar-collage-recap-template";
+import { MessageRecapTemplate } from "@/presentation/components/organisms/message-recap-template";
+import {
+  MonthlyRecapTemplateId,
+  type MonthlyRecap,
+} from "@/shared/recap/types";
 
 type MonthlyRecapTemplateProps = {
   monthDate: Dayjs;
@@ -14,16 +18,20 @@ type MonthlyRecapTemplateProps = {
 export function MonthlyRecapTemplate(props: MonthlyRecapTemplateProps) {
   const { monthDate, photos, recap, width } = props;
 
+  if (recap.templateId === MonthlyRecapTemplateId.message) {
+    return (
+      <MessageRecapTemplate
+        monthDate={monthDate}
+        photos={photos}
+        recap={recap}
+        width={width}
+      />
+    );
+  }
+
   return (
-    <MonthlyRecapTemplateDom
-      dom={{
-        contentInsetAdjustmentBehavior: "never",
-        scrollEnabled: false,
-        style: {
-          flex: 1,
-        },
-      }}
-      monthKey={monthDate.format("YYYY-MM")}
+    <CalendarCollageRecapTemplate
+      monthDate={monthDate}
       photos={photos}
       recap={recap}
       width={width}

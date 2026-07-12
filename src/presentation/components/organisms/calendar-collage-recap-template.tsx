@@ -22,9 +22,12 @@ type CalendarCollageRecapTemplateProps = {
   width: number;
 };
 
-export function CalendarCollageRecapTemplate(props: CalendarCollageRecapTemplateProps) {
+export function CalendarCollageRecapTemplate(
+  props: CalendarCollageRecapTemplateProps,
+) {
   const { monthDate, photos, recap, width } = props;
-  const { backgroundPhotos, calendarPhotos } = resolveMonthlyRecapTemplatePhotos({ photos, recap });
+  const { backgroundPhotos, calendarPhotos } =
+    resolveMonthlyRecapTemplatePhotos({ photos, recap });
   const calendar = buildCalendarMonth(monthDate.startOf("month").toDate());
   const calendarCardSize = getCalendarRecapCardSize(width);
 
@@ -43,11 +46,23 @@ export function CalendarCollageRecapTemplate(props: CalendarCollageRecapTemplate
               <View
                 key={photo.id}
                 style={[
-                  styles.photoFrame,
-                  toMonthlyRecapPhotoFrameStyle(getCalendarRecapPhotoSlotLayout(index, calendarPhotos.length, width)),
+                  styles.photoFrameShadow,
+                  toMonthlyRecapPhotoFrameStyle(
+                    getCalendarRecapPhotoSlotLayout(
+                      index,
+                      calendarPhotos.length,
+                      width,
+                    ),
+                  ),
                 ]}
               >
-                <Image contentFit="cover" source={{ uri: photo.imagePath }} style={styles.fillImage} />
+                <View style={styles.photoFrame}>
+                  <Image
+                    contentFit="cover"
+                    source={{ uri: photo.imagePath }}
+                    style={styles.fillImage}
+                  />
+                </View>
               </View>
             ))}
           </View>
@@ -87,8 +102,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#fffdfa",
     borderColor: "#fffdfa",
     borderWidth: 8,
-    boxShadow: "0 6px 14px rgba(0, 0, 0, 0.16)",
+    flex: 1,
     overflow: "hidden",
+  },
+  photoFrameShadow: {
+    boxShadow: "0 6px 14px rgba(0, 0, 0, 0.16)",
     position: "absolute",
   },
   photoLayer: {
