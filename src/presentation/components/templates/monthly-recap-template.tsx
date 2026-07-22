@@ -1,8 +1,8 @@
 import type { Dayjs } from "dayjs";
 
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
-import { CalendarCollageRecapTemplate } from "@/presentation/components/organisms/calendar-collage-recap-template";
-import { MessageRecapTemplate } from "@/presentation/components/organisms/message-recap-template";
+import { CalendarCollageRecapTemplate } from "@/presentation/components/templates/calendar-collage-recap-template";
+import { MessageRecapTemplate } from "@/presentation/components/templates/message-recap-template";
 import {
   MonthlyRecapTemplateId,
   type MonthlyRecap,

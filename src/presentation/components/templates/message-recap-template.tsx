@@ -9,7 +9,8 @@ import {
   getMonthlyRecapSeasonEmojis,
 } from "@/application/services/recap/monthly-recap-template-layout";
 import { resolveMonthlyRecapTemplatePhotos } from "@/application/services/recap/monthly-recap-template-photos";
-import { toMonthlyRecapPhotoFrameStyle } from "@/presentation/components/organisms/monthly-recap-photo-frame-style";
+import { MessageRecapBubble } from "@/presentation/components/molecules/message-recap-bubble";
+import { toMonthlyRecapPhotoFrameStyle } from "@/presentation/components/templates/monthly-recap-photo-frame-style";
 import { dayjs } from "@/shared/date/dayjs";
 import type { MonthlyRecap } from "@/shared/recap/types";
 
@@ -67,14 +68,11 @@ export function MessageRecapTemplate(props: MessageRecapTemplateProps) {
             </View>
           ))}
         </View>
-        <View style={styles.bubble}>
-          <Text style={styles.bubbleText}>
-            My {monthDate.format("MMMM YYYY")}{" "}
-            {getMonthlyRecapSeasonEmojis(monthDate.month())}
-          </Text>
-          <View style={styles.bubbleTail} />
-          <View style={styles.bubbleTailCutout} />
-        </View>
+        <MessageRecapBubble
+          text={`My ${monthDate.format("MMMM YYYY")} ${getMonthlyRecapSeasonEmojis(
+            monthDate.month(),
+          )}`}
+        />
       </View>
     </View>
   );
@@ -83,42 +81,6 @@ export function MessageRecapTemplate(props: MessageRecapTemplateProps) {
 const styles = StyleSheet.create({
   body: {
     gap: 20,
-  },
-  bubble: {
-    alignSelf: "flex-end",
-    backgroundColor: "#1688ff",
-    borderRadius: 24,
-    maxWidth: "82%",
-    minHeight: 52,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    position: "relative",
-    zIndex: 10,
-  },
-  bubbleTail: {
-    backgroundColor: "#1688ff",
-    borderBottomLeftRadius: 16,
-    bottom: 0,
-    height: 25,
-    position: "absolute",
-    right: -7,
-    width: 20,
-  },
-  bubbleTailCutout: {
-    backgroundColor: "#ffffff",
-    borderBottomLeftRadius: 10,
-    bottom: 0,
-    height: 25,
-    position: "absolute",
-    right: -26,
-    width: 26,
-  },
-  bubbleText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "700",
-    letterSpacing: 0,
-    lineHeight: 22,
   },
   canvas: {
     backgroundColor: "#ffffff",

@@ -8,11 +8,16 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "react-native-reanimated";
 
+import { useRecapNotificationScheduler } from "@/application/hooks/use-recap-notification-scheduler";
+import { useRecapNotificationDeepLinking } from "@/presentation/features/notifications/use-recap-notification-deep-linking";
 import { appColors } from "@/presentation/theme/colors";
 
 export { ErrorBoundary } from "expo-router";
 
 export default function RootLayout() {
+  useRecapNotificationScheduler();
+  useRecapNotificationDeepLinking();
+
   useEffect(() => {
     if (process.env.EXPO_OS !== "android") {
       return;

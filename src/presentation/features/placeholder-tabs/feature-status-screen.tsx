@@ -1,8 +1,8 @@
 import { StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
+import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
-import { appColors } from "@/presentation/theme/colors";
+import { appSpacing } from "@/presentation/theme/spacing";
 
 type FeatureStatusScreenProps = {
   title: string;
@@ -14,7 +14,7 @@ export function FeatureStatusScreen(props: FeatureStatusScreenProps) {
   const { title, eyebrow, body } = props;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <AppSafeAreaView>
       <AppBar>
         <AppBar.Title>{title}</AppBar.Title>
         <AppBar.Menu />
@@ -23,19 +23,16 @@ export function FeatureStatusScreen(props: FeatureStatusScreenProps) {
         <Text style={styles.eyebrow}>{eyebrow}</Text>
         <Text style={styles.body}>{body}</Text>
       </View>
-    </SafeAreaView>
+    </AppSafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: appColors.background,
-  },
   container: {
     flex: 1,
     justifyContent: "center",
-    padding: 24,
+    paddingHorizontal: appSpacing.screenHorizontalPadding,
+    paddingVertical: appSpacing.screenContentTopPadding,
   },
   eyebrow: {
     color: "#666666",

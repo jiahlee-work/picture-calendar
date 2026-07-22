@@ -1,15 +1,16 @@
 import { useRouter } from "expo-router";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   MonthlyRecapSelectionResult,
   useMonthlyRecapSelection,
 } from "@/application/hooks/use-monthly-recap-selection";
+import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { DailyPhotoDetailSheet } from "@/presentation/components/organisms/daily-photo-detail-sheet";
 import { MonthlyCalendar } from "@/presentation/components/organisms/monthly-calendar";
 import { appColors } from "@/presentation/theme/colors";
+import { appSpacing } from "@/presentation/theme/spacing";
 import { dayjs } from "@/shared/date/dayjs";
 
 type RecapPhotoSelectionScreenProps = {
@@ -77,30 +78,32 @@ export function RecapPhotoSelectionScreen(props: RecapPhotoSelectionScreenProps)
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <AppSafeAreaView>
       <View style={styles.container}>
         <AppBar>
           <AppBar.Title variant="small">{title}</AppBar.Title>
           <AppBar.Action accessibilityLabel="대표 사진 선택 취소" label="취소" onPress={handleCancelPress} />
         </AppBar>
 
-        {isLoading ? (
-          <View style={styles.statusPanel}>
-            <ActivityIndicator color={appColors.black} />
-          </View>
-        ) : hasLoadFailed ? (
-          <View style={styles.statusPanel}>
-            <Text style={styles.statusTitle}>사진을 불러오지 못했습니다.</Text>
-          </View>
-        ) : (
-          <MonthlyCalendar
-            canSwipeMonth={false}
-            calendar={calendar}
-            selectedDateKeys={selectedDateKeys}
-            onLongPressDate={handleOpenPhotoDetail}
-            onSelectDate={handleSelectDate}
-          />
-        )}
+        <View style={styles.content}>
+          {isLoading ? (
+            <View style={styles.statusPanel}>
+              <ActivityIndicator color={appColors.black} />
+            </View>
+          ) : hasLoadFailed ? (
+            <View style={styles.statusPanel}>
+              <Text style={styles.statusTitle}>사진을 불러오지 못했습니다.</Text>
+            </View>
+          ) : (
+            <MonthlyCalendar
+              canSwipeMonth={false}
+              calendar={calendar}
+              selectedDateKeys={selectedDateKeys}
+              onLongPressDate={handleOpenPhotoDetail}
+              onSelectDate={handleSelectDate}
+            />
+          )}
+        </View>
       </View>
       <View style={styles.selectionFooter}>
         <Text style={styles.selectionHint}>최대 10개 선택 가능</Text>
@@ -128,19 +131,18 @@ export function RecapPhotoSelectionScreen(props: RecapPhotoSelectionScreenProps)
         onClose={dismissPhotoDetail}
         onDeletePhoto={() => undefined}
       />
-    </SafeAreaView>
+    </AppSafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: appColors.background,
-    flex: 1,
-  },
   container: {
     backgroundColor: appColors.background,
     flex: 1,
-    paddingTop: 10,
+  },
+  content: {
+    flex: 1,
+    paddingTop: appSpacing.screenContentTopPadding,
   },
   selectionFooter: {
     backgroundColor: appColors.background,
@@ -148,7 +150,7 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     gap: 10,
     paddingBottom: 18,
-    paddingHorizontal: 20,
+    paddingHorizontal: appSpacing.screenHorizontalPadding,
     paddingTop: 12,
   },
   selectionHint: {
@@ -164,7 +166,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     minHeight: 50,
     justifyContent: "center",
-    paddingHorizontal: 18,
+    paddingHorizontal: appSpacing.screenHorizontalPadding,
   },
   completeButtonDisabled: {
     backgroundColor: "#d0d0d0",
@@ -185,7 +187,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 24,
+    paddingHorizontal: appSpacing.screenHorizontalPadding,
   },
   statusTitle: {
     color: appColors.black,

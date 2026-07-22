@@ -1,5 +1,8 @@
 import { MonthlyRecapDetailStatus } from "@/application/services/recap/monthly-recap-detail";
-import { MonthlyRecapTemplateId, type MonthlyRecap } from "@/shared/recap/types";
+import {
+  MonthlyRecapTemplateId,
+  type MonthlyRecap,
+} from "@/shared/recap/types";
 
 export type MonthlyRecapStatusLabelStatus = MonthlyRecapDetailStatus;
 
@@ -59,22 +62,29 @@ export function getMessageRecapPhotoFrameLayout(
   return frameLayouts[index] ?? frameLayouts[frameLayouts.length - 1];
 }
 
-export function getMessageRecapPhotoGroupSize(photoCount: number, width: number): MonthlyRecapCardSize {
+export function getMessageRecapPhotoGroupSize(
+  photoCount: number,
+  width: number,
+): MonthlyRecapCardSize {
   const frameLayouts = getMessageRecapPhotoFrameLayouts(photoCount, width);
 
   return {
     height: Math.max(
       0,
-      ...frameLayouts.map((frameLayout) => frameLayout.top + frameLayout.height),
+      ...frameLayouts.map(
+        (frameLayout) => frameLayout.top + frameLayout.height,
+      ),
     ),
     width,
   };
 }
 
 export function getCalendarRecapCardSize(width: number): MonthlyRecapCardSize {
+  const cardWidth = width * 0.78;
+
   return {
-    height: width * 0.59,
-    width: width * 0.78,
+    height: cardWidth * 1.35,
+    width: cardWidth,
   };
 }
 
@@ -95,11 +105,11 @@ export function getCalendarRecapPhotoSlotLayout(
       zIndex: 6,
     },
     {
-      height: width * 0.25,
+      height: width * 0.34,
       left: cardSize.width - width * 0.29,
       rotation: "6deg",
       top: protectedTitleBottom + width * 0.09,
-      width: width * 0.34,
+      width: width * 0.24,
       zIndex: 7,
     },
   ];
@@ -113,19 +123,19 @@ export function getCalendarRecapPhotoSlotLayout(
       zIndex: 6,
     },
     {
-      height: width * 0.25,
+      height: width * 0.34,
       left: cardSize.width - width * 0.28,
       rotation: "6deg",
       top: protectedTitleBottom + width * 0.08,
-      width: width * 0.32,
+      width: width * 0.24,
       zIndex: 7,
     },
     {
-      height: width * 0.23,
+      height: width * 0.34,
       left: width * 0.08,
       rotation: "4deg",
       top: cardSize.height - width * 0.08,
-      width: width * 0.31,
+      width: width * 0.24,
       zIndex: 8,
     },
     {
@@ -145,11 +155,11 @@ export function getCalendarRecapPhotoSlotLayout(
       zIndex: 10,
     },
     {
-      height: width * 0.21,
+      height: width * 0.29,
       left: -width * 0.04,
       rotation: "5deg",
       top: protectedTitleBottom + width * 0.28,
-      width: width * 0.27,
+      width: width * 0.2,
       zIndex: 11,
     },
     {
@@ -175,12 +185,28 @@ export function getCalendarRecapPhotoSlotLayout(
 }
 
 export function getMonthlyRecapSeasonEmojis(monthIndex: number): string {
-  const emojis = ["❄️☕️🧣", "💌❄️🌙", "🌱🌷☀️", "🌷🌿☀️", "🌿🌼☀️", "☀️🌿🌊", "🍉☀️🌊", "🌊☀️🍧", "🍂🌾☕️", "🎃🍂🌙", "🧣🍁☕️", "✨❄️🎄"];
+  const emojis = [
+    "❄️☕️🧣",
+    "💌❄️🌙",
+    "🌱🌷☀️",
+    "🌷🌿☀️",
+    "🌿🌼☀️",
+    "☀️🌿🌊",
+    "🍉☀️🌊",
+    "🌊☀️🍧",
+    "🍂🌾☕️",
+    "🎃🍂🌙",
+    "🧣🍁☕️",
+    "✨❄️🎄",
+  ];
 
   return emojis[monthIndex] ?? "✨🌙";
 }
 
-function getMessageRecapPhotoFrameLayouts(photoCount: number, width: number): MonthlyRecapPhotoFrameLayout[] {
+function getMessageRecapPhotoFrameLayouts(
+  photoCount: number,
+  width: number,
+): MonthlyRecapPhotoFrameLayout[] {
   const onePhotoLayouts: MonthlyRecapPhotoFrameLayout[] = [
     {
       height: width * 0.92,

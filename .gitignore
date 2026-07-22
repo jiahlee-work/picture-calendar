@@ -42,3 +42,8 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+*storybook.log
+storybook-static
+.playwright-mcp/
+storybook-select-check.json

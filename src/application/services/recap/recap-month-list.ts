@@ -1,4 +1,7 @@
-import type { DailyPhotoRepository, DailyPhoto } from "@/application/services/daily-photo/types";
+import type {
+  DailyPhotoRepository,
+  DailyPhoto,
+} from "@/application/services/daily-photo/types";
 import { sortRecapMonthPhotos } from "@/application/services/recap/monthly-recap-photos";
 import type { MonthlyRecapRepository } from "@/application/services/recap/types";
 import { toMonthKey } from "@/shared/date/date-key";
@@ -14,7 +17,8 @@ export const RecapAvailabilityMode = {
   production: "production",
 } as const;
 
-export type RecapAvailabilityMode = (typeof RecapAvailabilityMode)[keyof typeof RecapAvailabilityMode];
+export type RecapAvailabilityMode =
+  (typeof RecapAvailabilityMode)[keyof typeof RecapAvailabilityMode];
 
 export const RecapMonthStatus = {
   disabledCollecting: "disabled_collecting",
@@ -24,7 +28,8 @@ export const RecapMonthStatus = {
   selected: "selected",
 } as const;
 
-export type RecapMonthStatus = (typeof RecapMonthStatus)[keyof typeof RecapMonthStatus];
+export type RecapMonthStatus =
+  (typeof RecapMonthStatus)[keyof typeof RecapMonthStatus];
 
 export type RecapMonthSummary = {
   month: string;
@@ -117,14 +122,25 @@ export async function createRecapMonthSummaries({
       const recapPhotos = sortRecapMonthPhotos(photos);
       const recap = await recapRepository?.getByMonth(userId, month.month);
       const recapPhotoIds = new Set(recapPhotos.map((photo) => photo.id));
-      const selectedPhotoIds = recap?.selectionStatus === MonthlyRecapSelectionStatus.selected
-        ? recap.selectedPhotoIds.filter((photoId) => recapPhotoIds.has(photoId))
-        : [];
+      const selectedPhotoIds =
+        recap?.selectionStatus === MonthlyRecapSelectionStatus.selected
+          ? recap.selectedPhotoIds.filter((photoId) =>
+              recapPhotoIds.has(photoId),
+            )
+          : [];
+      const selectedPhotoIdsSet = new Set(selectedPhotoIds);
+      const selectedPhotos = recapPhotos.filter((photo) =>
+        selectedPhotoIdsSet.has(photo.id),
+      );
+      const previewPhotos =
+        selectedPhotos.length > 0
+          ? selectedPhotos.slice(0, previewPhotoLimit)
+          : recapPhotos.slice(0, previewPhotoLimit);
 
       return {
         ...month,
         photoCount: recapPhotos.length,
-        previewPhotos: recapPhotos.slice(0, previewPhotoLimit),
+        previewPhotos,
         selectedPhotoIds,
         status: toRecapMonthStatus({
           availabilityMode,
@@ -138,7 +154,9 @@ export async function createRecapMonthSummaries({
   );
 }
 
-export function createRecapYearOptions(currentYear = dayjs().year()): RecapYearOption[] {
+export function createRecapYearOptions(
+  currentYear = dayjs().year(),
+): RecapYearOption[] {
   return [
     {
       label: String(currentYear),
@@ -161,7 +179,9 @@ function isVisibleRecapMonth({
   const currentMonth = toMonthKey(dayjs(currentDate).startOf("month").toDate());
   const isBeforeStartMonth = month < startMonth;
 
-  return month <= currentMonth && (includeMonthsBeforeStart || !isBeforeStartMonth);
+  return (
+    month <= currentMonth && (includeMonthsBeforeStart || !isBeforeStartMonth)
+  );
 }
 
 function toRecapMonthStatus({
@@ -189,7 +209,9 @@ function toRecapMonthStatus({
     return RecapMonthStatus.selected;
   }
 
-  return photoCount < 10 ? RecapMonthStatus.readyAuto : RecapMonthStatus.needsSelection;
+  return photoCount < 10
+    ? RecapMonthStatus.readyAuto
+    : RecapMonthStatus.needsSelection;
 }
 
 export function canCreateRecapForMonth({
@@ -203,5 +225,7 @@ export function canCreateRecapForMonth({
 }): boolean {
   const currentMonth = toMonthKey(dayjs(currentDate).startOf("month").toDate());
 
-  return availabilityMode === RecapAvailabilityMode.development ? month <= currentMonth : month < currentMonth;
+  return availabilityMode === RecapAvailabilityMode.development
+    ? month <= currentMonth
+    : month < currentMonth;
 }

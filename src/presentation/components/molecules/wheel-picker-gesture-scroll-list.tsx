@@ -1,6 +1,10 @@
 import type { RenderListProps } from "@quidone/react-native-wheel-picker";
 import { useEffect, useMemo, useRef } from "react";
-import { Animated, StyleSheet, type ScrollView as NativeScrollView } from "react-native";
+import {
+  Animated,
+  StyleSheet,
+  type ScrollView as NativeScrollView,
+} from "react-native";
 import { ScrollView as GestureHandlerScrollView } from "react-native-gesture-handler";
 
 export type WheelPickerOption = {
@@ -8,9 +12,13 @@ export type WheelPickerOption = {
   value: number;
 };
 
-const AnimatedGestureScrollView = Animated.createAnimatedComponent(GestureHandlerScrollView);
+const AnimatedGestureScrollView = Animated.createAnimatedComponent(
+  GestureHandlerScrollView,
+);
 
-export function WheelPickerGestureScrollList(props: RenderListProps<WheelPickerOption>) {
+export function WheelPickerGestureScrollList(
+  props: RenderListProps<WheelPickerOption>,
+) {
   const {
     contentContainerStyle,
     data,
@@ -29,8 +37,14 @@ export function WheelPickerGestureScrollList(props: RenderListProps<WheelPickerO
     onTouchStart,
   } = props;
   const scrollViewRef = useRef<NativeScrollView>(null);
-  const snapToOffsets = useMemo(() => data.map((_, index) => index * itemHeight), [data, itemHeight]);
-  const initialOffset = useMemo(() => ({ x: 0, y: initialIndex * itemHeight }), [initialIndex, itemHeight]);
+  const snapToOffsets = useMemo(
+    () => data.map((_, index) => index * itemHeight),
+    [data, itemHeight],
+  );
+  const initialOffset = useMemo(
+    () => ({ x: 0, y: initialIndex * itemHeight }),
+    [initialIndex, itemHeight],
+  );
   const resolvedContentContainerStyle = useMemo(
     () => [
       {
@@ -74,6 +88,14 @@ export function WheelPickerGestureScrollList(props: RenderListProps<WheelPickerO
       listMethodsRef.current = null;
     };
   }, [itemHeight, listMethodsRef]);
+
+  useEffect(() => {
+    scrollViewRef.current?.scrollTo({
+      animated: false,
+      x: 0,
+      y: initialIndex * itemHeight,
+    });
+  }, [initialIndex, itemHeight]);
 
   return (
     <AnimatedGestureScrollView

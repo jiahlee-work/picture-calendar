@@ -1,41 +1,69 @@
+import type { ReactNode } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useRecapMonthList } from "@/application/hooks/use-recap-month-list";
-import { RecapMonthFolderCard } from "@/presentation/components/molecules/recap-month-folder-card";
+import type { RecapMonthSummary } from "@/application/services/recap/recap-month-list";
+import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
+import {
+  RecapMonthFolder,
+  RecapMonthFolderView,
+} from "@/presentation/components/molecules/recap-month-folder";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
-import { appColors } from "@/presentation/theme/colors";
+import { appSpacing } from "@/presentation/theme/spacing";
+
+type RecapMonthListScreenViewProps = {
+  months: RecapMonthSummary[];
+  onPressMonth?: (month: RecapMonthSummary) => void;
+  renderMenu?: () => ReactNode;
+};
 
 export function RecapMonthListScreen() {
   const { months } = useRecapMonthList();
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <RecapMonthListScreenView
+      months={months}
+      renderMenu={() => <AppBar.Menu />}
+    />
+  );
+}
+
+export function RecapMonthListScreenView(props: RecapMonthListScreenViewProps) {
+  const { months, onPressMonth, renderMenu } = props;
+
+  return (
+    <AppSafeAreaView>
       <AppBar>
         <AppBar.Title variant="large">Recap</AppBar.Title>
-        <AppBar.Menu />
+        {renderMenu?.()}
       </AppBar>
-
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.grid}>
-          {months.map((month) => (
-            <RecapMonthFolderCard key={month.month} month={month} />
-          ))}
+          {months.map((month) =>
+            onPressMonth ? (
+              <RecapMonthFolderView
+                key={month.month}
+                month={month}
+                onPress={onPressMonth}
+              />
+            ) : (
+              <RecapMonthFolder key={month.month} month={month} />
+            ),
+          )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </AppSafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    backgroundColor: appColors.background,
-    flex: 1,
-  },
   content: {
-    paddingBottom: 36,
-    paddingHorizontal: 12,
-    paddingTop: 18,
+    paddingBottom: appSpacing.screenContentBottomPadding,
+    paddingHorizontal: appSpacing.screenHorizontalPadding,
+    paddingTop: appSpacing.screenContentTopPadding,
   },
   grid: {
     flexDirection: "row",

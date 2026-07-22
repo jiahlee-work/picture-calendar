@@ -1,3 +1,4 @@
+import type { Dayjs } from "dayjs";
 import { StyleSheet, Text, View } from "react-native";
 
 import type { CalendarGridCell } from "@/application/services/calendar/calendar-grid";
@@ -7,54 +8,116 @@ const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
 type MonthlyRecapCalendarGridProps = {
   cells: CalendarGridCell[];
+  monthDate: Dayjs;
 };
 
 export function MonthlyRecapCalendarGrid(props: MonthlyRecapCalendarGridProps) {
-  const { cells } = props;
+  const { cells, monthDate } = props;
+  const weeks = toCalendarWeeks(cells);
 
   return (
-    <View style={styles.calendarGrid}>
-      {WEEKDAYS.map((weekday, index) => (
-        <Text key={`${weekday}-${index}`} style={styles.weekdayText}>
-          {weekday}
-        </Text>
-      ))}
-      {cells.map((cell, index) => (
-        <View key={cell?.key ?? `empty-${index}`} style={styles.calendarCell}>
-          {cell ? (
-            <Text style={styles.calendarDayText}>{cell.dayOfMonth}</Text>
-          ) : null}
-        </View>
-      ))}
+    <View style={styles.root}>
+      <View style={styles.header}>
+        <Text style={styles.monthText}>{monthDate.format("MMMM")}</Text>
+        <Text style={styles.yearText}>{monthDate.format("YYYY")}</Text>
+      </View>
+
+      <View style={styles.weekdayRow}>
+        {WEEKDAYS.map((weekday, index) => (
+          <View key={`${weekday}-${index}`} style={styles.weekdayCell}>
+            <Text style={styles.weekdayText}>{weekday}</Text>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.grid}>
+        {weeks.map((week, weekIndex) => (
+          <View key={`week-${weekIndex}`} style={styles.weekRow}>
+            {week.map((cell, dayIndex) => (
+              <View
+                key={cell?.key ?? `empty-${weekIndex}-${dayIndex}`}
+                style={styles.calendarCell}
+              >
+                {cell ? (
+                  <Text style={styles.calendarDayText}>{cell.dayOfMonth}</Text>
+                ) : null}
+              </View>
+            ))}
+          </View>
+        ))}
+      </View>
     </View>
+  );
+}
+
+function toCalendarWeeks(cells: CalendarGridCell[]) {
+  return Array.from({ length: Math.ceil(cells.length / 7) }, (_, index) =>
+    cells.slice(index * 7, index * 7 + 7),
   );
 }
 
 const styles = StyleSheet.create({
   calendarCell: {
     alignItems: "center",
-    borderTopColor: "rgba(18, 18, 18, 0.12)",
-    borderTopWidth: StyleSheet.hairlineWidth,
-    height: 27,
+    aspectRatio: 1,
+    flex: 1,
     justifyContent: "center",
-    width: "14.285714%",
   },
   calendarDayText: {
     color: appColors.black,
-    fontSize: 13,
+    fontSize: 16,
     fontWeight: "700",
-    lineHeight: 18,
+    lineHeight: 20,
   },
-  calendarGrid: {
+  grid: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  header: {
+    alignItems: "flex-end",
     flexDirection: "row",
-    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  monthText: {
+    color: appColors.black,
+    flexShrink: 1,
+    fontSize: 40,
+    fontWeight: "800",
+    letterSpacing: 0,
+    lineHeight: 46,
+  },
+  root: {
+    flex: 1,
+    justifyContent: "flex-start",
+  },
+  weekRow: {
+    alignItems: "center",
+    flex: 1,
+    flexDirection: "row",
+  },
+  weekdayCell: {
+    alignItems: "center",
+    flex: 1,
+  },
+  weekdayRow: {
+    borderBottomColor: "#efefef",
+    borderBottomWidth: 1,
+    flexDirection: "row",
+    marginBottom: 8,
+    paddingBottom: 8,
   },
   weekdayText: {
-    color: "#6f6f6f",
-    fontSize: 11,
-    fontWeight: "800",
-    lineHeight: 16,
+    color: "#9aa0a6",
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 17,
     textAlign: "center",
-    width: "14.285714%",
+  },
+  yearText: {
+    color: "#9aa0a6",
+    fontSize: 18,
+    fontWeight: "700",
+    lineHeight: 24,
   },
 });

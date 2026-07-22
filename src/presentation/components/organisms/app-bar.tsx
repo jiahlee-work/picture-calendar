@@ -6,6 +6,7 @@ import { type GestureResponderEvent, Platform, Pressable, StyleSheet, type Style
 import { SymbolIconButton } from "@/presentation/components/atoms/symbol-icon-button";
 import { Menu } from "@/presentation/components/organisms/menu";
 import { appColors } from "@/presentation/theme/colors";
+import { appSpacing } from "@/presentation/theme/spacing";
 
 type AppRoute = "/" | "/recap" | "/stickers" | "/settings";
 
@@ -164,12 +165,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     minHeight: 52,
-    paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingHorizontal: appSpacing.screenHorizontalPadding,
+    paddingTop: appSpacing.appBarTopPadding,
   },
   overlayRoot: {
     alignItems: "flex-start",
-    paddingTop: 20,
+    paddingTop: appSpacing.appBarTopPadding,
   },
   titleSlot: {
     flex: 1,
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: "center",
     minWidth: 60,
-    paddingHorizontal: 14,
+    paddingHorizontal: appSpacing.screenHorizontalPadding,
   },
   actionButtonPressed: {
     backgroundColor: appColors.blackOverlay34,

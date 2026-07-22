@@ -8,11 +8,13 @@ import {
 
 describe("monthly recap layout", () => {
   it("creates a message recap draft for one to three monthly photos", () => {
-    expect(createAutoMonthlyRecapDraft({
-      userId: "user-1",
-      month: "2026-06",
-      photoIds: ["photo-1", "photo-2", "photo-3"],
-    })).toEqual({
+    expect(
+      createAutoMonthlyRecapDraft({
+        userId: "user-1",
+        month: "2026-06",
+        photoIds: ["photo-1", "photo-2", "photo-3"],
+      }),
+    ).toEqual({
       userId: "user-1",
       month: "2026-06",
       selectedPhotoIds: ["photo-1", "photo-2", "photo-3"],
@@ -35,14 +37,21 @@ describe("monthly recap layout", () => {
       month: "2026-06",
       selectedPhotoIds: ["photo-1", "photo-2", "photo-3", "photo-4"],
       templateId: "calendar_collage",
-      calendarPhotoIds: ["photo-1", "photo-3", "photo-4"],
       backgroundPhotoIds: ["photo-2"],
+      calendarPhotoIds: ["photo-3", "photo-4", "photo-1"],
     });
   });
 
-  it.each([4, 5, 6, 7, 8, 9])(
-    "keeps every photo in either the background or calendar layout for a %i-photo automatic recap",
-    (photoCount) => {
+  it.each([
+    { backgroundPhotoCount: 1, calendarPhotoCount: 3, photoCount: 4 },
+    { backgroundPhotoCount: 1, calendarPhotoCount: 4, photoCount: 5 },
+    { backgroundPhotoCount: 1, calendarPhotoCount: 5, photoCount: 6 },
+    { backgroundPhotoCount: 4, calendarPhotoCount: 3, photoCount: 7 },
+    { backgroundPhotoCount: 4, calendarPhotoCount: 4, photoCount: 8 },
+    { backgroundPhotoCount: 4, calendarPhotoCount: 5, photoCount: 9 },
+  ])(
+    "splits a $photoCount-photo automatic recap into $backgroundPhotoCount background photos and $calendarPhotoCount calendar photos",
+    ({ backgroundPhotoCount, calendarPhotoCount, photoCount }) => {
       const photoIds = createPhotoIds(photoCount);
       const draft = createAutoMonthlyRecapDraft({
         userId: "user-1",
@@ -55,15 +64,18 @@ describe("monthly recap layout", () => {
         selectedPhotoIds: photoIds,
         templateId: "calendar_collage",
       });
-      expect(draft?.backgroundPhotoIds).toHaveLength(1);
-      expect(draft?.calendarPhotoIds).toHaveLength(photoCount - 1);
-      expect(new Set([...(draft?.backgroundPhotoIds ?? []), ...(draft?.calendarPhotoIds ?? [])])).toEqual(
-        new Set(photoIds),
-      );
+      expect(draft?.backgroundPhotoIds).toHaveLength(backgroundPhotoCount);
+      expect(draft?.calendarPhotoIds).toHaveLength(calendarPhotoCount);
+      expect(
+        new Set([
+          ...(draft?.backgroundPhotoIds ?? []),
+          ...(draft?.calendarPhotoIds ?? []),
+        ]),
+      ).toEqual(new Set(photoIds));
     },
   );
 
-  it("creates a manual calendar collage with four calendar photos and the rest as background photos", () => {
+  it("creates a manual calendar collage with four background photos and six calendar photos from ten representative photos", () => {
     const selectedPhotoIds = createPhotoIds(10);
     const draft = createAutoMonthlyRecapDraft({
       userId: "user-1",
@@ -88,80 +100,104 @@ describe("monthly recap layout", () => {
     const calendarPhotoIds = manualDraft.calendarPhotoIds ?? [];
     const backgroundPhotoIds = manualDraft.backgroundPhotoIds ?? [];
 
-    expect(calendarPhotoIds).toHaveLength(4);
-    expect(backgroundPhotoIds).toHaveLength(6);
+    expect(backgroundPhotoIds).toHaveLength(4);
+    expect(calendarPhotoIds).toHaveLength(6);
     expect(new Set([...backgroundPhotoIds, ...calendarPhotoIds])).toEqual(
       new Set(selectedPhotoIds),
     );
   });
 
   it("does not auto-create a draft when representative photo selection is needed", () => {
-    expect(createAutoMonthlyRecapDraft({
-      userId: "user-1",
-      month: "2026-06",
-      photoIds: [
-        "photo-1",
-        "photo-2",
-        "photo-3",
-        "photo-4",
-        "photo-5",
-        "photo-6",
-        "photo-7",
-        "photo-8",
-        "photo-9",
-        "photo-10",
-      ],
-    })).toBeNull();
+    expect(
+      createAutoMonthlyRecapDraft({
+        userId: "user-1",
+        month: "2026-06",
+        photoIds: [
+          "photo-1",
+          "photo-2",
+          "photo-3",
+          "photo-4",
+          "photo-5",
+          "photo-6",
+          "photo-7",
+          "photo-8",
+          "photo-9",
+          "photo-10",
+        ],
+      }),
+    ).toBeNull();
   });
 
   it("refreshes an automatic recap when monthly photos change", () => {
-    expect(shouldRefreshAutoMonthlyRecap({
-      photoIds: ["photo-1", "photo-2", "photo-3"],
-      selectedPhotoIds: ["photo-1", "photo-2"],
-    })).toBe(true);
-    expect(shouldRefreshAutoMonthlyRecap({
-      photoIds: ["photo-1", "photo-2", "photo-3"],
-      selectedPhotoIds: ["photo-1", "photo-2", "photo-3"],
-    })).toBe(false);
-    expect(shouldRefreshAutoMonthlyRecap({
-      photoIds: ["photo-1", "photo-2", "photo-3"],
-      selectedPhotoIds: ["photo-2", "photo-3", "photo-1"],
-    })).toBe(true);
+    expect(
+      shouldRefreshAutoMonthlyRecap({
+        photoIds: ["photo-1", "photo-2", "photo-3"],
+        selectedPhotoIds: ["photo-1", "photo-2"],
+      }),
+    ).toBe(true);
+    expect(
+      shouldRefreshAutoMonthlyRecap({
+        photoIds: ["photo-1", "photo-2", "photo-3"],
+        selectedPhotoIds: ["photo-1", "photo-2", "photo-3"],
+      }),
+    ).toBe(false);
+    expect(
+      shouldRefreshAutoMonthlyRecap({
+        photoIds: ["photo-1", "photo-2", "photo-3"],
+        selectedPhotoIds: ["photo-2", "photo-3", "photo-1"],
+      }),
+    ).toBe(true);
   });
 
   it("does not refresh automatically when representative photo selection is needed", () => {
-    expect(shouldRefreshAutoMonthlyRecap({
-      photoIds: [
-        "photo-1",
-        "photo-2",
-        "photo-3",
-        "photo-4",
-        "photo-5",
-        "photo-6",
-        "photo-7",
-        "photo-8",
-        "photo-9",
-        "photo-10",
-      ],
-      selectedPhotoIds: ["photo-1"],
-    })).toBe(false);
+    expect(
+      shouldRefreshAutoMonthlyRecap({
+        photoIds: [
+          "photo-1",
+          "photo-2",
+          "photo-3",
+          "photo-4",
+          "photo-5",
+          "photo-6",
+          "photo-7",
+          "photo-8",
+          "photo-9",
+          "photo-10",
+        ],
+        selectedPhotoIds: ["photo-1"],
+      }),
+    ).toBe(false);
   });
 
   it("creates a manual calendar collage draft from selected representative photos", () => {
     const draft = createManualMonthlyRecapDraft({
       userId: "user-1",
       month: "2026-06",
-      selectedPhotoIds: ["photo-1", "photo-2", "photo-3", "photo-4", "photo-5", "photo-6"],
+      selectedPhotoIds: [
+        "photo-1",
+        "photo-2",
+        "photo-3",
+        "photo-4",
+        "photo-5",
+        "photo-6",
+      ],
       random: () => 0,
     });
 
     expect(draft).toEqual({
       userId: "user-1",
       month: "2026-06",
-      selectedPhotoIds: ["photo-1", "photo-2", "photo-3", "photo-4", "photo-5", "photo-6"],
+      selectedPhotoIds: [
+        "photo-1",
+        "photo-2",
+        "photo-3",
+        "photo-4",
+        "photo-5",
+        "photo-6",
+      ],
       templateId: "calendar_collage",
-      calendarPhotoIds: ["photo-2", "photo-3", "photo-4", "photo-5"],
-      backgroundPhotoIds: ["photo-1", "photo-6"],
+      backgroundPhotoIds: ["photo-2"],
+      calendarPhotoIds: ["photo-3", "photo-4", "photo-5", "photo-6", "photo-1"],
     });
   });
 });

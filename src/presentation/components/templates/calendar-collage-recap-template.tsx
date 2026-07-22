@@ -1,18 +1,21 @@
-import { Image } from "expo-image";
 import type { Dayjs } from "dayjs";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { buildCalendarMonth } from "@/application/services/calendar/calendar-grid";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import {
   getCalendarRecapCardSize,
   getCalendarRecapPhotoSlotLayout,
+  type MonthlyRecapPhotoFrameLayout,
 } from "@/application/services/recap/monthly-recap-template-layout";
 import { resolveMonthlyRecapTemplatePhotos } from "@/application/services/recap/monthly-recap-template-photos";
+import {
+  PolaroidPhotoFrame,
+  type PolaroidPhotoFrameOrientation,
+} from "@/presentation/components/atoms/polaroid-photo-frame";
 import { MonthlyRecapBackgroundCollage } from "@/presentation/components/molecules/monthly-recap-background-collage";
 import { MonthlyRecapCalendarGrid } from "@/presentation/components/molecules/monthly-recap-calendar-grid";
-import { toMonthlyRecapPhotoFrameStyle } from "@/presentation/components/organisms/monthly-recap-photo-frame-style";
-import { appColors } from "@/presentation/theme/colors";
+import { toMonthlyRecapPhotoFrameStyle } from "@/presentation/components/templates/monthly-recap-photo-frame-style";
 import type { MonthlyRecap } from "@/shared/recap/types";
 
 type CalendarCollageRecapTemplateProps = {
@@ -38,33 +41,28 @@ export function CalendarCollageRecapTemplate(
       <View style={styles.stageCenter}>
         <View style={[styles.stage, calendarCardSize]}>
           <View style={[styles.calendarCard, calendarCardSize]}>
-            <Text style={styles.calendarMonth}>{monthDate.format("MMMM")}</Text>
-            <MonthlyRecapCalendarGrid cells={calendar.days} />
+            <MonthlyRecapCalendarGrid
+              cells={calendar.days}
+              monthDate={monthDate}
+            />
           </View>
           <View pointerEvents="none" style={styles.photoLayer}>
-            {calendarPhotos.map((photo, index) => (
-              <View
-                key={photo.id}
-                style={[
-                  styles.photoFrameShadow,
-                  toMonthlyRecapPhotoFrameStyle(
-                    getCalendarRecapPhotoSlotLayout(
-                      index,
-                      calendarPhotos.length,
-                      width,
-                    ),
-                  ),
-                ]}
-              >
-                <View style={styles.photoFrame}>
-                  <Image
-                    contentFit="cover"
-                    source={{ uri: photo.imagePath }}
-                    style={styles.fillImage}
-                  />
-                </View>
-              </View>
-            ))}
+            {calendarPhotos.map((photo, index) => {
+              const layout = getCalendarRecapPhotoSlotLayout(
+                index,
+                calendarPhotos.length,
+                width,
+              );
+
+              return (
+                <PolaroidPhotoFrame
+                  key={photo.id}
+                  imagePath={photo.imagePath}
+                  orientation={toPolaroidFrameOrientation(layout)}
+                  style={toMonthlyRecapPhotoFrameStyle(layout)}
+                />
+              );
+            })}
           </View>
         </View>
       </View>
@@ -72,42 +70,27 @@ export function CalendarCollageRecapTemplate(
   );
 }
 
+function toPolaroidFrameOrientation(
+  layout: MonthlyRecapPhotoFrameLayout,
+): PolaroidPhotoFrameOrientation {
+  return layout.width >= layout.height ? "landscape" : "portrait";
+}
+
 const styles = StyleSheet.create({
   calendarCard: {
-    backgroundColor: "rgba(255, 255, 252, 0.94)",
-    borderRadius: 18,
-    paddingBottom: 16,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  calendarMonth: {
-    color: appColors.black,
-    fontSize: 29,
-    fontWeight: "900",
-    letterSpacing: 0,
-    lineHeight: 34,
-    marginBottom: 10,
+    backgroundColor: "#ffffff",
+    borderRadius: 24,
+    boxShadow: "0 6px 16px rgba(0, 0, 0, 0.12)",
+    justifyContent: "flex-start",
+    paddingBottom: 20,
+    paddingHorizontal: 24,
+    paddingTop: 28,
   },
   canvas: {
     backgroundColor: "#e8e4db",
     flex: 1,
     overflow: "hidden",
     position: "relative",
-  },
-  fillImage: {
-    height: "100%",
-    width: "100%",
-  },
-  photoFrame: {
-    backgroundColor: "#fffdfa",
-    borderColor: "#fffdfa",
-    borderWidth: 8,
-    flex: 1,
-    overflow: "hidden",
-  },
-  photoFrameShadow: {
-    boxShadow: "0 6px 14px rgba(0, 0, 0, 0.16)",
-    position: "absolute",
   },
   photoLayer: {
     bottom: 0,

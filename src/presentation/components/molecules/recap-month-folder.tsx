@@ -1,7 +1,10 @@
-import { Link } from "expo-router";
+import { useRouter } from "expo-router";
 import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
-import { RecapMonthStatus, type RecapMonthSummary } from "@/application/services/recap/recap-month-list";
+import {
+  RecapMonthStatus,
+  type RecapMonthSummary,
+} from "@/application/services/recap/recap-month-list";
 import { PhotoPreviewCard } from "@/presentation/components/atoms/photo-preview-card";
 import { appColors } from "@/presentation/theme/colors";
 
@@ -36,90 +39,119 @@ const PREVIEW_SLOTS = [
   },
 ] as const;
 
-type RecapMonthFolderCardProps = {
+type RecapMonthFolderProps = {
   month: RecapMonthSummary;
 };
 
-export function RecapMonthFolderCard(props: RecapMonthFolderCardProps) {
+type RecapMonthFolderViewProps = RecapMonthFolderProps & {
+  onPress: (month: RecapMonthSummary) => void;
+};
+
+export function RecapMonthFolder(props: RecapMonthFolderProps) {
   const { month } = props;
-  const isClickDisabled = month.status === RecapMonthStatus.disabledEmpty
-    || month.status === RecapMonthStatus.disabledCollecting;
+  const router = useRouter();
+
+  const handlePress = (pressedMonth: RecapMonthSummary) => {
+    if (pressedMonth.status === RecapMonthStatus.needsSelection) {
+      router.push({
+        params: {
+          month: pressedMonth.month,
+        },
+        pathname: "/recap/select",
+      });
+      return;
+    }
+
+    router.push({
+      params: {
+        month: pressedMonth.monthNumber,
+        year: String(pressedMonth.year),
+      },
+      pathname: "/recap/[year]/[month]",
+    });
+  };
+
+  return <RecapMonthFolderView month={month} onPress={handlePress} />;
+}
+
+export function RecapMonthFolderView(props: RecapMonthFolderViewProps) {
+  const { month, onPress } = props;
+  const isClickDisabled =
+    month.status === RecapMonthStatus.disabledEmpty ||
+    month.status === RecapMonthStatus.disabledCollecting;
   const isClosed = month.status === RecapMonthStatus.disabledEmpty;
+  const displayedPhotoCount =
+    month.status === RecapMonthStatus.selected
+      ? month.selectedPhotoIds.length
+      : month.photoCount;
   const shouldShowPreview = month.previewPhotos.length > 0;
-  const href = toRecapMonthHref(month);
-  const card = (
+
+  return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${month.monthLabel} recap`}
       accessibilityState={isClickDisabled ? { disabled: true } : undefined}
       disabled={isClickDisabled}
       style={styles.card}
+      onPress={() => onPress(month)}
     >
       <View style={styles.folder}>
-        <View pointerEvents="none" style={[styles.folderBack, isClosed && styles.disabledFolderBack]}>
-          <View style={[styles.backTabLeft, isClosed && styles.disabledFolderBack]} />
-          <View style={[styles.backTabSlope, isClosed && styles.disabledFolderBack]} />
+        <View
+          pointerEvents="none"
+          style={[styles.folderBack, isClosed && styles.disabledFolderBack]}
+        >
+          <View
+            style={[styles.backTabLeft, isClosed && styles.disabledFolderBack]}
+          />
+          <View
+            style={[styles.backTabSlope, isClosed && styles.disabledFolderBack]}
+          />
         </View>
         {shouldShowPreview && (
           <View pointerEvents="none" style={styles.previewStack}>
-            {month.previewPhotos.slice(0, PREVIEW_SLOTS.length).map((photo, index) => {
-              const slot = PREVIEW_SLOTS[index];
+            {month.previewPhotos
+              .slice(0, PREVIEW_SLOTS.length)
+              .map((photo, index) => {
+                const slot = PREVIEW_SLOTS[index];
 
-              return (
-                <PhotoPreviewCard
-                  key={`${month.month}-${photo.id}`}
-                  photo={photo}
-                  style={{
-                    left: slot.left,
-                    top: slot.top,
-                    transform: [{ rotate: slot.rotate }],
-                    zIndex: slot.zIndex,
-                  }}
-                />
-              );
-            })}
+                return (
+                  <PhotoPreviewCard
+                    key={`${month.month}-${photo.id}`}
+                    photo={photo}
+                    style={{
+                      left: slot.left,
+                      top: slot.top,
+                      transform: [{ rotate: slot.rotate }],
+                      zIndex: slot.zIndex,
+                    }}
+                  />
+                );
+              })}
           </View>
         )}
-        <View pointerEvents="none" style={[styles.frontPerspective, isClosed && styles.closedFrontPerspective]}>
-          <View style={[styles.folderFront, isClosed && styles.closedFolderFront]}>
+        <View
+          pointerEvents="none"
+          style={[
+            styles.frontPerspective,
+            isClosed && styles.closedFrontPerspective,
+          ]}
+        >
+          <View
+            style={[styles.folderFront, isClosed && styles.closedFolderFront]}
+          >
             <View style={styles.frontContent}>
-              <Text style={[styles.monthName, isClosed && styles.disabledText]}>{month.monthLabel}</Text>
-              <Text style={[styles.countText, isClosed && styles.disabledText]}>{month.photoCount} photos</Text>
+              <Text style={[styles.monthName, isClosed && styles.disabledText]}>
+                {month.monthLabel}
+              </Text>
+              <Text style={[styles.countText, isClosed && styles.disabledText]}>
+                {displayedPhotoCount} photos
+              </Text>
             </View>
           </View>
         </View>
       </View>
     </Pressable>
   );
-
-  if (isClickDisabled) {
-    return card;
-  }
-
-  return (
-    <Link href={href} asChild>
-      {card}
-    </Link>
-  );
-}
-
-function toRecapMonthHref(month: RecapMonthSummary) {
-  if (month.status === RecapMonthStatus.needsSelection) {
-    return {
-      params: {
-        month: month.month,
-      },
-      pathname: "/recap/select" as const,
-    };
-  }
-
-  return {
-    params: {
-      month: month.monthNumber,
-      year: String(month.year),
-    },
-    pathname: "/recap/[year]/[month]" as const,
-  };
 }
 
 const styles = StyleSheet.create({
@@ -183,16 +215,19 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
   folderFront: {
-    backgroundColor: Platform.OS === "android" ? ANDROID_FOLDER_FRONT_COLOR : FOLDER_FRONT_COLOR,
+    backgroundColor:
+      Platform.OS === "android"
+        ? ANDROID_FOLDER_FRONT_COLOR
+        : FOLDER_FRONT_COLOR,
     borderRadius: 14,
     bottom: -4,
     elevation: 0,
     height: 116,
     left: 0,
+    overflow: "hidden",
     position: "absolute",
     width: 170,
     zIndex: 10,
-    overflow: 'hidden',
   },
   closedFrontPerspective: {
     bottom: 0,
@@ -205,8 +240,8 @@ const styles = StyleSheet.create({
   },
   frontContent: {
     flex: 1,
-    justifyContent: 'space-between',
-    padding: 16
+    justifyContent: "space-between",
+    padding: 16,
   },
   previewStack: {
     height: 120,
@@ -219,27 +254,18 @@ const styles = StyleSheet.create({
   },
   monthName: {
     color: appColors.black,
-    fontSize: 17,
+    fontSize: 22,
     fontWeight: "800",
-    marginTop: 12,
-    textAlign: "left",
-  },
-  countPill: {
-    backgroundColor: "#f1f1f1",
-    borderRadius: 999,
-    marginTop: 5,
-    minHeight: 24,
-    minWidth: 76,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    letterSpacing: 0,
   },
   countText: {
-    color: "#a0a0a0",
-    fontSize: 13,
+    color: appColors.black,
+    fontSize: 14,
     fontWeight: "700",
-    textAlign: "right",
+    letterSpacing: 0,
+    opacity: 0.64,
   },
   disabledText: {
-    color: "#9a9a9a",
+    color: "rgba(138, 138, 138, 0.86)",
   },
 });

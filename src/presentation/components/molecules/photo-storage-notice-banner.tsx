@@ -1,7 +1,7 @@
-import { SymbolView } from "expo-symbols";
-import { StyleSheet, Text, View } from "react-native";
+import {SymbolView} from "expo-symbols";
+import {StyleSheet, Text, View} from "react-native";
 
-import { appColors } from "@/presentation/theme/colors";
+import {appColors} from "@/presentation/theme/colors";
 
 export function PhotoStorageNoticeBanner() {
   return (
@@ -29,7 +29,6 @@ export function PhotoStorageNoticeBanner() {
           />
         </View>
       </View>
-
       <View style={styles.bannerCopy}>
         <Text adjustsFontSizeToFit minimumFontScale={0.8} numberOfLines={1} style={styles.bannerTitle}>
           사진은 이 기기에 저장돼요

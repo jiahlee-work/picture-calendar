@@ -1,7 +1,11 @@
 import { useRef, useState, type RefObject } from "react";
 import { Alert, Platform, StyleSheet, View } from "react-native";
 import { type SymbolViewProps } from "expo-symbols";
-import { captureRef as captureViewRef, releaseCapture, type CaptureOptions } from "react-native-view-shot";
+import {
+  captureRef as captureViewRef,
+  releaseCapture,
+  type CaptureOptions,
+} from "react-native-view-shot";
 
 import {
   MediaLibraryWritePermissionType,
@@ -11,6 +15,7 @@ import {
   shareImageFile,
 } from "@/infrastructure/device/media/share-image";
 import { logger } from "@/infrastructure/logging/logger";
+import { SymbolIconButton } from "@/presentation/components/atoms/symbol-icon-button";
 import { MediaLibraryPermissionAlert } from "@/presentation/components/molecules/media-library-permission-alert";
 import {
   ShareSaveToast,
@@ -40,23 +45,43 @@ type PermissionAlertState = {
   visible: boolean;
 };
 
-const SHARE_ICON: SymbolViewProps["name"] = { android: "share", ios: "square.and.arrow.up" };
-const SAVE_ICON: SymbolViewProps["name"] = { android: "download", ios: "square.and.arrow.down" };
+const SHARE_ICON: SymbolViewProps["name"] = {
+  android: "share",
+  ios: "square.and.arrow.up",
+};
+const SAVE_ICON: SymbolViewProps["name"] = {
+  android: "download",
+  ios: "square.and.arrow.down",
+};
 
 export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
-  const { accessibilityLabel, captureHeight, captureRef, captureWidth, fileName, isReady } = props;
+  const {
+    accessibilityLabel,
+    captureHeight,
+    captureRef,
+    captureWidth,
+    fileName,
+    isReady,
+  } = props;
   const [permissionAlert, setPermissionAlert] = useState<PermissionAlertState>({
     canAskAgain: true,
     visible: false,
   });
-  const [operation, setOperation] = useState<ShareOperation>(ShareOperation.idle);
-  const [saveToastState, setSaveToastState] = useState<ShareSaveToastStateType>(ShareSaveToastState.hidden);
+  const [operation, setOperation] = useState<ShareOperation>(
+    ShareOperation.idle,
+  );
+  const [saveToastState, setSaveToastState] = useState<ShareSaveToastStateType>(
+    ShareSaveToastState.hidden,
+  );
   const latestCaptureUriRef = useRef<string | null>(null);
   const isProcessing = operation !== ShareOperation.idle;
 
   const captureImage = async () => {
     if (!captureRef.current || !isReady) {
-      Alert.alert("공유할 수 없음", "이미지를 만들 콘텐츠가 아직 준비되지 않았어요.");
+      Alert.alert(
+        "공유할 수 없음",
+        "이미지를 만들 콘텐츠가 아직 준비되지 않았어요.",
+      );
       return null;
     }
 
@@ -149,7 +174,10 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
       }
     } catch (error) {
       logger.error("Failed to share image", { error });
-      Alert.alert("공유 실패", "이미지를 공유하지 못했어요. 잠시 후 다시 시도해 주세요.");
+      Alert.alert(
+        "공유 실패",
+        "이미지를 공유하지 못했어요. 잠시 후 다시 시도해 주세요.",
+      );
     } finally {
       releaseLatestCapture();
       setOperation(ShareOperation.idle);
@@ -167,14 +195,33 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
     setSaveToastState(ShareSaveToastState.hidden);
   };
 
+  const shouldShowActionMenu = Platform.OS === "android";
+
   return (
     <View style={styles.root}>
-      <Menu accessibilityLabel={accessibilityLabel} trigger={{ icon: SHARE_ICON }}>
-        {Platform.OS === "android" ? (
-          <Menu.Item icon={SAVE_ICON} label="이미지 저장" onPress={handleSaveImage} />
-        ) : null}
-        <Menu.Item icon={SHARE_ICON} label="공유하기" onPress={handleShareImage} />
-      </Menu>
+      {shouldShowActionMenu ? (
+        <Menu
+          accessibilityLabel={accessibilityLabel}
+          trigger={{ icon: SHARE_ICON }}
+        >
+          <Menu.Item
+            icon={SAVE_ICON}
+            label="이미지 저장"
+            onPress={handleSaveImage}
+          />
+          <Menu.Item
+            icon={SHARE_ICON}
+            label="공유하기"
+            onPress={handleShareImage}
+          />
+        </Menu>
+      ) : (
+        <SymbolIconButton
+          accessibilityLabel={accessibilityLabel}
+          icon={SHARE_ICON}
+          onPress={handleShareImage}
+        />
+      )}
       <MediaLibraryPermissionAlert
         canAskAgain={permissionAlert.canAskAgain}
         visible={permissionAlert.visible}

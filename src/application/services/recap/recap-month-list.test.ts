@@ -37,7 +37,12 @@ describe("recap month list", () => {
   it("builds month summaries with photo counts and limited previews", async () => {
     const repository = createLocalDailyPhotoRepository();
 
-    await saveMonthPhotos(repository, recapTimeline.currentMonth, 5, [5, 1, 3, 4, 2]);
+    await saveMonthPhotos(
+      repository,
+      recapTimeline.currentMonth,
+      5,
+      [5, 1, 3, 4, 2],
+    );
 
     const months = await createRecapMonthSummaries({
       currentDate: recapTimeline.currentDate,
@@ -46,7 +51,9 @@ describe("recap month list", () => {
       userId: LOCAL_USER_ID,
       year: recapTimeline.year,
     });
-    const currentMonth = months.find((month) => month.month === recapTimeline.currentMonth);
+    const currentMonth = months.find(
+      (month) => month.month === recapTimeline.currentMonth,
+    );
 
     expect(currentMonth?.photoCount).toBe(5);
     expect(currentMonth?.previewPhotos).toHaveLength(3);
@@ -59,15 +66,19 @@ describe("recap month list", () => {
   });
 
   it("hides future months and months before the recap start month by default", () => {
-    expect(createVisibleRecapYearMonths({
-      currentDate: recapTimeline.currentDate,
-      year: recapTimeline.year,
-    }).map((month) => month.month)).toEqual([recapTimeline.previousMonth, recapTimeline.currentMonth]);
+    expect(
+      createVisibleRecapYearMonths({
+        currentDate: recapTimeline.currentDate,
+        year: recapTimeline.year,
+      }).map((month) => month.month),
+    ).toEqual([recapTimeline.previousMonth, recapTimeline.currentMonth]);
 
-    expect(createVisibleRecapYearMonths({
-      currentDate: recapTimeline.nextMonthDate,
-      year: recapTimeline.year,
-    }).map((month) => month.month)).toEqual([
+    expect(
+      createVisibleRecapYearMonths({
+        currentDate: recapTimeline.nextMonthDate,
+        year: recapTimeline.year,
+      }).map((month) => month.month),
+    ).toEqual([
       recapTimeline.previousMonth,
       recapTimeline.currentMonth,
       recapTimeline.futureMonth,
@@ -81,12 +92,16 @@ describe("recap month list", () => {
       year: recapTimeline.year,
     }).map((month) => month.month);
 
-    expect(createVisibleRecapYearMonths({
-      currentDate: recapTimeline.currentDate,
-      includeMonthsBeforeStart: true,
-      year: recapTimeline.year,
-    }).map((month) => month.month)).toEqual(visibleMonths);
-    expect(visibleMonths.at(0)).toBe(toMonthKey(dayjs(recapTimeline.currentDate).startOf("year").toDate()));
+    expect(
+      createVisibleRecapYearMonths({
+        currentDate: recapTimeline.currentDate,
+        includeMonthsBeforeStart: true,
+        year: recapTimeline.year,
+      }).map((month) => month.month),
+    ).toEqual(visibleMonths);
+    expect(visibleMonths.at(0)).toBe(
+      toMonthKey(dayjs(recapTimeline.currentDate).startOf("year").toDate()),
+    );
     expect(visibleMonths.at(-1)).toBe(recapTimeline.currentMonth);
   });
 
@@ -102,7 +117,9 @@ describe("recap month list", () => {
     });
 
     expect(months).toHaveLength(dayjs(recapTimeline.currentDate).month() + 1);
-    expect(months.every((month) => month.status === "disabled_empty")).toBe(true);
+    expect(months.every((month) => month.status === "disabled_empty")).toBe(
+      true,
+    );
   });
 
   it.each([
@@ -169,29 +186,39 @@ describe("recap month list", () => {
         userId: LOCAL_USER_ID,
         year: recapTimeline.year,
       });
-      const targetMonthSummary = months.find((month) => month.month === targetMonth);
+      const targetMonthSummary = months.find(
+        (month) => month.month === targetMonth,
+      );
 
       expect(targetMonthSummary).toMatchObject({
         month: targetMonth,
         photoCount,
         status: expectedStatus,
       });
-      expect(targetMonthSummary?.previewPhotos).toHaveLength(Math.min(photoCount, 4));
+      expect(targetMonthSummary?.previewPhotos).toHaveLength(
+        Math.min(photoCount, 4),
+      );
     },
   );
 
   it("does not allow future months to create recaps even in development", () => {
-    expect(canCreateRecapForMonth({
-      availabilityMode: "development",
-      currentDate: recapTimeline.currentDate,
-      month: recapTimeline.futureMonth,
-    })).toBe(false);
+    expect(
+      canCreateRecapForMonth({
+        availabilityMode: "development",
+        currentDate: recapTimeline.currentDate,
+        month: recapTimeline.futureMonth,
+      }),
+    ).toBe(false);
   });
 
   it("marks a month with selected representative photos as selected", async () => {
     const repository = createLocalDailyPhotoRepository();
     const recapRepository = createLocalMonthlyRecapRepository();
-    const savedPhoto = await saveMonthPhoto(repository, recapTimeline.previousMonth, 14);
+    const savedPhoto = await saveMonthPhoto(
+      repository,
+      recapTimeline.previousMonth,
+      14,
+    );
 
     await recapRepository.saveSelection({
       month: recapTimeline.previousMonth,
@@ -206,13 +233,58 @@ describe("recap month list", () => {
       userId: LOCAL_USER_ID,
       year: recapTimeline.year,
     });
-    const previousMonth = months.find((month) => month.month === recapTimeline.previousMonth);
+    const previousMonth = months.find(
+      (month) => month.month === recapTimeline.previousMonth,
+    );
 
     expect(previousMonth).toMatchObject({
       month: recapTimeline.previousMonth,
       selectedPhotoIds: [savedPhoto.id],
       status: "selected",
     });
+  });
+
+  it("uses selected representative photos as the folder preview for selected recaps", async () => {
+    const repository = createLocalDailyPhotoRepository();
+    const recapRepository = createLocalMonthlyRecapRepository();
+
+    await saveMonthPhotos(repository, recapTimeline.previousMonth, 10);
+    await recapRepository.saveSelection({
+      month: recapTimeline.previousMonth,
+      selectedPhotoIds: [
+        toLocalPhotoId(recapTimeline.previousMonth, 2),
+        toLocalPhotoId(recapTimeline.previousMonth, 5),
+        toLocalPhotoId(recapTimeline.previousMonth, 9),
+      ],
+      userId: LOCAL_USER_ID,
+    });
+
+    const months = await createRecapMonthSummaries({
+      currentDate: recapTimeline.currentDate,
+      recapRepository,
+      repository,
+      userId: LOCAL_USER_ID,
+      year: recapTimeline.year,
+    });
+    const previousMonth = months.find(
+      (month) => month.month === recapTimeline.previousMonth,
+    );
+
+    expect(previousMonth).toMatchObject({
+      month: recapTimeline.previousMonth,
+      photoCount: 10,
+      selectedPhotoIds: [
+        toLocalPhotoId(recapTimeline.previousMonth, 2),
+        toLocalPhotoId(recapTimeline.previousMonth, 5),
+        toLocalPhotoId(recapTimeline.previousMonth, 9),
+      ],
+      status: "selected",
+    });
+    expect(previousMonth?.previewPhotos.map((photo) => photo.id)).toEqual([
+      toLocalPhotoId(recapTimeline.previousMonth, 2),
+      toLocalPhotoId(recapTimeline.previousMonth, 5),
+      toLocalPhotoId(recapTimeline.previousMonth, 9),
+    ]);
   });
 
   it("offers the current year as the default year option", () => {
@@ -278,4 +350,8 @@ async function saveMonthPhoto(
 
 function toDayKey(month: string, day: number): string {
   return `${month}-${String(day).padStart(2, "0")}`;
+}
+
+function toLocalPhotoId(month: string, day: number): string {
+  return `local-${toDayKey(month, day)}`;
 }

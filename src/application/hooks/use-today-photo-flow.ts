@@ -10,6 +10,7 @@ import {
 import { toPhotosByDate } from "@/application/services/daily-photo/daily-photo-records";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import { createDailyPhotoRepositoryForRuntime } from "@/application/services/daily-photo/daily-photo-repository-factory";
+import { syncMonthlyRecapNotificationScheduleForRuntime } from "@/application/services/notifications/recap-notification-service";
 import { waitForNextFrame } from "@/application/utils/frame";
 import { pickImageFromLibrary } from "@/infrastructure/device/media/image-picker";
 import { logger } from "@/infrastructure/logging/logger";
@@ -107,6 +108,12 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
     }
   };
 
+  const syncRecapNotificationSchedule = () => {
+    void syncMonthlyRecapNotificationScheduleForRuntime(Platform.OS).catch((error: unknown) => {
+      logger.warn("Failed to sync recap notification schedule after photo change", { error });
+    });
+  };
+
   const handleDeleteSelectedPhoto = async () => {
     const dateKey = selectedPhotoDateKey;
 
@@ -130,6 +137,8 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
     if (deletedPhoto?.storageKey) {
       await deleteStoredPhotoFile(deletedPhoto.storageKey, "Failed to delete daily photo file");
     }
+
+    syncRecapNotificationSchedule();
   };
 
   const pickAndSavePhoto = async (dateKey: string) => {
@@ -191,6 +200,8 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
       if (previousPhoto?.storageKey && previousPhoto.storageKey !== savedPhoto.storageKey) {
         await deleteStoredPhotoFile(previousPhoto.storageKey, "Failed to delete replaced daily photo file");
       }
+
+      syncRecapNotificationSchedule();
 
       return true;
     } catch (error) {

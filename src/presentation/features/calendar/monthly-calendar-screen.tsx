@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
 import { Alert, type LayoutChangeEvent, StyleSheet, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useTodayPhotoFlow } from "@/application/hooks/use-today-photo-flow";
 import { addNavigableCalendarMonths, clampCalendarMonth } from "@/application/services/calendar/calendar-month-navigation";
+import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
 import { DailyPhotoPolicyDialog } from "@/presentation/components/molecules/daily-photo-policy-dialog";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { CalendarWheelPickerSheet } from "@/presentation/components/organisms/calendar-wheel-picker-sheet";
@@ -11,6 +11,7 @@ import { DailyPhotoDetailSheet } from "@/presentation/components/organisms/daily
 import { MonthlyCalendar } from "@/presentation/components/organisms/monthly-calendar";
 import { ShareCaptureMenu } from "@/presentation/components/organisms/share-capture-menu";
 import { appColors } from "@/presentation/theme/colors";
+import { appSpacing } from "@/presentation/theme/spacing";
 import { dayjs } from "@/shared/date/dayjs";
 
 type ShareContentLayout = {
@@ -86,7 +87,7 @@ export function MonthlyCalendarScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <AppSafeAreaView>
       <View style={styles.container} onLayout={handleContainerLayout}>
         <AppBar>
           <AppBar.Title accessibilityLabel="연월 선택 열기" onPress={handleOpenYearMonthPicker}>
@@ -94,7 +95,7 @@ export function MonthlyCalendarScreen() {
           </AppBar.Title>
           <View style={styles.appBarActions}>
             <ShareCaptureMenu
-              accessibilityLabel="캘린더 공유 메뉴 열기"
+              accessibilityLabel="캘린더 공유 버튼"
               captureRef={shareCaptureRef}
               fileName={shareFileName}
               isReady={isShareReady && Boolean(shareContentLayout)}
@@ -103,12 +104,14 @@ export function MonthlyCalendarScreen() {
           </View>
         </AppBar>
 
-        <MonthlyCalendar
-          calendar={calendar}
-          onNextMonth={handleNextMonth}
-          onPreviousMonth={handlePreviousMonth}
-          onSelectDate={handleSelectDate}
-        />
+        <View style={styles.content}>
+          <MonthlyCalendar
+            calendar={calendar}
+            onNextMonth={handleNextMonth}
+            onPreviousMonth={handlePreviousMonth}
+            onSelectDate={handleSelectDate}
+          />
+        </View>
       </View>
       {shareContentLayout ? (
         <View
@@ -129,12 +132,14 @@ export function MonthlyCalendarScreen() {
             <AppBar>
               <AppBar.Title>{calendar.title}</AppBar.Title>
             </AppBar>
-            <MonthlyCalendar
-              calendar={calendar}
-              canSwipeMonth={false}
-              contentWidth={shareContentLayout.width}
-              onSelectDate={() => {}}
-            />
+            <View style={styles.content}>
+              <MonthlyCalendar
+                calendar={calendar}
+                canSwipeMonth={false}
+                contentWidth={shareContentLayout.width}
+                onSelectDate={() => {}}
+              />
+            </View>
           </View>
         </View>
       ) : null}
@@ -159,19 +164,18 @@ export function MonthlyCalendarScreen() {
           onConfirm={handleConfirmYearMonth}
         />
       )}
-    </SafeAreaView>
+    </AppSafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: appColors.background,
-  },
   container: {
     flex: 1,
     backgroundColor: appColors.background,
-    paddingTop: 10,
+  },
+  content: {
+    flex: 1,
+    paddingTop: appSpacing.screenContentTopPadding,
   },
   appBarActions: {
     flexDirection: "row",

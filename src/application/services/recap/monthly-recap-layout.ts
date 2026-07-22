@@ -1,4 +1,7 @@
-import { MonthlyRecapTemplateId, type MonthlyRecapSelectionDraft } from "@/application/services/recap/types";
+import {
+  MonthlyRecapTemplateId,
+  type MonthlyRecapSelectionDraft,
+} from "@/application/services/recap/types";
 import { MONTHLY_RECAP_SELECTION_LIMIT } from "@/application/services/recap/recap-selection";
 
 type RandomFn = () => number;
@@ -17,13 +20,21 @@ type CreateManualMonthlyRecapDraftOptions = {
   random?: RandomFn;
 };
 
+type CalendarRecapPhotoLayout = {
+  backgroundPhotoIds: string[];
+  calendarPhotoIds: string[];
+};
+
 export function createAutoMonthlyRecapDraft(
   options: CreateAutoMonthlyRecapDraftOptions,
 ): MonthlyRecapSelectionDraft | null {
   const { month, random = Math.random, userId } = options;
   const selectedPhotoIds = toUniquePhotoIds(options.photoIds);
 
-  if (selectedPhotoIds.length === 0 || selectedPhotoIds.length >= MONTHLY_RECAP_SELECTION_LIMIT) {
+  if (
+    selectedPhotoIds.length === 0 ||
+    selectedPhotoIds.length >= MONTHLY_RECAP_SELECTION_LIMIT
+  ) {
     return null;
   }
 
@@ -38,25 +49,8 @@ export function createAutoMonthlyRecapDraft(
     };
   }
 
-  const [backgroundPhotoId] = pickRandomPhotoIds(selectedPhotoIds, 1, random);
-
-  return {
-    userId,
-    month,
-    selectedPhotoIds,
-    templateId: MonthlyRecapTemplateId.calendarCollage,
-    calendarPhotoIds: selectedPhotoIds.filter((photoId) => photoId !== backgroundPhotoId),
-    backgroundPhotoIds: [backgroundPhotoId],
-  };
-}
-
-export function createManualMonthlyRecapDraft(
-  options: CreateManualMonthlyRecapDraftOptions,
-): MonthlyRecapSelectionDraft {
-  const { month, random = Math.random, userId } = options;
-  const selectedPhotoIds = toUniquePhotoIds(options.selectedPhotoIds).slice(0, MONTHLY_RECAP_SELECTION_LIMIT);
-  const calendarPhotoIds = pickRandomPhotoIds(selectedPhotoIds, 4, random);
-  const calendarPhotoIdsSet = new Set(calendarPhotoIds);
+  const { backgroundPhotoIds, calendarPhotoIds } =
+    createCalendarRecapPhotoLayout(selectedPhotoIds, random);
 
   return {
     userId,
@@ -64,8 +58,59 @@ export function createManualMonthlyRecapDraft(
     selectedPhotoIds,
     templateId: MonthlyRecapTemplateId.calendarCollage,
     calendarPhotoIds,
-    backgroundPhotoIds: selectedPhotoIds.filter((photoId) => !calendarPhotoIdsSet.has(photoId)),
+    backgroundPhotoIds,
   };
+}
+
+export function createManualMonthlyRecapDraft(
+  options: CreateManualMonthlyRecapDraftOptions,
+): MonthlyRecapSelectionDraft {
+  const { month, random = Math.random, userId } = options;
+  const selectedPhotoIds = toUniquePhotoIds(options.selectedPhotoIds).slice(
+    0,
+    MONTHLY_RECAP_SELECTION_LIMIT,
+  );
+  const { backgroundPhotoIds, calendarPhotoIds } =
+    createCalendarRecapPhotoLayout(selectedPhotoIds, random);
+
+  return {
+    userId,
+    month,
+    selectedPhotoIds,
+    templateId: MonthlyRecapTemplateId.calendarCollage,
+    calendarPhotoIds,
+    backgroundPhotoIds,
+  };
+}
+
+export function createCalendarRecapPhotoLayout(
+  photoIds: string[],
+  random: RandomFn = Math.random,
+): CalendarRecapPhotoLayout {
+  const selectedPhotoIds = toUniquePhotoIds(photoIds);
+  const shuffledPhotoIds = shufflePhotoIds(selectedPhotoIds, random);
+  const backgroundPhotoCount = getCalendarRecapBackgroundPhotoCount(
+    selectedPhotoIds.length,
+  );
+
+  return {
+    backgroundPhotoIds: shuffledPhotoIds.slice(0, backgroundPhotoCount),
+    calendarPhotoIds: shuffledPhotoIds.slice(backgroundPhotoCount),
+  };
+}
+
+export function getCalendarRecapBackgroundPhotoCount(
+  photoCount: number,
+): number {
+  if (photoCount >= 7) {
+    return 4;
+  }
+
+  if (photoCount >= 4) {
+    return 1;
+  }
+
+  return 0;
 }
 
 export function shouldRefreshAutoMonthlyRecap({
@@ -77,18 +122,23 @@ export function shouldRefreshAutoMonthlyRecap({
 }): boolean {
   const currentPhotoIds = toUniquePhotoIds(photoIds);
   const currentPhotoIdsSet = new Set(currentPhotoIds);
-  const currentSelectedPhotoIds = toUniquePhotoIds(selectedPhotoIds).filter((photoId) => currentPhotoIdsSet.has(photoId));
+  const currentSelectedPhotoIds = toUniquePhotoIds(selectedPhotoIds).filter(
+    (photoId) => currentPhotoIdsSet.has(photoId),
+  );
 
-  if (currentPhotoIds.length === 0 || currentPhotoIds.length >= MONTHLY_RECAP_SELECTION_LIMIT) {
+  if (
+    currentPhotoIds.length === 0 ||
+    currentPhotoIds.length >= MONTHLY_RECAP_SELECTION_LIMIT
+  ) {
     return false;
   }
 
-  return currentPhotoIds.length !== currentSelectedPhotoIds.length
-    || currentPhotoIds.some((photoId, index) => currentSelectedPhotoIds[index] !== photoId);
-}
-
-function pickRandomPhotoIds(photoIds: string[], limit: number, random: RandomFn): string[] {
-  return shufflePhotoIds(photoIds, random).slice(0, Math.min(limit, photoIds.length));
+  return (
+    currentPhotoIds.length !== currentSelectedPhotoIds.length ||
+    currentPhotoIds.some(
+      (photoId, index) => currentSelectedPhotoIds[index] !== photoId,
+    )
+  );
 }
 
 function shufflePhotoIds(photoIds: string[], random: RandomFn): string[] {

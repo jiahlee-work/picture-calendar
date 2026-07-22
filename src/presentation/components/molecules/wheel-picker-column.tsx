@@ -1,7 +1,10 @@
 import WheelPicker from "@quidone/react-native-wheel-picker";
 import { StyleSheet, Text, View } from "react-native";
 
-import { WheelPickerGestureScrollList, type WheelPickerOption } from "@/presentation/components/molecules/wheel-picker-gesture-scroll-list";
+import {
+  WheelPickerGestureScrollList,
+  type WheelPickerOption,
+} from "@/presentation/components/molecules/wheel-picker-gesture-scroll-list";
 import { appColors } from "@/presentation/theme/colors";
 
 type WheelPickerColumnProps = {
@@ -12,8 +15,10 @@ type WheelPickerColumnProps = {
 
 export const WHEEL_PICKER_ITEM_HEIGHT = 52;
 export const WHEEL_PICKER_VISIBLE_ITEM_COUNT = 5;
-export const WHEEL_PICKER_HEIGHT = WHEEL_PICKER_ITEM_HEIGHT * WHEEL_PICKER_VISIBLE_ITEM_COUNT;
-export const WHEEL_PICKER_SPACER_HEIGHT = (WHEEL_PICKER_HEIGHT - WHEEL_PICKER_ITEM_HEIGHT) / 2;
+export const WHEEL_PICKER_HEIGHT =
+  WHEEL_PICKER_ITEM_HEIGHT * WHEEL_PICKER_VISIBLE_ITEM_COUNT;
+export const WHEEL_PICKER_SPACER_HEIGHT =
+  (WHEEL_PICKER_HEIGHT - WHEEL_PICKER_ITEM_HEIGHT) / 2;
 
 export function WheelPickerColumn(props: WheelPickerColumnProps) {
   const { onValueChange, options, selectedValue } = props;
@@ -27,17 +32,23 @@ export function WheelPickerColumn(props: WheelPickerColumnProps) {
       keyExtractor={(item) => String(item.value)}
       renderItem={({ item }) => (
         <View style={styles.option}>
-          <Text style={[styles.optionText, item.value === selectedValue && styles.selectedOptionText]}>
+          <Text
+            style={[
+              styles.optionText,
+              item.value === selectedValue && styles.selectedOptionText,
+            ]}
+          >
             {item.label}
           </Text>
         </View>
       )}
-      renderList={(listProps) => <WheelPickerGestureScrollList {...listProps} />}
+      renderList={(listProps) => (
+        <WheelPickerGestureScrollList {...listProps} />
+      )}
       renderOverlay={() => null}
       style={styles.optionColumn}
       value={selectedValue}
       visibleItemCount={WHEEL_PICKER_VISIBLE_ITEM_COUNT}
-      width="100%"
       onValueChanged={({ item }) => onValueChange(item.value)}
       onValueChanging={({ item }) => onValueChange(item.value)}
     />
