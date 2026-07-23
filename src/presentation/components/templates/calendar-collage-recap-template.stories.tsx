@@ -1,4 +1,3 @@
-import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react-native";
 import { StyleSheet, View } from "react-native";
 
@@ -10,9 +9,7 @@ import {
 } from "@/presentation/storybook/recap-fixtures";
 import { dayjs } from "@/shared/date/dayjs";
 
-type CalendarRecapTemplateStoryArgs = ComponentProps<
-  typeof CalendarCollageRecapTemplate
-> & {
+type CalendarRecapTemplateStoryProps = {
   calendarRecapPhotoCount: "4" | "5" | "6" | "7" | "8" | "9" | "10";
 };
 
@@ -27,8 +24,32 @@ const CALENDAR_RECAP_PHOTO_COUNT_LABELS = {
   "10": "10 total / bg 4 / calendar 6",
 };
 
+function CalendarRecapTemplateStory(props: CalendarRecapTemplateStoryProps) {
+  const { calendarRecapPhotoCount } = props;
+  const normalizedPhotoCount = Number(calendarRecapPhotoCount);
+  const selectedPhotoIds = monthlyRecapPhotoFixtures
+    .slice(0, normalizedPhotoCount)
+    .map((photo) => photo.id);
+  const { backgroundPhotoIds, calendarPhotoIds } =
+    createCalendarRecapPhotoLayout(selectedPhotoIds, () => 0);
+
+  return (
+    <CalendarCollageRecapTemplate
+      monthDate={dayjs("2026-07-01")}
+      photos={monthlyRecapPhotoFixtures}
+      recap={{
+        ...calendarCollageRecapFixture,
+        backgroundPhotoIds,
+        calendarPhotoIds,
+        selectedPhotoIds,
+      }}
+      width={390}
+    />
+  );
+}
+
 const meta = {
-  component: CalendarCollageRecapTemplate,
+  component: CalendarRecapTemplateStory,
   decorators: [
     (Story) => (
       <View style={styles.phoneFrame}>
@@ -36,32 +57,6 @@ const meta = {
       </View>
     ),
   ],
-  render: ({
-    calendarRecapPhotoCount,
-    photos,
-    recap,
-    ...args
-  }: CalendarRecapTemplateStoryArgs) => {
-    const normalizedPhotoCount = Number(calendarRecapPhotoCount);
-    const selectedPhotoIds = photos
-      .slice(0, normalizedPhotoCount)
-      .map((photo) => photo.id);
-    const { backgroundPhotoIds, calendarPhotoIds } =
-      createCalendarRecapPhotoLayout(selectedPhotoIds, () => 0);
-
-    return (
-      <CalendarCollageRecapTemplate
-        {...args}
-        photos={photos}
-        recap={{
-          ...recap,
-          backgroundPhotoIds,
-          calendarPhotoIds,
-          selectedPhotoIds,
-        }}
-      />
-    );
-  },
   argTypes: {
     calendarRecapPhotoCount: {
       control: {
@@ -75,7 +70,7 @@ const meta = {
     layout: "fullscreen",
   },
   title: "Templates/Calendar Recap",
-} satisfies Meta<CalendarRecapTemplateStoryArgs>;
+} satisfies Meta<CalendarRecapTemplateStoryProps>;
 
 export default meta;
 
@@ -83,11 +78,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    monthDate: dayjs("2026-07-01"),
     calendarRecapPhotoCount: "8",
-    photos: monthlyRecapPhotoFixtures,
-    recap: calendarCollageRecapFixture,
-    width: 390,
   },
 };
 

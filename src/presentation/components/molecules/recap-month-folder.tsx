@@ -11,6 +11,7 @@ import { appColors } from "@/presentation/theme/colors";
 const FOLDER_BACK_COLOR = "rgba(231, 236, 234, 0.58)";
 const FOLDER_FRONT_COLOR = "rgba(255, 255, 255, 0.84)";
 const ANDROID_FOLDER_FRONT_COLOR = "rgba(255, 255, 255, 0.72)";
+const NEEDS_SELECTION_LABEL = "Select photos";
 
 const PREVIEW_SLOTS = [
   {
@@ -80,10 +81,14 @@ export function RecapMonthFolderView(props: RecapMonthFolderViewProps) {
     month.status === RecapMonthStatus.disabledEmpty ||
     month.status === RecapMonthStatus.disabledCollecting;
   const isClosed = month.status === RecapMonthStatus.disabledEmpty;
+  const needsSelection = month.status === RecapMonthStatus.needsSelection;
   const displayedPhotoCount =
     month.status === RecapMonthStatus.selected
       ? month.selectedPhotoIds.length
       : month.photoCount;
+  const countLabel = needsSelection
+    ? NEEDS_SELECTION_LABEL
+    : `${displayedPhotoCount} photos`;
   const shouldShowPreview = month.previewPhotos.length > 0;
 
   return (
@@ -143,8 +148,14 @@ export function RecapMonthFolderView(props: RecapMonthFolderViewProps) {
               <Text style={[styles.monthName, isClosed && styles.disabledText]}>
                 {month.monthLabel}
               </Text>
-              <Text style={[styles.countText, isClosed && styles.disabledText]}>
-                {displayedPhotoCount} photos
+              <Text
+                style={[
+                  styles.countText,
+                  needsSelection && styles.needsSelectionText,
+                  isClosed && styles.disabledText,
+                ]}
+              >
+                {countLabel}
               </Text>
             </View>
           </View>
@@ -199,18 +210,14 @@ const styles = StyleSheet.create({
     width: 32,
   },
   frontPerspective: {
-    bottom: -4,
-    height: 75,
+    bottom: 0,
+    height: 94,
     left: 1,
     position: "absolute",
     shadowColor: appColors.black,
     shadowOffset: { height: 10, width: 0 },
     shadowOpacity: Platform.OS === "android" ? 0 : 0.08,
     shadowRadius: 14,
-    transform: Platform.select({
-      android: [{ perspective: 700 }, { rotateX: "-8deg" }],
-      default: [{ perspective: 550 }, { rotateX: "-14deg" }],
-    }),
     width: 170,
     zIndex: 5,
   },
@@ -220,23 +227,20 @@ const styles = StyleSheet.create({
         ? ANDROID_FOLDER_FRONT_COLOR
         : FOLDER_FRONT_COLOR,
     borderRadius: 14,
-    bottom: -4,
     elevation: 0,
-    height: 116,
+    height: 94,
     left: 0,
     overflow: "hidden",
     position: "absolute",
+    top: 0,
     width: 170,
     zIndex: 10,
   },
   closedFrontPerspective: {
     bottom: 0,
-    transform: [{ perspective: 550 }, { rotateX: "0deg" }],
   },
   closedFolderFront: {
     backgroundColor: "rgba(232, 232, 232, 0.96)",
-    bottom: 0,
-    height: 92,
   },
   frontContent: {
     flex: 1,
@@ -267,5 +271,8 @@ const styles = StyleSheet.create({
   },
   disabledText: {
     color: "rgba(138, 138, 138, 0.86)",
+  },
+  needsSelectionText: {
+    opacity: 0.82,
   },
 });

@@ -1,11 +1,47 @@
 import type { Meta, StoryObj } from "@storybook/react-native";
 import { StyleSheet, View } from "react-native";
 
+import { RecapMonthStatus } from "@/application/services/recap/recap-month-list";
 import { RecapMonthFolderView } from "@/presentation/components/molecules/recap-month-folder";
 import { recapMonthFixtures } from "@/presentation/storybook/recap-fixtures";
 
+const RECAP_MONTH_FOLDER_STATUSES = {
+  disabled: RecapMonthStatus.disabledEmpty,
+  needsSelection: RecapMonthStatus.needsSelection,
+  readyAuto: RecapMonthStatus.readyAuto,
+} as const;
+
+type RecapMonthFolderStoryStatus = keyof typeof RECAP_MONTH_FOLDER_STATUSES;
+
+type RecapMonthFolderStoryProps = {
+  status: RecapMonthFolderStoryStatus;
+};
+
+function RecapMonthFolderStoryView(props: RecapMonthFolderStoryProps) {
+  const { status } = props;
+  const recapStatus = RECAP_MONTH_FOLDER_STATUSES[status];
+  const month =
+    recapMonthFixtures.find((fixture) => fixture.status === recapStatus) ??
+    recapMonthFixtures[0];
+
+  return <RecapMonthFolderView month={month} onPress={() => undefined} />;
+}
+
 const meta = {
-  component: RecapMonthFolderView,
+  argTypes: {
+    status: {
+      control: {
+        labels: {
+          disabled: "Disabled",
+          needsSelection: "Needs Selection",
+          readyAuto: "Ready Auto",
+        },
+        type: "select",
+      },
+      options: Object.keys(RECAP_MONTH_FOLDER_STATUSES),
+    },
+  },
+  component: RecapMonthFolderStoryView,
   decorators: [
     (Story) => (
       <View style={styles.canvas}>
@@ -14,58 +50,21 @@ const meta = {
     ),
   ],
   title: "Components/Molecules/Recap Month Folder",
-} satisfies Meta<typeof RecapMonthFolderView>;
+} satisfies Meta<typeof RecapMonthFolderStoryView>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const NeedsSelection: Story = {
+export const Default: Story = {
   args: {
-    month: recapMonthFixtures[0],
-    onPress: () => undefined,
+    status: "needsSelection",
   },
-};
-
-export const ReadyAuto: Story = {
-  args: {
-    ...NeedsSelection.args,
-    month: recapMonthFixtures[1],
-  },
-};
-
-export const DisabledEmpty: Story = {
-  args: {
-    ...NeedsSelection.args,
-    month: recapMonthFixtures[4],
-  },
-};
-
-export const StatusGrid: Story = {
-  args: {
-    ...NeedsSelection.args,
-  },
-  render: () => (
-    <View style={styles.grid}>
-      {recapMonthFixtures.map((month) => (
-        <RecapMonthFolderView
-          key={month.month}
-          month={month}
-          onPress={() => undefined}
-        />
-      ))}
-    </View>
-  ),
 };
 
 const styles = StyleSheet.create({
   canvas: {
     alignItems: "center",
     padding: 24,
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    width: 390,
   },
 });

@@ -8,9 +8,7 @@ import {
 } from "@/presentation/storybook/recap-fixtures";
 import { dayjs } from "@/shared/date/dayjs";
 
-type MessageRecapTemplateStoryArgs = React.ComponentProps<
-  typeof MessageRecapTemplate
-> & {
+type MessageRecapTemplateStoryProps = {
   photoCount: "1" | "2" | "3";
 };
 
@@ -21,8 +19,28 @@ const MESSAGE_RECAP_PHOTO_COUNT_LABELS = {
   "3": "3",
 };
 
+function MessageRecapTemplateStory(props: MessageRecapTemplateStoryProps) {
+  const { photoCount } = props;
+  const normalizedPhotoCount = Number(photoCount);
+
+  return (
+    <MessageRecapTemplate
+      monthDate={dayjs("2026-07-01")}
+      photos={monthlyRecapPhotoFixtures}
+      recap={{
+        ...messageRecapFixture,
+        selectedPhotoIds: messageRecapFixture.selectedPhotoIds.slice(
+          0,
+          normalizedPhotoCount,
+        ),
+      }}
+      width={390}
+    />
+  );
+}
+
 const meta = {
-  component: MessageRecapTemplate,
+  component: MessageRecapTemplateStory,
   decorators: [
     (Story) => (
       <View style={styles.phoneFrame}>
@@ -30,22 +48,6 @@ const meta = {
       </View>
     ),
   ],
-  render: ({ photoCount, recap, ...args }: MessageRecapTemplateStoryArgs) => {
-    const normalizedPhotoCount = Number(photoCount);
-
-    return (
-      <MessageRecapTemplate
-        {...args}
-        recap={{
-          ...recap,
-          selectedPhotoIds: recap.selectedPhotoIds.slice(
-            0,
-            normalizedPhotoCount,
-          ),
-        }}
-      />
-    );
-  },
   argTypes: {
     photoCount: {
       control: {
@@ -59,7 +61,7 @@ const meta = {
     layout: "fullscreen",
   },
   title: "Templates/Message Recap",
-} satisfies Meta<MessageRecapTemplateStoryArgs>;
+} satisfies Meta<MessageRecapTemplateStoryProps>;
 
 export default meta;
 
@@ -67,11 +69,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    monthDate: dayjs("2026-07-01"),
     photoCount: "3",
-    photos: monthlyRecapPhotoFixtures,
-    recap: messageRecapFixture,
-    width: 390,
   },
 };
 
