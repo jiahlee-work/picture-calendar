@@ -3,12 +3,13 @@ import { useEffect } from "react";
 import { NavigationBar } from "expo-navigation-bar";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { StatusBar as NativeStatusBar, StyleSheet } from "react-native";
+import { StatusBar as NativeStatusBar, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "react-native-reanimated";
 
 import { useRecapNotificationScheduler } from "@/application/hooks/use-recap-notification-scheduler";
+import { AppBottomNavigation } from "@/presentation/components/organisms/app-bottom-navigation";
 import { useRecapNotificationDeepLinking } from "@/presentation/features/notifications/use-recap-notification-deep-linking";
 import { appColors } from "@/presentation/theme/colors";
 
@@ -35,14 +36,17 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <BottomSheetModalProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" options={{ gestureEnabled: false }} />
-            <Stack.Screen name="recap" />
-            <Stack.Screen name="recap/select" />
-            <Stack.Screen name="recap/[year]/[month]" />
-            <Stack.Screen name="stickers" />
-            <Stack.Screen name="settings" />
-          </Stack>
+          <View style={styles.content}>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="index" options={{ gestureEnabled: false }} />
+              <Stack.Screen name="recap" />
+              <Stack.Screen name="recap/select" />
+              <Stack.Screen name="recap/[year]/[month]" />
+              <Stack.Screen name="stickers" />
+              <Stack.Screen name="settings" />
+            </Stack>
+            <AppBottomNavigation />
+          </View>
           <NavigationBar hidden={false} style="light" />
           <StatusBar hidden={false} style="dark" />
         </BottomSheetModalProvider>
@@ -52,6 +56,9 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
+  content: {
+    flex: 1,
+  },
   root: {
     flex: 1,
   },

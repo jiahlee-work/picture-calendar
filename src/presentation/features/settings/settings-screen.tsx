@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import {
   Pressable,
   ScrollView,
@@ -19,7 +18,6 @@ type SettingsScreenViewProps = {
   isEnabled: boolean;
   isLoading: boolean;
   isSupported: boolean;
-  renderMenu?: () => ReactNode;
   onToggleRecapNotification: (isEnabled: boolean) => void;
   onUpdateAppVersion: () => void;
 };
@@ -38,7 +36,6 @@ export function SettingsScreen() {
       isEnabled={isEnabled}
       isLoading={isLoading}
       isSupported={isSupported}
-      renderMenu={() => <AppBar.Menu />}
       onToggleRecapNotification={setEnabled}
       onUpdateAppVersion={handleUpdateAppVer}
     />
@@ -50,7 +47,6 @@ export function SettingsScreenView(props: SettingsScreenViewProps) {
     isEnabled,
     isLoading,
     isSupported,
-    renderMenu,
     onToggleRecapNotification,
     onUpdateAppVersion,
   } = props;
@@ -59,7 +55,6 @@ export function SettingsScreenView(props: SettingsScreenViewProps) {
     <AppSafeAreaView>
       <AppBar>
         <AppBar.Title>Settings</AppBar.Title>
-        {renderMenu?.()}
       </AppBar>
       <ScrollView
         contentContainerStyle={styles.content}

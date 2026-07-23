@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
 import { useRecapMonthList } from "@/application/hooks/use-recap-month-list";
@@ -14,28 +13,21 @@ import { appSpacing } from "@/presentation/theme/spacing";
 type RecapMonthListScreenViewProps = {
   months: RecapMonthSummary[];
   onPressMonth?: (month: RecapMonthSummary) => void;
-  renderMenu?: () => ReactNode;
 };
 
 export function RecapMonthListScreen() {
   const { months } = useRecapMonthList();
 
-  return (
-    <RecapMonthListScreenView
-      months={months}
-      renderMenu={() => <AppBar.Menu />}
-    />
-  );
+  return <RecapMonthListScreenView months={months} />;
 }
 
 export function RecapMonthListScreenView(props: RecapMonthListScreenViewProps) {
-  const { months, onPressMonth, renderMenu } = props;
+  const { months, onPressMonth } = props;
 
   return (
     <AppSafeAreaView>
       <AppBar>
         <AppBar.Title variant="large">Recap</AppBar.Title>
-        {renderMenu?.()}
       </AppBar>
       <ScrollView
         contentContainerStyle={styles.content}

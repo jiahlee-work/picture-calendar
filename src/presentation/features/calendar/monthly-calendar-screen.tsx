@@ -2,7 +2,10 @@ import { useRef, useState } from "react";
 import { Alert, type LayoutChangeEvent, StyleSheet, View } from "react-native";
 
 import { useTodayPhotoFlow } from "@/application/hooks/use-today-photo-flow";
-import { addNavigableCalendarMonths, clampCalendarMonth } from "@/application/services/calendar/calendar-month-navigation";
+import {
+  addNavigableCalendarMonths,
+  clampCalendarMonth,
+} from "@/application/services/calendar/calendar-month-navigation";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
 import { DailyPhotoPolicyDialog } from "@/presentation/components/molecules/daily-photo-policy-dialog";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
@@ -21,9 +24,13 @@ type ShareContentLayout = {
 
 export function MonthlyCalendarScreen() {
   const shareCaptureRef = useRef<View>(null);
-  const [activeMonth, setActiveMonth] = useState(() => clampCalendarMonth(dayjs().startOf("month").toDate()));
-  const [isYearMonthPickerVisible, setIsYearMonthPickerVisible] = useState(false);
-  const [shareContentLayout, setShareContentLayout] = useState<ShareContentLayout | null>(null);
+  const [activeMonth, setActiveMonth] = useState(() =>
+    clampCalendarMonth(dayjs().startOf("month").toDate()),
+  );
+  const [isYearMonthPickerVisible, setIsYearMonthPickerVisible] =
+    useState(false);
+  const [shareContentLayout, setShareContentLayout] =
+    useState<ShareContentLayout | null>(null);
   const {
     calendar,
     photoDetail,
@@ -59,7 +66,10 @@ export function MonthlyCalendarScreen() {
     };
 
     setShareContentLayout((currentLayout) => {
-      if (currentLayout?.height === nextLayout.height && currentLayout.width === nextLayout.width) {
+      if (
+        currentLayout?.height === nextLayout.height &&
+        currentLayout.width === nextLayout.width
+      ) {
         return currentLayout;
       }
 
@@ -90,7 +100,10 @@ export function MonthlyCalendarScreen() {
     <AppSafeAreaView>
       <View style={styles.container} onLayout={handleContainerLayout}>
         <AppBar>
-          <AppBar.Title accessibilityLabel="연월 선택 열기" onPress={handleOpenYearMonthPicker}>
+          <AppBar.Title
+            accessibilityLabel="연월 선택 열기"
+            onPress={handleOpenYearMonthPicker}
+          >
             {calendar.title}
           </AppBar.Title>
           <View style={styles.appBarActions}>
@@ -100,7 +113,6 @@ export function MonthlyCalendarScreen() {
               fileName={shareFileName}
               isReady={isShareReady && Boolean(shareContentLayout)}
             />
-            <AppBar.Menu />
           </View>
         </AppBar>
 
@@ -143,10 +155,7 @@ export function MonthlyCalendarScreen() {
           </View>
         </View>
       ) : null}
-      <DailyPhotoPolicyDialog
-        dialog={policyDialog}
-        onCancel={dismissDialog}
-      />
+      <DailyPhotoPolicyDialog dialog={policyDialog} onCancel={dismissDialog} />
       <DailyPhotoDetailSheet
         dateLabel={photoDetail?.dateLabel ?? ""}
         isToday={photoDetail?.isToday ?? false}

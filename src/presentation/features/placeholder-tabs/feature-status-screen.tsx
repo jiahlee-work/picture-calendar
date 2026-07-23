@@ -17,7 +17,6 @@ export function FeatureStatusScreen(props: FeatureStatusScreenProps) {
     <AppSafeAreaView>
       <AppBar>
         <AppBar.Title>{title}</AppBar.Title>
-        <AppBar.Menu />
       </AppBar>
       <View style={styles.container}>
         <Text style={styles.eyebrow}>{eyebrow}</Text>

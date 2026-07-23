@@ -81,7 +81,6 @@ export function RecapMonthDetailScreen(props: RecapMonthDetailScreenProps) {
               onPress={handleBackPress}
             />
             <AppBar.Spacer />
-            <AppBar.Menu />
           </AppBar>
         </AppSafeAreaView>
         <View style={styles.fallbackContainer}>
@@ -145,7 +144,6 @@ export function RecapMonthDetailScreen(props: RecapMonthDetailScreenProps) {
               fileName={monthKey}
               isReady={isShareReady}
             />
-            <AppBar.Menu />
           </View>
         </AppBar>
       </AppSafeAreaView>
