@@ -19,7 +19,7 @@ import MenuIcon from "reicon-react-native/icons/Menu";
 import ShareIcon from "reicon-react-native/icons/Share";
 import StickerSmileIcon from "reicon-react-native/icons/StickerSmile";
 import TagIcon from "reicon-react-native/icons/Tag";
-import Trash2Icon from "reicon-react-native/icons/Trash2";
+import Trash5Icon from "reicon-react-native/icons/Trash5";
 
 const REICON_COMPONENTS = {
   Add: AddIcon,
@@ -41,7 +41,7 @@ const REICON_COMPONENTS = {
   Share: ShareIcon,
   StickerSmile: StickerSmileIcon,
   Tag: TagIcon,
-  Trash2: Trash2Icon,
+  Trash5: Trash5Icon,
 } satisfies Record<string, IconComponent>;
 
 export type ReiconName = keyof typeof REICON_COMPONENTS;

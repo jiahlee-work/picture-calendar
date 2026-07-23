@@ -17,7 +17,6 @@ export function PhotoStorageNoticeBanner() {
             color={appColors.white}
             name="Image"
             size={27}
-            weight="Filled"
           />
         </View>
         <View style={styles.warningBadge}>
@@ -25,7 +24,6 @@ export function PhotoStorageNoticeBanner() {
             color={appColors.white}
             name="AlertCircle"
             size={15}
-            weight="Filled"
           />
         </View>
       </View>

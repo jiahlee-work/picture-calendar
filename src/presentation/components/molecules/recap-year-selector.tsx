@@ -93,7 +93,6 @@ export function RecapYearSelector(props: RecapYearSelectorProps) {
           color="#6f6f6f"
           name={isOpen ? CHEVRON_UP_ICON : CHEVRON_DOWN_ICON}
           size={16}
-          weight="Filled"
         />
       </Pressable>
 

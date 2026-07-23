@@ -102,9 +102,8 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
             >
               <ReiconIcon
                 color="#ffffff"
-                name="Trash2"
+                name="Trash5"
                 size={20}
-                weight="Filled"
               />
             </Pressable>
           ) : (
@@ -126,7 +125,6 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
                   color="#ffffff"
                   name="Gallery"
                   size={24}
-                  weight="Filled"
                 />
               </View>
             </Pressable>

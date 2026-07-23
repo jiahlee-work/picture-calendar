@@ -123,7 +123,6 @@ function MenuTrigger({
           color={appColors.white}
           name={trigger.icon}
           size={24}
-          weight="Filled"
         />
       ) : null}
       {trigger.label ? (
@@ -153,7 +152,6 @@ function MenuItem(props: MenuItemProps) {
           color={appColors.black}
           name={icon}
           size={20}
-          weight="Outline"
         />
       ) : null}
       <Text style={styles.itemText}>{label}</Text>

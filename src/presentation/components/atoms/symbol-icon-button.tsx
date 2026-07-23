@@ -30,7 +30,6 @@ export function SymbolIconButton(props: SymbolIconButtonProps) {
         color={appColors.white}
         name={icon}
         size={24}
-        weight="Filled"
       />
     </Pressable>
   );

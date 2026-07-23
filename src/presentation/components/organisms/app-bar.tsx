@@ -113,7 +113,6 @@ function AppBarTitle(props: AppBarTitleProps) {
           color={appColors.black}
           name="ChevronDown"
           size={18}
-          weight="Filled"
         />
       </View>
     </Pressable>

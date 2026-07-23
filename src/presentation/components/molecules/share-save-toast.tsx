@@ -72,7 +72,7 @@ export function ShareSaveToast(props: ShareSaveToastProps) {
 
 function ToastIcon({ icon }: { icon: ReiconName }) {
   return (
-    <ReiconIcon color={appColors.white} name={icon} size={22} weight="Filled" />
+    <ReiconIcon color={appColors.white} name={icon} size={22} />
   );
 }
 

@@ -29,7 +29,7 @@ import { appSpacing } from "@/presentation/theme/spacing";
 const ADD_ICON: ReiconName = "Add";
 const LIBRARY_ICON: ReiconName = "Gallery";
 const CLIPBOARD_ICON: ReiconName = "Clipboard";
-const TRASH_ICON: ReiconName = "Trash2";
+const TRASH_ICON: ReiconName = "Trash5";
 const CARD_GAP = 12;
 
 export function StickerLibraryScreen() {
@@ -233,7 +233,6 @@ function StickerCard(props: {
             color={appColors.white}
             name={TRASH_ICON}
             size={18}
-            weight="Filled"
           />
         </Pressable>
       ) : null}
@@ -268,7 +267,7 @@ function BuiltInStickerPreview(props: { asset: BuiltInStickerAsset }) {
   return (
     <View style={styles.polaroidPreview}>
       <View style={styles.polaroidPhotoArea}>
-        <ReiconIcon color="#6B9AE4" name="Image" size={34} weight="Filled" />
+        <ReiconIcon color="#6B9AE4" name="Image" size={34} />
       </View>
       <View style={styles.polaroidCaption} />
     </View>
