@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { appColors } from "@/presentation/theme/colors";
+import { appLayers } from "@/presentation/theme/layers";
 
 type AppRoute = "/" | "/recap" | "/stickers" | "/settings";
 
@@ -104,11 +105,12 @@ function isRouteActive(pathname: string, route: AppRoute) {
 const styles = StyleSheet.create({
   overlay: {
     alignItems: "center",
+    elevation: 6,
     left: 0,
     paddingHorizontal: 36,
     position: "absolute",
     right: 0,
-    zIndex: 30,
+    zIndex: appLayers.bottomNavigation,
   },
   bar: {
     alignItems: "center",

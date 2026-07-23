@@ -4,6 +4,7 @@ import { StyleSheet } from "react-native";
 
 import { AppBottomSheetBackdrop } from "@/presentation/components/atoms/app-bottom-sheet-backdrop";
 import { CalendarWheelPickerSelector } from "@/presentation/components/organisms/calendar-wheel-picker-selector";
+import { appLayers } from "@/presentation/theme/layers";
 
 type CalendarWheelPickerSheetProps = {
   value: Date;
@@ -40,6 +41,7 @@ export function CalendarWheelPickerSheet(props: CalendarWheelPickerSheetProps) {
       ref={bottomSheetRef}
       backdropComponent={AppBottomSheetBackdrop}
       backgroundStyle={styles.sheetBackground}
+      containerStyle={styles.sheetContainer}
       enableDynamicSizing={false}
       enablePanDownToClose
       handleIndicatorStyle={styles.handleIndicator}
@@ -62,6 +64,10 @@ const styles = StyleSheet.create({
   handleIndicator: {
     backgroundColor: "#dddddd",
     width: 42,
+  },
+  sheetContainer: {
+    elevation: appLayers.bottomSheet,
+    zIndex: appLayers.bottomSheet,
   },
   sheetBackground: {
     backgroundColor: "#ffffff",

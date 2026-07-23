@@ -16,6 +16,7 @@ import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import { AppBottomSheetBackdrop } from "@/presentation/components/atoms/app-bottom-sheet-backdrop";
 import { DailyPhotoImage } from "@/presentation/components/atoms/daily-photo-image";
 import { appColors } from "@/presentation/theme/colors";
+import { appLayers } from "@/presentation/theme/layers";
 
 type DailyPhotoDetailSheetProps = {
   dateLabel: string;
@@ -70,6 +71,7 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
       ref={bottomSheetRef}
       backdropComponent={AppBottomSheetBackdrop}
       backgroundStyle={styles.sheetBackground}
+      containerStyle={styles.sheetContainer}
       enableDynamicSizing={false}
       enablePanDownToClose
       handleComponent={null}
@@ -121,6 +123,10 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
 }
 
 const styles = StyleSheet.create({
+  sheetContainer: {
+    elevation: appLayers.bottomSheet,
+    zIndex: appLayers.bottomSheet,
+  },
   sheet: {
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
