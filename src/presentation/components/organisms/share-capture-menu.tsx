@@ -39,7 +39,7 @@ const ShareOperation = {
   sharing: "sharing",
 } as const;
 
-type ShareOperation = (typeof ShareOperation)[keyof typeof ShareOperation];
+type ShareOperationState = (typeof ShareOperation)[keyof typeof ShareOperation];
 type PermissionAlertState = {
   canAskAgain: boolean;
   visible: boolean;
@@ -67,7 +67,7 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
     canAskAgain: true,
     visible: false,
   });
-  const [operation, setOperation] = useState<ShareOperation>(
+  const [operation, setOperation] = useState<ShareOperationState>(
     ShareOperation.idle,
   );
   const [saveToastState, setSaveToastState] = useState<ShareSaveToastStateType>(
@@ -77,7 +77,9 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
   const isProcessing = operation !== ShareOperation.idle;
 
   const captureImage = async () => {
-    if (!captureRef.current || !isReady) {
+    const captureTarget = captureRef.current;
+
+    if (!captureTarget || !isReady) {
       Alert.alert(
         "공유할 수 없음",
         "이미지를 만들 콘텐츠가 아직 준비되지 않았어요.",
@@ -100,7 +102,7 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
       captureOptions.width = captureWidth;
     }
 
-    const uri = await captureViewRef(captureRef, captureOptions);
+    const uri = await captureViewRef(captureTarget, captureOptions);
 
     latestCaptureUriRef.current = uri;
     return uri;

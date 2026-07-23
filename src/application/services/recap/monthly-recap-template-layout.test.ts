@@ -5,27 +5,9 @@ import {
   getCalendarRecapPhotoSlotLayout,
   getMessageRecapPhotoFrameLayout,
   getMessageRecapPhotoGroupSize,
-  getMonthlyRecapStatusLabel,
 } from "@/application/services/recap/monthly-recap-template-layout";
 
 describe("monthly recap template layout", () => {
-  it("creates status labels for loading and ready recap states", () => {
-    expect(
-      getMonthlyRecapStatusLabel({
-        photoCount: 0,
-        status: "loading",
-        templateId: null,
-      }),
-    ).toBe("이 달의 리캡을 불러오는 중이에요.");
-    expect(
-      getMonthlyRecapStatusLabel({
-        photoCount: 3,
-        status: "ready",
-        templateId: "message",
-      }),
-    ).toBe("3장의 사진으로 메시지 리캡을 준비했어요.");
-  });
-
   it("places message photos inside a flow-based photo group", () => {
     expect(getMessageRecapPhotoFrameLayout(0, 1, 100)).toMatchObject({
       height: 92,

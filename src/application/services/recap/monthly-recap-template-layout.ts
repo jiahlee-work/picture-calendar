@@ -1,11 +1,3 @@
-import { MonthlyRecapDetailStatus } from "@/application/services/recap/monthly-recap-detail";
-import {
-  MonthlyRecapTemplateId,
-  type MonthlyRecap,
-} from "@/shared/recap/types";
-
-export type MonthlyRecapStatusLabelStatus = MonthlyRecapDetailStatus;
-
 export type MonthlyRecapPhotoFrameLayout = {
   height: number;
   left: number;
@@ -19,38 +11,6 @@ export type MonthlyRecapCardSize = {
   height: number;
   width: number;
 };
-
-export function getMonthlyRecapStatusLabel({
-  photoCount,
-  status,
-  templateId,
-}: {
-  photoCount: number;
-  status: MonthlyRecapStatusLabelStatus;
-  templateId: MonthlyRecap["templateId"] | null;
-}): string {
-  if (status === MonthlyRecapDetailStatus.loading) {
-    return "이 달의 리캡을 불러오는 중이에요.";
-  }
-
-  if (status === MonthlyRecapDetailStatus.error) {
-    return "이 달의 리캡을 불러오지 못했습니다.";
-  }
-
-  if (status === MonthlyRecapDetailStatus.empty) {
-    return "이 달에는 리캡에 사용할 사진이 없어요.";
-  }
-
-  if (status === MonthlyRecapDetailStatus.needsSelection) {
-    return "대표 사진 선택 화면으로 이동 중이에요.";
-  }
-
-  if (status === MonthlyRecapDetailStatus.collecting) {
-    return "이 달의 사진을 모으는 중이에요.";
-  }
-
-  return `${photoCount}장의 사진으로 ${templateId === MonthlyRecapTemplateId.message ? "메시지" : "캘린더"} 리캡을 준비했어요.`;
-}
 
 export function getMessageRecapPhotoFrameLayout(
   index: number,
