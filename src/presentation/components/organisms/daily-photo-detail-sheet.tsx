@@ -1,6 +1,5 @@
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { useEffect, useMemo, useRef } from "react";
-import { SymbolView } from "expo-symbols";
 import {
   Platform,
   Pressable,
@@ -15,6 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import { AppBottomSheetBackdrop } from "@/presentation/components/atoms/app-bottom-sheet-backdrop";
 import { DailyPhotoImage } from "@/presentation/components/atoms/daily-photo-image";
+import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import { appColors } from "@/presentation/theme/colors";
 import { appLayers } from "@/presentation/theme/layers";
 
@@ -30,7 +30,16 @@ type DailyPhotoDetailSheetProps = {
 };
 
 export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
-  const { dateLabel, isToday, photo, showActions = true, visible, onChangePhoto, onClose, onDeletePhoto } = props;
+  const {
+    dateLabel,
+    isToday,
+    photo,
+    showActions = true,
+    visible,
+    onChangePhoto,
+    onClose,
+    onDeletePhoto,
+  } = props;
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
   const sheetHeight = windowHeight * 0.9;
@@ -86,14 +95,16 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
           <View style={styles.topSpacer} />
           <Text style={styles.dateText}>{dateLabel}</Text>
           {showActions ? (
-            <Pressable accessibilityLabel="사진 삭제" style={styles.iconButton} onPress={onDeletePhoto}>
-              <SymbolView
-                colors={["#ffffff"]}
-                name={{ ios: "trash", android: "delete" }}
+            <Pressable
+              accessibilityLabel="사진 삭제"
+              style={styles.iconButton}
+              onPress={onDeletePhoto}
+            >
+              <ReiconIcon
+                color="#ffffff"
+                name="Trash2"
                 size={20}
-                tintColor="#ffffff"
-                type="monochrome"
-                weight="bold"
+                weight="Filled"
               />
             </Pressable>
           ) : (
@@ -102,16 +113,20 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
         </View>
         {showActions && isToday && (
           <View style={[styles.bottomOverlay, { bottom: insets.bottom + 22 }]}>
-            <Pressable accessibilityLabel="사진 변경" style={styles.changePanel} onPress={onChangePhoto}>
-              <Text style={styles.policyText}>오늘 안에는 사진을 바꿀 수 있어요.</Text>
+            <Pressable
+              accessibilityLabel="사진 변경"
+              style={styles.changePanel}
+              onPress={onChangePhoto}
+            >
+              <Text style={styles.policyText}>
+                오늘 안에는 사진을 바꿀 수 있어요.
+              </Text>
               <View style={styles.galleryIcon}>
-                <SymbolView
-                  colors={["#ffffff"]}
-                  name={{ ios: "photo.on.rectangle.angled", android: "photo_library" }}
+                <ReiconIcon
+                  color="#ffffff"
+                  name="Gallery"
                   size={24}
-                  tintColor="#ffffff"
-                  type="monochrome"
-                  weight="bold"
+                  weight="Filled"
                 />
               </View>
             </Pressable>

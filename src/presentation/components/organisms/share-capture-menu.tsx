@@ -1,6 +1,5 @@
 import { useRef, useState, type RefObject } from "react";
 import { Alert, Platform, StyleSheet, View } from "react-native";
-import { type SymbolViewProps } from "expo-symbols";
 import {
   captureRef as captureViewRef,
   releaseCapture,
@@ -15,6 +14,7 @@ import {
   shareImageFile,
 } from "@/infrastructure/device/media/share-image";
 import { logger } from "@/infrastructure/logging/logger";
+import type { ReiconName } from "@/presentation/components/atoms/reicon-icon";
 import { SymbolIconButton } from "@/presentation/components/atoms/symbol-icon-button";
 import { MediaLibraryPermissionAlert } from "@/presentation/components/molecules/media-library-permission-alert";
 import {
@@ -45,14 +45,8 @@ type PermissionAlertState = {
   visible: boolean;
 };
 
-const SHARE_ICON: SymbolViewProps["name"] = {
-  android: "share",
-  ios: "square.and.arrow.up",
-};
-const SAVE_ICON: SymbolViewProps["name"] = {
-  android: "download",
-  ios: "square.and.arrow.down",
-};
+const SHARE_ICON: ReiconName = "Share";
+const SAVE_ICON: ReiconName = "Download";
 
 export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
   const {

@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { Image } from "expo-image";
-import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import {
   Alert,
   Pressable,
@@ -18,21 +17,19 @@ import type {
   UserStickerAsset,
 } from "@/application/services/stickers/types";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
+import {
+  ReiconIcon,
+  type ReiconName,
+} from "@/presentation/components/atoms/reicon-icon";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { Menu } from "@/presentation/components/organisms/menu";
 import { appColors } from "@/presentation/theme/colors";
 import { appSpacing } from "@/presentation/theme/spacing";
 
-const ADD_ICON: SymbolViewProps["name"] = { ios: "plus", android: "add" };
-const LIBRARY_ICON: SymbolViewProps["name"] = {
-  ios: "photo.on.rectangle",
-  android: "photo_library",
-};
-const CLIPBOARD_ICON: SymbolViewProps["name"] = {
-  ios: "doc.on.clipboard",
-  android: "content_paste",
-};
-const TRASH_ICON: SymbolViewProps["name"] = { ios: "trash", android: "delete" };
+const ADD_ICON: ReiconName = "Add";
+const LIBRARY_ICON: ReiconName = "Gallery";
+const CLIPBOARD_ICON: ReiconName = "Clipboard";
+const TRASH_ICON: ReiconName = "Trash2";
 const CARD_GAP = 12;
 
 export function StickerLibraryScreen() {
@@ -232,13 +229,11 @@ function StickerCard(props: {
           ]}
           onPress={() => onDelete(asset)}
         >
-          <SymbolView
-            colors={[appColors.white]}
+          <ReiconIcon
+            color={appColors.white}
             name={TRASH_ICON}
             size={18}
-            tintColor={appColors.white}
-            type="monochrome"
-            weight="bold"
+            weight="Filled"
           />
         </Pressable>
       ) : null}
@@ -273,14 +268,7 @@ function BuiltInStickerPreview(props: { asset: BuiltInStickerAsset }) {
   return (
     <View style={styles.polaroidPreview}>
       <View style={styles.polaroidPhotoArea}>
-        <SymbolView
-          colors={["#6B9AE4"]}
-          name={{ ios: "photo", android: "image" }}
-          size={34}
-          tintColor="#6B9AE4"
-          type="monochrome"
-          weight="bold"
-        />
+        <ReiconIcon color="#6B9AE4" name="Image" size={34} weight="Filled" />
       </View>
       <View style={styles.polaroidCaption} />
     </View>

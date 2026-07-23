@@ -1,8 +1,11 @@
-import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { usePathname, useRouter } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import {
+  ReiconIcon,
+  type ReiconName,
+} from "@/presentation/components/atoms/reicon-icon";
 import { appColors } from "@/presentation/theme/colors";
 import { appLayers } from "@/presentation/theme/layers";
 
@@ -10,29 +13,29 @@ type AppRoute = "/" | "/recap" | "/stickers" | "/settings";
 
 type NavigationItem = {
   accessibilityLabel: string;
-  icon: SymbolViewProps["name"];
+  icon: ReiconName;
   route: AppRoute;
 };
 
 const NAVIGATION_ITEMS: NavigationItem[] = [
   {
     accessibilityLabel: "캘린더로 이동",
-    icon: { android: "calendar_month", ios: "calendar" },
+    icon: "Calendar",
     route: "/",
   },
   {
     accessibilityLabel: "리캡으로 이동",
-    icon: { android: "folder", ios: "folder" },
+    icon: "Folder",
     route: "/recap",
   },
   {
     accessibilityLabel: "스티커 라이브러리로 이동",
-    icon: { android: "sell", ios: "tag" },
+    icon: "StickerSmile",
     route: "/stickers",
   },
   {
     accessibilityLabel: "설정으로 이동",
-    icon: { android: "settings", ios: "gearshape" },
+    icon: "Gear",
     route: "/settings",
   },
 ];
@@ -78,13 +81,11 @@ export function AppBottomNavigation() {
               ]}
               onPress={() => handleNavigate(item.route)}
             >
-              <SymbolView
-                colors={[appColors.black]}
+              <ReiconIcon
+                color={appColors.black}
                 name={item.icon}
                 size={22}
-                tintColor={appColors.black}
-                type="monochrome"
-                weight={isActive ? "bold" : "semibold"}
+                weight={isActive ? "Filled" : "Outline"}
               />
             </Pressable>
           );

@@ -1,7 +1,10 @@
 import { useEffect } from "react";
 import { ActivityIndicator, Modal, StyleSheet, Text, View } from "react-native";
-import { SymbolView, type SymbolViewProps } from "expo-symbols";
 
+import {
+  ReiconIcon,
+  type ReiconName,
+} from "@/presentation/components/atoms/reicon-icon";
 import { appColors } from "@/presentation/theme/colors";
 
 export const ShareSaveToastState = {
@@ -11,15 +14,16 @@ export const ShareSaveToastState = {
   saving: "saving",
 } as const;
 
-export type ShareSaveToastState = (typeof ShareSaveToastState)[keyof typeof ShareSaveToastState];
+export type ShareSaveToastState =
+  (typeof ShareSaveToastState)[keyof typeof ShareSaveToastState];
 
 type ShareSaveToastProps = {
   state: ShareSaveToastState;
   onDone: () => void;
 };
 
-const DONE_ICON: SymbolViewProps["name"] = { android: "check_circle", ios: "checkmark.circle.fill" };
-const FAILED_ICON: SymbolViewProps["name"] = { android: "error", ios: "xmark.circle.fill" };
+const DONE_ICON: ReiconName = "CheckCircle";
+const FAILED_ICON: ReiconName = "CloseCircle";
 
 export function ShareSaveToast(props: ShareSaveToastProps) {
   const { onDone, state } = props;
@@ -27,7 +31,10 @@ export function ShareSaveToast(props: ShareSaveToastProps) {
   const isSaving = state === ShareSaveToastState.saving;
 
   useEffect(() => {
-    if (state !== ShareSaveToastState.saved && state !== ShareSaveToastState.failed) {
+    if (
+      state !== ShareSaveToastState.saved &&
+      state !== ShareSaveToastState.failed
+    ) {
       return;
     }
 
@@ -47,9 +54,15 @@ export function ShareSaveToast(props: ShareSaveToastProps) {
       <View pointerEvents={isSaving ? "auto" : "box-none"} style={styles.root}>
         {isSaving ? <View style={styles.dim} /> : null}
         <View style={styles.toast}>
-          {state === ShareSaveToastState.saving ? <ActivityIndicator color={appColors.white} size="small" /> : null}
-          {state === ShareSaveToastState.saved ? <ToastIcon icon={DONE_ICON} /> : null}
-          {state === ShareSaveToastState.failed ? <ToastIcon icon={FAILED_ICON} /> : null}
+          {state === ShareSaveToastState.saving ? (
+            <ActivityIndicator color={appColors.white} size="small" />
+          ) : null}
+          {state === ShareSaveToastState.saved ? (
+            <ToastIcon icon={DONE_ICON} />
+          ) : null}
+          {state === ShareSaveToastState.failed ? (
+            <ToastIcon icon={FAILED_ICON} />
+          ) : null}
           <Text style={styles.toastText}>{toToastMessage(state)}</Text>
         </View>
       </View>
@@ -57,16 +70,9 @@ export function ShareSaveToast(props: ShareSaveToastProps) {
   );
 }
 
-function ToastIcon({ icon }: { icon: SymbolViewProps["name"] }) {
+function ToastIcon({ icon }: { icon: ReiconName }) {
   return (
-    <SymbolView
-      colors={[appColors.white]}
-      name={icon}
-      size={22}
-      tintColor={appColors.white}
-      type="monochrome"
-      weight="bold"
-    />
+    <ReiconIcon color={appColors.white} name={icon} size={22} weight="Filled" />
   );
 }
 

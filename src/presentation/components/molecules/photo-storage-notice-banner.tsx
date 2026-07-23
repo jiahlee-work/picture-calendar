@@ -1,36 +1,41 @@
-import {SymbolView} from "expo-symbols";
-import {StyleSheet, Text, View} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
-import {appColors} from "@/presentation/theme/colors";
+import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
+import { appColors } from "@/presentation/theme/colors";
 
 export function PhotoStorageNoticeBanner() {
   return (
     <View style={styles.banner}>
-      <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.bannerArt}>
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={styles.bannerArt}
+      >
         <View style={[styles.photoCard, styles.backPhotoCard]} />
         <View style={[styles.photoCard, styles.frontPhotoCard]}>
-          <SymbolView
-            colors={[appColors.white]}
-            name={{ ios: "photo", android: "image" }}
+          <ReiconIcon
+            color={appColors.white}
+            name="Image"
             size={27}
-            tintColor={appColors.white}
-            type="monochrome"
-            weight="bold"
+            weight="Filled"
           />
         </View>
         <View style={styles.warningBadge}>
-          <SymbolView
-            colors={[appColors.white]}
-            name={{ ios: "exclamationmark", android: "priority_high" }}
+          <ReiconIcon
+            color={appColors.white}
+            name="AlertCircle"
             size={15}
-            tintColor={appColors.white}
-            type="monochrome"
-            weight="bold"
+            weight="Filled"
           />
         </View>
       </View>
       <View style={styles.bannerCopy}>
-        <Text adjustsFontSizeToFit minimumFontScale={0.8} numberOfLines={1} style={styles.bannerTitle}>
+        <Text
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
+          numberOfLines={1}
+          style={styles.bannerTitle}
+        >
           사진은 이 기기에 저장돼요
         </Text>
         <Text style={styles.bannerBody}>
@@ -49,7 +54,8 @@ const styles = StyleSheet.create({
     borderCurve: "continuous",
     borderRadius: 30,
     borderWidth: StyleSheet.hairlineWidth,
-    boxShadow: "0 10px 24px rgba(18, 18, 18, 0.08), inset 0 -74px 54px rgba(225, 241, 255, 0.64)",
+    boxShadow:
+      "0 10px 24px rgba(18, 18, 18, 0.08), inset 0 -74px 54px rgba(225, 241, 255, 0.64)",
     flexDirection: "row",
     gap: 10,
     minHeight: 140,

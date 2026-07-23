@@ -1,5 +1,4 @@
 import { useRouter } from "expo-router";
-import type { SymbolViewProps } from "expo-symbols";
 import { useEffect, useRef } from "react";
 import {
   ActivityIndicator,
@@ -13,6 +12,7 @@ import {
   useMonthlyRecapDetail,
 } from "@/application/hooks/use-monthly-recap-detail";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
+import type { ReiconName } from "@/presentation/components/atoms/reicon-icon";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { MonthlyRecapTemplate } from "@/presentation/components/templates/monthly-recap-template";
 import { ShareCaptureMenu } from "@/presentation/components/organisms/share-capture-menu";
@@ -24,10 +24,7 @@ type RecapMonthDetailScreenProps = {
   year: string;
 };
 
-const BACK_ICON: SymbolViewProps["name"] = {
-  android: "arrow_back",
-  ios: "chevron.left",
-};
+const BACK_ICON: ReiconName = "ArrowLeft";
 
 export function RecapMonthDetailScreen(props: RecapMonthDetailScreenProps) {
   const { month, year } = props;

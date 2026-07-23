@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from "react";
-import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import { useEffect, useMemo, useState } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { RecapYearOption } from "@/application/services/recap/recap-month-list";
+import type { ReiconName } from "@/presentation/components/atoms/reicon-icon";
+import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import { appColors } from "@/presentation/theme/colors";
 
-const CHEVRON_DOWN_ICON: SymbolViewProps["name"] = { ios: "chevron.down", android: "keyboard_arrow_down" };
-const CHEVRON_UP_ICON: SymbolViewProps["name"] = { ios: "chevron.up", android: "keyboard_arrow_up" };
+const CHEVRON_DOWN_ICON: ReiconName = "ChevronDown";
+const CHEVRON_UP_ICON: ReiconName = "ChevronUp";
 
 type RecapYearSelectorProps = {
   onSelectYear: (year: number) => void;
@@ -18,18 +19,24 @@ export function RecapYearSelector(props: RecapYearSelectorProps) {
   const { onSelectYear, options, selectedYear } = props;
   const [isOpen, setIsOpen] = useState(false);
   const [isMenuMounted, setIsMenuMounted] = useState(false);
-  const openProgress = useRef(new Animated.Value(0)).current;
-  const selectedOption = options.find((option) => option.year === selectedYear) ?? options[0];
+  const openProgress = useMemo(() => new Animated.Value(0), []);
+  const selectedOption =
+    options.find((option) => option.year === selectedYear) ?? options[0];
 
   useEffect(() => {
     if (isOpen) {
-      setIsMenuMounted(true);
-      Animated.timing(openProgress, {
-        duration: 140,
-        toValue: 1,
-        useNativeDriver: true,
-      }).start();
-      return;
+      const frame = requestAnimationFrame(() => {
+        setIsMenuMounted(true);
+        Animated.timing(openProgress, {
+          duration: 140,
+          toValue: 1,
+          useNativeDriver: true,
+        }).start();
+      });
+
+      return () => {
+        cancelAnimationFrame(frame);
+      };
     }
 
     Animated.timing(openProgress, {
@@ -79,14 +86,14 @@ export function RecapYearSelector(props: RecapYearSelectorProps) {
         style={styles.trigger}
         onPress={handleToggleOpen}
       >
-        <Text style={styles.triggerText}>{selectedOption?.label ?? String(selectedYear)}</Text>
-        <SymbolView
-          colors={["#6f6f6f"]}
+        <Text style={styles.triggerText}>
+          {selectedOption?.label ?? String(selectedYear)}
+        </Text>
+        <ReiconIcon
+          color="#6f6f6f"
           name={isOpen ? CHEVRON_UP_ICON : CHEVRON_DOWN_ICON}
           size={16}
-          tintColor="#6f6f6f"
-          type="monochrome"
-          weight="bold"
+          weight="Filled"
         />
       </Pressable>
 
@@ -96,8 +103,19 @@ export function RecapYearSelector(props: RecapYearSelectorProps) {
             const isSelected = option.year === selectedYear;
 
             return (
-              <Pressable key={option.year} style={styles.menuItem} onPress={() => handleSelectYear(option.year)}>
-                <Text style={[styles.menuItemText, isSelected && styles.selectedMenuItemText]}>{option.label}</Text>
+              <Pressable
+                key={option.year}
+                style={styles.menuItem}
+                onPress={() => handleSelectYear(option.year)}
+              >
+                <Text
+                  style={[
+                    styles.menuItemText,
+                    isSelected && styles.selectedMenuItemText,
+                  ]}
+                >
+                  {option.label}
+                </Text>
               </Pressable>
             );
           })}

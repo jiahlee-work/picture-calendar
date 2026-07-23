@@ -1,11 +1,14 @@
-import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { Pressable, StyleSheet } from "react-native";
 
+import {
+  ReiconIcon,
+  type ReiconName,
+} from "@/presentation/components/atoms/reicon-icon";
 import { appColors } from "@/presentation/theme/colors";
 
 type SymbolIconButtonProps = {
   accessibilityLabel: string;
-  icon: SymbolViewProps["name"];
+  icon: ReiconName;
   isExpanded?: boolean;
   onPress: () => void;
 };
@@ -17,17 +20,17 @@ export function SymbolIconButton(props: SymbolIconButtonProps) {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      accessibilityState={isExpanded === undefined ? undefined : { expanded: isExpanded }}
+      accessibilityState={
+        isExpanded === undefined ? undefined : { expanded: isExpanded }
+      }
       style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
       onPress={onPress}
     >
-      <SymbolView
-        colors={[appColors.white]}
+      <ReiconIcon
+        color={appColors.white}
         name={icon}
         size={24}
-        tintColor={appColors.white}
-        type="monochrome"
-        weight="bold"
+        weight="Filled"
       />
     </Pressable>
   );

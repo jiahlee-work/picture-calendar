@@ -1,8 +1,15 @@
 import { createContext, use, useState, type ReactNode } from "react";
-import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { Easing, FadeOut, ZoomInEasyDown } from "react-native-reanimated";
+import Animated, {
+  Easing,
+  FadeOut,
+  ZoomInEasyDown,
+} from "react-native-reanimated";
 
+import {
+  ReiconIcon,
+  type ReiconName,
+} from "@/presentation/components/atoms/reicon-icon";
 import { appColors } from "@/presentation/theme/colors";
 
 type MenuProps = {
@@ -12,7 +19,7 @@ type MenuProps = {
 };
 
 type MenuTriggerConfig = {
-  icon?: SymbolViewProps["name"];
+  icon?: ReiconName;
   label?: string;
 };
 
@@ -22,7 +29,7 @@ type MenuTriggerRenderProps = {
 };
 
 type MenuItemProps = {
-  icon?: SymbolViewProps["name"];
+  icon?: ReiconName;
   label: string;
   onPress: () => void;
 };
@@ -71,7 +78,9 @@ function MenuRoot(props: MenuProps) {
             onPress={handleClose}
           />
           <Animated.View
-            entering={ZoomInEasyDown.duration(220).easing(Easing.out(Easing.cubic))}
+            entering={ZoomInEasyDown.duration(220).easing(
+              Easing.out(Easing.cubic),
+            )}
             exiting={FadeOut.duration(120).easing(Easing.out(Easing.quad))}
             style={styles.panel}
           >
@@ -110,16 +119,16 @@ function MenuTrigger({
       onPress={onPress}
     >
       {trigger.icon ? (
-        <SymbolView
-          colors={[appColors.white]}
+        <ReiconIcon
+          color={appColors.white}
           name={trigger.icon}
           size={24}
-          tintColor={appColors.white}
-          type="monochrome"
-          weight="bold"
+          weight="Filled"
         />
       ) : null}
-      {trigger.label ? <Text style={styles.triggerText}>{trigger.label}</Text> : null}
+      {trigger.label ? (
+        <Text style={styles.triggerText}>{trigger.label}</Text>
+      ) : null}
     </Pressable>
   );
 }
@@ -134,15 +143,17 @@ function MenuItem(props: MenuItemProps) {
   };
 
   return (
-    <Pressable accessibilityRole="menuitem" style={({ pressed }) => [styles.item, pressed && styles.itemPressed]} onPress={handlePress}>
+    <Pressable
+      accessibilityRole="menuitem"
+      style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
+      onPress={handlePress}
+    >
       {icon ? (
-        <SymbolView
-          colors={[appColors.black]}
+        <ReiconIcon
+          color={appColors.black}
           name={icon}
           size={20}
-          tintColor={appColors.black}
-          type="monochrome"
-          weight="semibold"
+          weight="Outline"
         />
       ) : null}
       <Text style={styles.itemText}>{label}</Text>
