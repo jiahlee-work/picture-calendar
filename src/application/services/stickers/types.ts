@@ -1,22 +1,14 @@
-export type StickerAsset = {
-  id: string;
-  userId: string;
-  imagePath: string;
-  name?: string;
-  width: number;
-  height: number;
-  createdAt: string;
-};
-
-export type CalendarSticker = {
-  id: string;
-  userId: string;
-  month: string;
-  stickerAssetId: string;
-  x: number;
-  y: number;
-  scale: number;
-  rotation: number;
-  zIndex: number;
-  opacity: number;
-};
+export {
+  DEFAULT_BUILT_IN_STICKER_ASSETS,
+  type BuiltInStickerAsset,
+  type BuiltInStickerPlacementState,
+  type BuiltInStickerVariant,
+  type StickerAsset,
+  type StickerFileStore,
+  type StickerMetadataStore,
+  type StickerPlacement,
+  type StickerRepository,
+  type StoredStickerFile,
+  type UserStickerAsset,
+  type UserStickerAssetDraft,
+} from "@/shared/stickers/types";
