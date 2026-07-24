@@ -57,6 +57,11 @@ repository's formatter, linter, or type checker.
   for static lists that cannot reorder.
 - Use `useMemo` and `useCallback` only when calculation cost, memoized child
   props, or dependency stability makes them useful.
+- Prefer concise arrow function bodies only for very short literals, direct
+  property access, or single obvious expressions. Use block bodies when a hook
+  callback or mapper performs multi-step derivation, collection transforms such
+  as `map` or `filter`, branching, or anything where an explicit `return`
+  makes the data flow easier to scan.
 - Keep loading, empty, error, disabled, and success states explicit when they
   are user-visible.
 

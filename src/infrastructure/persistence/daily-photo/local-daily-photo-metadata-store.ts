@@ -1,13 +1,15 @@
 import { Directory, File, Paths } from "expo-file-system";
 
+import { applyCurrentDailyPhotoFileUri } from "@/infrastructure/persistence/daily-photo/daily-photo-file-uri";
+import { isLegacyDevelopmentDailyPhoto } from "@/shared/daily-photo/legacy-development-photo";
 import type { DailyPhoto, DailyPhotoMetadataStore, DailyPhotoSyncStatus } from "@/shared/daily-photo/types";
 
-const dailyPhotosDirectoryName = "daily-photos";
-const metadataFileName = "metadata.json";
+const DAILY_PHOTOS_DIRECTORY_NAME = "daily-photos";
+const METADATA_FILE_NAME = "metadata.json";
 
 export function createLocalDailyPhotoMetadataStore(): DailyPhotoMetadataStore {
-  const directory = new Directory(Paths.document, dailyPhotosDirectoryName);
-  const file = new File(directory, metadataFileName);
+  const directory = new Directory(Paths.document, DAILY_PHOTOS_DIRECTORY_NAME);
+  const file = new File(directory, METADATA_FILE_NAME);
 
   return {
     async load() {
@@ -23,24 +25,39 @@ export function createLocalDailyPhotoMetadataStore(): DailyPhotoMetadataStore {
 
       const parsed = JSON.parse(contents);
 
-      return Array.isArray(parsed) ? parsed.map(toDailyPhoto).filter(isDailyPhoto) : [];
-    },
-    async save(photos) {
-      directory.create({
-        idempotent: true,
-        intermediates: true,
-      });
-
-      if (!file.exists) {
-        file.create({
-          intermediates: true,
-          overwrite: true,
-        });
+      if (!Array.isArray(parsed)) {
+        return [];
       }
 
-      file.write(JSON.stringify(photos, null, 2));
+      const photos = parsed.map(toDailyPhoto).filter(isDailyPhoto).map(toPhotoWithCurrentFileUri);
+      const activePhotos = photos.filter((photo) => !isLegacyDevelopmentDailyPhoto(photo));
+
+      if (activePhotos.length !== parsed.length || hasRepairedPhotoUris(parsed, activePhotos)) {
+        writeMetadata(directory, file, activePhotos);
+      }
+
+      return activePhotos;
+    },
+    async save(photos) {
+      writeMetadata(directory, file, photos);
     },
   };
+}
+
+function writeMetadata(directory: Directory, file: File, photos: DailyPhoto[]) {
+  directory.create({
+    idempotent: true,
+    intermediates: true,
+  });
+
+  if (!file.exists) {
+    file.create({
+      intermediates: true,
+      overwrite: true,
+    });
+  }
+
+  file.write(JSON.stringify(photos, null, 2));
 }
 
 function isDailyPhoto(photo: DailyPhoto | null): photo is DailyPhoto {
@@ -76,6 +93,34 @@ function toDailyPhoto(value: unknown): DailyPhoto | null {
     updatedAt,
     lockedAt: stringValue(value.lockedAt),
   };
+}
+
+function toPhotoWithCurrentFileUri(photo: DailyPhoto): DailyPhoto {
+  const currentFileUri = getCurrentStoredFileUri(photo.storageKey);
+
+  return applyCurrentDailyPhotoFileUri(photo, currentFileUri);
+}
+
+function getCurrentStoredFileUri(storageKey: string | null): string | null {
+  if (!storageKey) {
+    return null;
+  }
+
+  const file = new File(Paths.document, DAILY_PHOTOS_DIRECTORY_NAME, ...storageKey.split("/"));
+
+  return file.exists ? file.uri : null;
+}
+
+function hasRepairedPhotoUris(parsed: unknown[], photos: DailyPhoto[]): boolean {
+  return photos.some((photo, index) => {
+    const parsedPhoto = parsed[index];
+
+    return isObjectRecord(parsedPhoto)
+      && (
+        stringValue(parsedPhoto.imagePath) !== photo.imagePath
+        || stringValue(parsedPhoto.localImagePath) !== photo.localImagePath
+      );
+  });
 }
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {

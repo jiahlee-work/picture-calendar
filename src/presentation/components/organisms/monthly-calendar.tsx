@@ -1,42 +1,61 @@
-import {useMemo, useState} from "react";
-import {type LayoutChangeEvent, PanResponder, StyleSheet, Text, useWindowDimensions, View} from "react-native";
+import { useMemo, useState } from "react";
+import { type LayoutChangeEvent, PanResponder, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 
-import type {CalendarMonth} from "@/application/services/calendar/calendar-grid";
-import {CalendarCell} from "@/presentation/components/molecules/calendar-cell";
+import type { CalendarMonth } from "@/application/services/calendar/calendar-grid";
+import { CalendarCell } from "@/presentation/components/molecules/calendar-cell";
+import { appColors } from "@/presentation/theme/colors";
 
-const weekDays = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-const calendarCellAspectRatio = 0.58;
+const WEEK_DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+const CALENDAR_CELL_ASPECT_RATIO = 0.58;
 
 type MonthlyCalendarProps = {
   calendar: CalendarMonth;
-  onNextMonth: () => void;
-  onPreviousMonth: () => void;
+  canSwipeMonth?: boolean;
+  contentWidth?: number;
+  selectedDateKeys?: string[];
+  onLongPressDate?: (dateKey: string) => void;
+  onNextMonth?: () => void;
+  onPreviousMonth?: () => void;
   onSelectDate: (dateKey: string) => void;
 };
 
 export function MonthlyCalendar(props: MonthlyCalendarProps) {
-  const { calendar, onNextMonth, onPreviousMonth, onSelectDate } = props;
+  const {
+    calendar,
+    canSwipeMonth = true,
+    contentWidth,
+    onLongPressDate,
+    onNextMonth,
+    onPreviousMonth,
+    onSelectDate,
+    selectedDateKeys = [],
+  } = props;
   const { width: windowWidth } = useWindowDimensions();
   const [gridHeight, setGridHeight] = useState(0);
   const rowCount = Math.max(1, calendar.days.length / 7);
-  const cellWidth = windowWidth / 7;
-  const fallbackCellHeight = cellWidth / calendarCellAspectRatio;
+  const cellWidth = (contentWidth ?? windowWidth) / 7;
+  const fallbackCellHeight = cellWidth / CALENDAR_CELL_ASPECT_RATIO;
   const cellHeight = gridHeight > 0 ? gridHeight / rowCount : fallbackCellHeight;
+  const selectionOrderByDateKey = useMemo(
+    () => new Map(selectedDateKeys.map((dateKey, index) => [dateKey, index + 1])),
+    [selectedDateKeys],
+  );
   const swipeResponder = useMemo(
     () =>
       PanResponder.create({
-        onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 18 && Math.abs(gesture.dx) > Math.abs(gesture.dy),
+        onMoveShouldSetPanResponder: (_, gesture) =>
+          canSwipeMonth && Math.abs(gesture.dx) > 18 && Math.abs(gesture.dx) > Math.abs(gesture.dy),
         onPanResponderRelease: (_, gesture) => {
           if (gesture.dx > 52) {
-            onPreviousMonth();
+            onPreviousMonth?.();
           }
 
           if (gesture.dx < -52) {
-            onNextMonth();
+            onNextMonth?.();
           }
         },
       }),
-    [onNextMonth, onPreviousMonth],
+    [canSwipeMonth, onNextMonth, onPreviousMonth],
   );
 
   const handleGridLayout = (event: LayoutChangeEvent) => {
@@ -48,7 +67,7 @@ export function MonthlyCalendar(props: MonthlyCalendarProps) {
   return (
     <View style={styles.card} {...swipeResponder.panHandlers}>
       <View style={styles.weekHeader}>
-        {weekDays.map((day) => (
+        {WEEK_DAYS.map((day) => (
           <Text key={day} style={styles.weekday}>
             {day}
           </Text>
@@ -62,6 +81,8 @@ export function MonthlyCalendar(props: MonthlyCalendarProps) {
             cellHeight={cellHeight}
             cellWidth={cellWidth}
             day={day}
+            selectionOrder={day ? selectionOrderByDateKey.get(day.key) ?? null : null}
+            onLongPressDate={onLongPressDate}
             onPressDate={onSelectDate}
           />
         ))}
@@ -72,7 +93,7 @@ export function MonthlyCalendar(props: MonthlyCalendarProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#ffffff",
+    backgroundColor: appColors.background,
     borderRadius: 0,
     flex: 1,
     overflow: "hidden",
@@ -84,7 +105,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   weekday: {
-    backgroundColor: "#ffffff",
+    backgroundColor: appColors.background,
     color: "#9a9a9a",
     flex: 1,
     fontSize: 15,
@@ -94,7 +115,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   grid: {
-    backgroundColor: "#ffffff",
+    backgroundColor: appColors.background,
     flex: 1,
     flexDirection: "row",
     flexWrap: "wrap",

@@ -5,7 +5,7 @@ import { buildCalendarMonth } from "@/application/services/calendar/calendar-gri
 import { dayjs } from "@/shared/date/dayjs";
 
 describe("buildCalendarMonth", () => {
-  it("builds the current month grid without sample photos", () => {
+  it("builds the current month grid without photos", () => {
     const calendar = buildCalendarMonth(dayjs("2026-04-01").toDate(), dayjs("2026-04-09").toDate());
     const realDays = calendar.days.filter(Boolean);
 

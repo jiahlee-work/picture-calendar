@@ -1,4 +1,4 @@
-const fallbackImageExtension = ".jpg";
+const FALLBACK_IMAGE_EXTENSION = ".jpg";
 
 export function toDailyPhotoStorageKey({
   date,
@@ -24,7 +24,7 @@ export function sanitizeStoragePathSegment(value: string): string {
 
 export function normalizeImageFileExtension(extension: string | null | undefined): string {
   if (!extension) {
-    return fallbackImageExtension;
+    return FALLBACK_IMAGE_EXTENSION;
   }
 
   const normalized = extension.trim().toLowerCase().split("?")[0]?.split("#")[0] ?? "";
@@ -38,7 +38,7 @@ export function normalizeImageFileExtension(extension: string | null | undefined
     return withDot;
   }
 
-  return fallbackImageExtension;
+  return FALLBACK_IMAGE_EXTENSION;
 }
 
 export function imageFileExtensionFromMimeType(mimeType: string | null | undefined): string | null {

@@ -20,7 +20,7 @@ export type CalendarMonth = {
   days: CalendarGridCell[];
 };
 
-const monthNames = [
+const MONTH_NAMES = [
   "Jan",
   "Feb",
   "Mar",
@@ -65,8 +65,8 @@ export function buildCalendarMonth(activeMonth: Date, today = dayjs().toDate(), 
   return {
     year,
     monthIndex,
-    title: `${monthNames[monthIndex]} ${year}`,
-    monthName: monthNames[monthIndex],
+    title: `${MONTH_NAMES[monthIndex]} ${year}`,
+    monthName: MONTH_NAMES[monthIndex],
     days: [...cells, ...Array.from<null>({ length: trailingEmptyCells }).fill(null)],
   };
 }

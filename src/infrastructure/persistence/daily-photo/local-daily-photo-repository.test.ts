@@ -110,6 +110,32 @@ describe("createLocalDailyPhotoRepository", () => {
       },
     ]);
   });
+
+  it("deletes a daily photo by user and date", async () => {
+    const repository = createLocalDailyPhotoRepository();
+
+    await repository.saveToday({
+      userId: "user-1",
+      date: "2026-04-09",
+      imagePath: "file://user-1.jpg",
+      storageKey: "user-1/2026-04-09.jpg",
+    });
+    await repository.saveToday({
+      userId: "user-2",
+      date: "2026-04-09",
+      imagePath: "file://user-2.jpg",
+      storageKey: "user-2/2026-04-09.jpg",
+    });
+
+    await expect(repository.deleteByDate("user-1", "2026-04-09")).resolves.toMatchObject({
+      userId: "user-1",
+      date: "2026-04-09",
+      storageKey: "user-1/2026-04-09.jpg",
+    });
+
+    await expect(repository.listByMonth("user-1", "2026-04")).resolves.toEqual([]);
+    await expect(repository.listByMonth("user-2", "2026-04")).resolves.toHaveLength(1);
+  });
 });
 
 function createFakeMetadataStore(initialPhotos: DailyPhoto[] = []): DailyPhotoMetadataStore {
