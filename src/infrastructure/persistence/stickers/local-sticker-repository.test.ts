@@ -104,6 +104,40 @@ describe("createLocalStickerRepository", () => {
     expect(deletedStorageKeys).toEqual(["user-1/sticker.png"]);
   });
 
+  it("updates a user's sticker favorite state", async () => {
+    const repository = createLocalStickerRepository({
+      initialStickers: [
+        createUserStickerAsset({
+          id: "sticker-1",
+          userId: "user-1",
+          isFavorite: false,
+          name: "Memo sticker",
+          tags: ["memo"],
+        }),
+      ],
+    });
+
+    await expect(
+      repository.updateUserAsset("user-1", "sticker-1", {
+        isFavorite: true,
+      }),
+    ).resolves.toMatchObject({
+      id: "sticker-1",
+      isFavorite: true,
+      name: "Memo sticker",
+      tags: ["memo"],
+    });
+
+    await expect(repository.listUserAssets("user-1")).resolves.toMatchObject([
+      {
+        id: "sticker-1",
+        isFavorite: true,
+        name: "Memo sticker",
+        tags: ["memo"],
+      },
+    ]);
+  });
+
   it("does not delete another user's sticker", async () => {
     const deletedStorageKeys: string[] = [];
     const repository = createLocalStickerRepository({

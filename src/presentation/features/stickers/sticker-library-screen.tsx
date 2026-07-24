@@ -1,5 +1,3 @@
-import type { ReactNode } from "react";
-import { Image } from "expo-image";
 import {
   Alert,
   Pressable,
@@ -9,28 +7,37 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import { useState } from "react";
 
 import { useStickerLibrary } from "@/application/hooks/use-sticker-library";
 import type {
-  BuiltInStickerAsset,
   StickerAsset,
   UserStickerAsset,
 } from "@/application/services/stickers/types";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
-import {
-  ReiconIcon,
-  type ReiconName,
-} from "@/presentation/components/atoms/reicon-icon";
+import type { ReiconName } from "@/presentation/components/atoms/reicon-icon";
+import { SegmentedTabs } from "@/presentation/components/atoms/segmented-tabs";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { Menu } from "@/presentation/components/organisms/menu";
+import { StickerAssetPreview } from "@/presentation/features/stickers/sticker-asset-preview";
+import { StickerDetailSheet } from "@/presentation/components/organisms/sticker-detail-sheet";
 import { appColors } from "@/presentation/theme/colors";
 import { appSpacing } from "@/presentation/theme/spacing";
 
 const ADD_ICON: ReiconName = "Add";
 const LIBRARY_ICON: ReiconName = "Gallery";
 const CLIPBOARD_ICON: ReiconName = "Clipboard";
-const TRASH_ICON: ReiconName = "Trash5";
-const CARD_GAP = 12;
+const CARD_GAP = 22;
+const STICKER_TAB_OPTIONS = [
+  {
+    label: "All",
+    value: "all",
+  },
+  {
+    label: "Recents",
+    value: "recents",
+  },
+] as const;
 
 export function StickerLibraryScreen() {
   const {
@@ -40,11 +47,17 @@ export function StickerLibraryScreen() {
     deleteUserSticker,
     registerFromClipboard,
     registerFromLibrary,
+    updateUserStickerFavorite,
   } = useStickerLibrary();
+  const [selectedSticker, setSelectedSticker] = useState<StickerAsset | null>(
+    null,
+  );
   const { width } = useWindowDimensions();
   const cardWidth = getStickerCardWidth(width);
-  const builtInStickers = stickers.filter(isBuiltInStickerAsset);
-  const userStickers = stickers.filter(isUserStickerAsset);
+  const currentSelectedSticker = selectedSticker
+    ? (stickers.find((sticker) => sticker.id === selectedSticker.id) ??
+      selectedSticker)
+    : null;
 
   const handleRegisterFromLibrary = async () => {
     const result = await registerFromLibrary();
@@ -86,87 +99,92 @@ export function StickerLibraryScreen() {
     }
   };
 
-  const handleDeleteUserSticker = (asset: UserStickerAsset) => {
-    Alert.alert("스티커 삭제", "이 스티커를 삭제할까요?", [
-      {
-        text: "취소",
-        style: "cancel",
-      },
-      {
-        text: "삭제",
-        style: "destructive",
-        onPress: () => {
-          void deleteUserSticker(asset.id).then((wasDeleted) => {
-            if (!wasDeleted) {
-              Alert.alert("삭제 실패", "스티커를 삭제하지 못했어요.");
-            }
-          });
-        },
-      },
-    ]);
+  const handleOpenStickerDetails = (asset: StickerAsset) => {
+    setSelectedSticker(asset);
+  };
+
+  const handleCloseStickerDetails = () => {
+    setSelectedSticker(null);
+  };
+
+  const handleDeleteStickerFromDetails = async (asset: UserStickerAsset) => {
+    const wasDeleted = await deleteUserSticker(asset.id);
+
+    if (!wasDeleted) {
+      Alert.alert("삭제 실패", "스티커를 삭제하지 못했어요.");
+      return false;
+    }
+
+    setSelectedSticker(null);
+    return true;
+  };
+
+  const handleToggleStickerFavorite = async (asset: UserStickerAsset) => {
+    const updatedSticker = await updateUserStickerFavorite(
+      asset.id,
+      !asset.isFavorite,
+    );
+
+    if (!updatedSticker) {
+      Alert.alert("저장 실패", "즐겨찾기 상태를 저장하지 못했어요.");
+      return false;
+    }
+
+    setSelectedSticker(updatedSticker);
+    return true;
   };
 
   return (
     <AppSafeAreaView>
       <AppBar>
-        <AppBar.Title>Stickers</AppBar.Title>
-        <View style={styles.appBarActions}>
-          <Menu
-            accessibilityLabel="스티커 등록 메뉴 열기"
-            trigger={{ icon: ADD_ICON, label: "등록" }}
-          >
-            <Menu.Item
-              icon={LIBRARY_ICON}
-              label="갤러리에서 등록"
-              onPress={() => {
-                void handleRegisterFromLibrary();
-              }}
-            />
-            <Menu.Item
-              icon={CLIPBOARD_ICON}
-              label="클립보드 붙여넣기"
-              onPress={() => {
-                void handleRegisterFromClipboard();
-              }}
-            />
-          </Menu>
-        </View>
+        <AppBar.Title variant="large">Stickers</AppBar.Title>
+        <Menu
+          accessibilityLabel="스티커 등록 메뉴 열기"
+          trigger={{ icon: ADD_ICON }}
+        >
+          <Menu.Item
+            icon={LIBRARY_ICON}
+            label="갤러리에서 등록"
+            onPress={() => {
+              void handleRegisterFromLibrary();
+            }}
+          />
+          <Menu.Item
+            icon={CLIPBOARD_ICON}
+            label="클립보드 붙여넣기"
+            onPress={() => {
+              void handleRegisterFromClipboard();
+            }}
+          />
+        </Menu>
       </AppBar>
 
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <StickerSection title="Built-in Stickers">
+        <SegmentedTabs
+          options={STICKER_TAB_OPTIONS}
+          value="all"
+          onValueChange={() => undefined}
+        />
+
+        {isLoading ? (
+          <View style={styles.emptyPanel}>
+            <Text style={styles.emptyText}>스티커를 불러오는 중이에요.</Text>
+          </View>
+        ) : (
           <View style={styles.grid}>
-            {builtInStickers.map((asset) => (
-              <StickerCard key={asset.id} asset={asset} cardWidth={cardWidth} />
+            {stickers.map((asset) => (
+              <StickerTile
+                key={asset.id}
+                asset={asset}
+                tileSize={cardWidth}
+                onOpenDetails={handleOpenStickerDetails}
+              />
             ))}
           </View>
-        </StickerSection>
-
-        <StickerSection title="My Stickers">
-          {isLoading ? (
-            <View style={styles.emptyPanel}>
-              <Text style={styles.emptyText}>스티커를 불러오는 중이에요.</Text>
-            </View>
-          ) : userStickers.length > 0 ? (
-            <View style={styles.grid}>
-              {userStickers.map((asset) => (
-                <StickerCard
-                  key={asset.id}
-                  asset={asset}
-                  cardWidth={cardWidth}
-                  onDelete={handleDeleteUserSticker}
-                />
-              ))}
-            </View>
-          ) : (
-            <View style={styles.emptyPanel}>
-              <Text style={styles.emptyText}>등록한 스티커가 없어요.</Text>
-            </View>
-          )}
-        </StickerSection>
+        )}
 
         {isSaving ? (
           <View style={styles.savingPanel}>
@@ -174,198 +192,75 @@ export function StickerLibraryScreen() {
           </View>
         ) : null}
       </ScrollView>
+      <StickerDetailSheet
+        asset={currentSelectedSticker}
+        isSaving={isSaving}
+        visible={Boolean(selectedSticker)}
+        onClose={handleCloseStickerDetails}
+        onDeleteUserSticker={handleDeleteStickerFromDetails}
+        onToggleUserStickerFavorite={handleToggleStickerFavorite}
+      />
     </AppSafeAreaView>
   );
 }
 
-function StickerSection(props: { children: ReactNode; title: string }) {
-  const { children, title } = props;
-
-  return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {children}
-    </View>
-  );
-}
-
-function StickerCard(props: {
+function StickerTile(props: {
   asset: StickerAsset;
-  cardWidth: number;
-  onDelete?: (asset: UserStickerAsset) => void;
+  tileSize: number;
+  onOpenDetails: (asset: StickerAsset) => void;
 }) {
-  const { asset, cardWidth, onDelete } = props;
+  const { asset, onOpenDetails, tileSize } = props;
   const title = asset.name ?? "Sticker";
 
   return (
-    <View style={[styles.card, { width: cardWidth }]}>
-      <View style={styles.preview}>
-        {asset.source === "user" ? (
-          <Image
-            cachePolicy="none"
-            contentFit="contain"
-            source={{ uri: asset.imagePath }}
-            style={styles.userStickerImage}
-          />
-        ) : (
-          <BuiltInStickerPreview asset={asset} />
-        )}
-      </View>
-      <View style={styles.cardFooter}>
-        <Text numberOfLines={1} style={styles.cardTitle}>
-          {title}
-        </Text>
-        <Text numberOfLines={1} style={styles.cardSubtitle}>
-          {asset.source === "builtIn" ? "기본 제공" : "사용자 등록"}
-        </Text>
-      </View>
-      {asset.source === "user" && onDelete ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`${title} 삭제`}
-          style={({ pressed }) => [
-            styles.deleteButton,
-            pressed && styles.deleteButtonPressed,
-          ]}
-          onPress={() => onDelete(asset)}
-        >
-          <ReiconIcon
-            color={appColors.white}
-            name={TRASH_ICON}
-            size={18}
-          />
-        </Pressable>
-      ) : null}
-    </View>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      accessibilityHint="길게 눌러 스티커 상세보기"
+      delayLongPress={260}
+      style={({ pressed }) => [
+        styles.stickerTile,
+        pressed && styles.stickerTilePressed,
+        {
+          height: tileSize,
+          width: tileSize,
+        },
+      ]}
+      onLongPress={() => onOpenDetails(asset)}
+    >
+      <StickerAssetPreview asset={asset} />
+    </Pressable>
   );
-}
-
-function BuiltInStickerPreview(props: { asset: BuiltInStickerAsset }) {
-  const { asset } = props;
-
-  if (asset.variant === "calendar") {
-    return (
-      <View style={styles.calendarPreview}>
-        <View style={styles.calendarPreviewHeader}>
-          <Text style={styles.calendarPreviewMonth}>JUL</Text>
-        </View>
-        <View style={styles.calendarPreviewGrid}>
-          {Array.from({ length: 21 }).map((_, index) => (
-            <View
-              key={index.toString()}
-              style={[
-                styles.calendarPreviewDot,
-                index === 10 && styles.calendarPreviewActiveDot,
-              ]}
-            />
-          ))}
-        </View>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.polaroidPreview}>
-      <View style={styles.polaroidPhotoArea}>
-        <ReiconIcon color="#6B9AE4" name="Image" size={34} />
-      </View>
-      <View style={styles.polaroidCaption} />
-    </View>
-  );
-}
-
-function isBuiltInStickerAsset(
-  asset: StickerAsset,
-): asset is BuiltInStickerAsset {
-  return asset.source === "builtIn";
-}
-
-function isUserStickerAsset(asset: StickerAsset): asset is UserStickerAsset {
-  return asset.source === "user";
 }
 
 function getStickerCardWidth(windowWidth: number): number {
   const contentWidth = windowWidth - appSpacing.screenHorizontalPadding * 2;
-  const columnCount = contentWidth >= 720 ? 4 : contentWidth >= 520 ? 3 : 2;
+  const columnCount = contentWidth >= 720 ? 4 : 3;
   const totalGap = CARD_GAP * (columnCount - 1);
 
   return Math.floor((contentWidth - totalGap) / columnCount);
 }
 
 const styles = StyleSheet.create({
-  appBarActions: {
-    flexDirection: "row",
-    gap: 10,
-  },
   content: {
-    gap: 24,
+    gap: 28,
     paddingBottom: appSpacing.screenContentBottomPadding,
     paddingHorizontal: appSpacing.screenHorizontalPadding,
     paddingTop: appSpacing.screenContentTopPadding,
-  },
-  section: {
-    gap: 12,
-  },
-  sectionTitle: {
-    color: appColors.black,
-    fontSize: 16,
-    fontWeight: "900",
-    lineHeight: 22,
   },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: CARD_GAP,
   },
-  card: {
-    backgroundColor: appColors.white,
-    borderColor: "#ECEFF3",
-    borderCurve: "continuous",
-    borderRadius: 18,
-    borderWidth: StyleSheet.hairlineWidth,
-    overflow: "hidden",
+  stickerTile: {
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "visible",
     position: "relative",
   },
-  preview: {
-    alignItems: "center",
-    aspectRatio: 1,
-    backgroundColor: "#F7F9FC",
-    justifyContent: "center",
-    padding: 18,
-  },
-  userStickerImage: {
-    height: "100%",
-    width: "100%",
-  },
-  cardFooter: {
-    gap: 2,
-    padding: 12,
-  },
-  cardTitle: {
-    color: appColors.black,
-    fontSize: 15,
-    fontWeight: "900",
-    lineHeight: 20,
-  },
-  cardSubtitle: {
-    color: "#6B7280",
-    fontSize: 12,
-    fontWeight: "700",
-    lineHeight: 16,
-  },
-  deleteButton: {
-    alignItems: "center",
-    backgroundColor: appColors.blackOverlay34,
-    borderRadius: 16,
-    height: 32,
-    justifyContent: "center",
-    position: "absolute",
-    right: 10,
-    top: 10,
-    width: 32,
-  },
-  deleteButtonPressed: {
-    backgroundColor: appColors.black,
+  stickerTilePressed: {
+    opacity: 0.72,
   },
   emptyPanel: {
     alignItems: "center",
@@ -398,65 +293,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "900",
     lineHeight: 20,
-  },
-  calendarPreview: {
-    backgroundColor: appColors.white,
-    borderColor: "#121212",
-    borderCurve: "continuous",
-    borderRadius: 14,
-    borderWidth: 2,
-    overflow: "hidden",
-    width: "82%",
-  },
-  calendarPreviewHeader: {
-    alignItems: "center",
-    backgroundColor: "#F05BCF",
-    paddingVertical: 8,
-  },
-  calendarPreviewMonth: {
-    color: appColors.white,
-    fontSize: 14,
-    fontWeight: "900",
-    lineHeight: 18,
-  },
-  calendarPreviewGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 5,
-    padding: 10,
-  },
-  calendarPreviewDot: {
-    backgroundColor: "#D7DADF",
-    borderRadius: 5,
-    height: 8,
-    width: 8,
-  },
-  calendarPreviewActiveDot: {
-    backgroundColor: appColors.black,
-  },
-  polaroidPreview: {
-    backgroundColor: appColors.white,
-    borderColor: "#E1E4EA",
-    borderCurve: "continuous",
-    borderRadius: 12,
-    borderWidth: 1,
-    boxShadow: "0 8px 18px rgba(18, 18, 18, 0.12)",
-    padding: 8,
-    transform: [{ rotate: "-5deg" }],
-    width: "74%",
-  },
-  polaroidPhotoArea: {
-    alignItems: "center",
-    aspectRatio: 1,
-    backgroundColor: "#DDEBFF",
-    justifyContent: "center",
-  },
-  polaroidCaption: {
-    alignSelf: "center",
-    backgroundColor: "#D7DADF",
-    borderRadius: 2,
-    height: 5,
-    marginTop: 10,
-    width: "48%",
   },
 });

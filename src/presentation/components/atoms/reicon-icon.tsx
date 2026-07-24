@@ -17,6 +17,7 @@ import GearIcon from "reicon-react-native/icons/Gear";
 import ImageIcon from "reicon-react-native/icons/Image";
 import MenuIcon from "reicon-react-native/icons/Menu";
 import ShareIcon from "reicon-react-native/icons/Share";
+import StarIcon from "reicon-react-native/icons/Star";
 import StickerSmileIcon from "reicon-react-native/icons/StickerSmile";
 import TagIcon from "reicon-react-native/icons/Tag";
 import Trash5Icon from "reicon-react-native/icons/Trash5";
@@ -39,6 +40,7 @@ const REICON_COMPONENTS = {
   Image: ImageIcon,
   Menu: MenuIcon,
   Share: ShareIcon,
+  Star: StarIcon,
   StickerSmile: StickerSmileIcon,
   Tag: TagIcon,
   Trash5: Trash5Icon,

@@ -4,6 +4,7 @@ import type {
   StickerRepository,
   UserStickerAsset,
   UserStickerAssetDraft,
+  UserStickerAssetUpdate,
 } from "@/shared/stickers/types";
 import { DEFAULT_BUILT_IN_STICKER_ASSETS } from "@/shared/stickers/types";
 import { dayjs } from "@/shared/date/dayjs";
@@ -49,6 +50,21 @@ export function createLocalStickerRepository(
 
       return saved;
     },
+    async updateUserAsset(userId, assetId, updates) {
+      const stickersById = await loadStickersById(metadataStore);
+      const sticker = stickersById.get(assetId) ?? null;
+
+      if (!sticker || sticker.userId !== userId) {
+        return null;
+      }
+
+      const updated = applyUserStickerAssetUpdate(sticker, updates);
+
+      stickersById.set(assetId, updated);
+      await metadataStore.save(Array.from(stickersById.values()));
+
+      return updated;
+    },
     async deleteUserAsset(userId, assetId) {
       const stickersById = await loadStickersById(metadataStore);
       const deletedSticker = stickersById.get(assetId) ?? null;
@@ -66,6 +82,20 @@ export function createLocalStickerRepository(
 
       return deletedSticker;
     },
+  };
+}
+
+function applyUserStickerAssetUpdate(
+  sticker: UserStickerAsset,
+  updates: UserStickerAssetUpdate,
+): UserStickerAsset {
+  return {
+    ...sticker,
+    name:
+      "name" in updates ? normalizeOptionalText(updates.name) : sticker.name,
+    tags: "tags" in updates ? normalizeTags(updates.tags) : sticker.tags,
+    isFavorite:
+      "isFavorite" in updates ? updates.isFavorite : sticker.isFavorite,
   };
 }
 

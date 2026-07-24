@@ -3,7 +3,10 @@ import { Platform } from "react-native";
 
 import { createStickerFileStoreForRuntime } from "@/application/services/stickers/sticker-file-store-factory";
 import { createStickerRepositoryForRuntime } from "@/application/services/stickers/sticker-repository-factory";
-import type { StickerAsset } from "@/application/services/stickers/types";
+import type {
+  StickerAsset,
+  UserStickerAsset,
+} from "@/application/services/stickers/types";
 import { LOCAL_USER_ID } from "@/application/services/local-user";
 import { readImageFromClipboard } from "@/infrastructure/device/media/clipboard-image";
 import {
@@ -114,6 +117,43 @@ export function useStickerLibrary() {
     }
   };
 
+  const updateUserStickerFavorite = async (
+    assetId: string,
+    isFavorite: boolean,
+  ): Promise<UserStickerAsset | null> => {
+    setIsSaving(true);
+
+    try {
+      const updatedSticker = await repository.updateUserAsset(
+        LOCAL_USER_ID,
+        assetId,
+        {
+          isFavorite,
+        },
+      );
+
+      if (!updatedSticker) {
+        return null;
+      }
+
+      setStickers((current) =>
+        current.map((sticker) =>
+          sticker.id === assetId ? updatedSticker : sticker,
+        ),
+      );
+
+      return updatedSticker;
+    } catch (error) {
+      logger.error("Failed to update sticker favorite", {
+        assetId,
+        error,
+      });
+      return null;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const savePickedSticker = async (
     pickedImage: PickedImage,
   ): Promise<StickerRegistrationResult> => {
@@ -134,6 +174,7 @@ export function useStickerLibrary() {
         userId: LOCAL_USER_ID,
         imagePath: storedFile.imagePath,
         storageKey: storedFile.storageKey,
+        name: toDefaultStickerName(pickedImage.fileName),
       });
       const loadedStickers = await repository.listAssets(LOCAL_USER_ID);
 
@@ -170,5 +211,26 @@ export function useStickerLibrary() {
     deleteUserSticker,
     registerFromClipboard,
     registerFromLibrary,
+    updateUserStickerFavorite,
   };
+}
+
+function toDefaultStickerName(fileName: string | null): string {
+  if (!fileName) {
+    return "클립보드 이미지";
+  }
+
+  const decodedFileName = decodeFileName(fileName);
+  const fileNameWithoutExtension = decodedFileName.replace(/\.[^.]+$/, "");
+  const normalizedName = fileNameWithoutExtension.trim();
+
+  return normalizedName || decodedFileName;
+}
+
+function decodeFileName(fileName: string): string {
+  try {
+    return decodeURIComponent(fileName);
+  } catch {
+    return fileName;
+  }
 }

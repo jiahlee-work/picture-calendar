@@ -11,4 +11,5 @@ export {
   type StoredStickerFile,
   type UserStickerAsset,
   type UserStickerAssetDraft,
+  type UserStickerAssetUpdate,
 } from "@/shared/stickers/types";

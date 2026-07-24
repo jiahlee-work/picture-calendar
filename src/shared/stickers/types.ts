@@ -8,6 +8,7 @@ export type UserStickerAsset = {
   storageKey: string | null;
   name?: string;
   tags?: string[];
+  isFavorite?: boolean;
   createdAt: string;
 };
 
@@ -53,6 +54,12 @@ export type UserStickerAssetDraft = {
   tags?: string[];
 };
 
+export type UserStickerAssetUpdate = {
+  name?: string;
+  tags?: string[];
+  isFavorite?: boolean;
+};
+
 export type StoredStickerFile = {
   imagePath: string;
   storageKey: string;
@@ -78,6 +85,11 @@ export type StickerRepository = {
   listAssets: (userId: string) => Promise<StickerAsset[]>;
   listUserAssets: (userId: string) => Promise<UserStickerAsset[]>;
   saveUserAsset: (sticker: UserStickerAssetDraft) => Promise<UserStickerAsset>;
+  updateUserAsset: (
+    userId: string,
+    assetId: string,
+    updates: UserStickerAssetUpdate,
+  ) => Promise<UserStickerAsset | null>;
   deleteUserAsset: (
     userId: string,
     assetId: string,
