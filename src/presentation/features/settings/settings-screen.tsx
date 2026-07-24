@@ -1,14 +1,8 @@
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { useRecapNotificationSettings } from "@/application/hooks/use-recap-notification-settings";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
+import { AppSwitch } from "@/presentation/components/atoms/app-switch";
 import { PhotoStorageNoticeBanner } from "@/presentation/components/molecules/photo-storage-notice-banner";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { appColors } from "@/presentation/theme/colors";
@@ -70,11 +64,9 @@ export function SettingsScreenView(props: SettingsScreenViewProps) {
                 리캡 업데이트 정보를 알려드려요
               </Text>
             </View>
-            <Switch
+            <AppSwitch
               accessibilityLabel="리캡 알림"
               disabled={isLoading || !isSupported}
-              trackColor={{ false: "#D7DADF", true: "#F05BCF" }}
-              thumbColor={isEnabled ? appColors.black : appColors.white}
               value={isEnabled}
               onValueChange={onToggleRecapNotification}
             />

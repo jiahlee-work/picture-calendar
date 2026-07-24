@@ -9,12 +9,13 @@ import {
 import { appColors } from "@/presentation/theme/colors";
 import { appLayers } from "@/presentation/theme/layers";
 
-type AppRoute = "/" | "/recap" | "/stickers" | "/settings";
+export type AppBottomNavigationRoute =
+  "/" | "/recap" | "/stickers" | "/settings";
 
 type NavigationItem = {
   accessibilityLabel: string;
   icon: ReiconName;
-  route: AppRoute;
+  route: AppBottomNavigationRoute;
 };
 
 const NAVIGATION_ITEMS: NavigationItem[] = [
@@ -51,7 +52,7 @@ export function AppBottomNavigation() {
     return null;
   }
 
-  const handleNavigate = (route: AppRoute) => {
+  const handleNavigate = (route: AppBottomNavigationRoute) => {
     if (isRouteActive(pathname, route)) {
       return;
     }
@@ -60,13 +61,31 @@ export function AppBottomNavigation() {
   };
 
   return (
+    <AppBottomNavigationBar
+      activeRoute={getActiveRoute(pathname)}
+      bottomOffset={bottomOffset}
+      onNavigate={handleNavigate}
+    />
+  );
+}
+
+type AppBottomNavigationBarProps = {
+  activeRoute: AppBottomNavigationRoute;
+  bottomOffset?: number;
+  onNavigate: (route: AppBottomNavigationRoute) => void;
+};
+
+export function AppBottomNavigationBar(props: AppBottomNavigationBarProps) {
+  const { activeRoute, bottomOffset = 8, onNavigate } = props;
+
+  return (
     <View
       pointerEvents="box-none"
       style={[styles.overlay, { bottom: bottomOffset }]}
     >
       <View style={styles.bar}>
         {NAVIGATION_ITEMS.map((item) => {
-          const isActive = isRouteActive(pathname, item.route);
+          const isActive = item.route === activeRoute;
 
           return (
             <Pressable
@@ -79,7 +98,7 @@ export function AppBottomNavigation() {
                 isActive && styles.itemActive,
                 pressed && styles.itemPressed,
               ]}
-              onPress={() => handleNavigate(item.route)}
+              onPress={() => onNavigate(item.route)}
             >
               <ReiconIcon
                 color={appColors.black}
@@ -95,7 +114,15 @@ export function AppBottomNavigation() {
   );
 }
 
-function isRouteActive(pathname: string, route: AppRoute) {
+function getActiveRoute(pathname: string): AppBottomNavigationRoute {
+  const activeRoute = NAVIGATION_ITEMS.find((item) =>
+    isRouteActive(pathname, item.route),
+  );
+
+  return activeRoute?.route ?? "/";
+}
+
+function isRouteActive(pathname: string, route: AppBottomNavigationRoute) {
   if (route === "/") {
     return pathname === "/";
   }
