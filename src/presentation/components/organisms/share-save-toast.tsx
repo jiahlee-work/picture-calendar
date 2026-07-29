@@ -1,29 +1,18 @@
 import { useEffect } from "react";
 import { ActivityIndicator, Modal, StyleSheet, Text, View } from "react-native";
 
+import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import {
-  ReiconIcon,
-  type ReiconName,
-} from "@/presentation/components/atoms/reicon-icon";
+  ShareSaveToastState,
+  toShareSaveToastMessage,
+  type ShareSaveToastState as ShareSaveToastStateType,
+} from "@/presentation/helpers/sharing/share-save-toast-message";
 import { appColors } from "@/presentation/theme/colors";
 
-export const ShareSaveToastState = {
-  failed: "failed",
-  hidden: "hidden",
-  saved: "saved",
-  saving: "saving",
-} as const;
-
-export type ShareSaveToastState =
-  (typeof ShareSaveToastState)[keyof typeof ShareSaveToastState];
-
 type ShareSaveToastProps = {
-  state: ShareSaveToastState;
+  state: ShareSaveToastStateType;
   onDone: () => void;
 };
-
-const DONE_ICON: ReiconName = "CheckCircle";
-const FAILED_ICON: ReiconName = "CloseCircle";
 
 export function ShareSaveToast(props: ShareSaveToastProps) {
   const { onDone, state } = props;
@@ -52,44 +41,22 @@ export function ShareSaveToast(props: ShareSaveToastProps) {
   return (
     <Modal transparent visible onRequestClose={isSaving ? () => {} : onDone}>
       <View pointerEvents={isSaving ? "auto" : "box-none"} style={styles.root}>
-        {isSaving ? <View style={styles.dim} /> : null}
+        {isSaving && <View style={styles.dim} />}
         <View style={styles.toast}>
-          {state === ShareSaveToastState.saving ? (
+          {state === ShareSaveToastState.saving && (
             <ActivityIndicator color={appColors.white} size="small" />
-          ) : null}
-          {state === ShareSaveToastState.saved ? (
-            <ToastIcon icon={DONE_ICON} />
-          ) : null}
-          {state === ShareSaveToastState.failed ? (
-            <ToastIcon icon={FAILED_ICON} />
-          ) : null}
-          <Text style={styles.toastText}>{toToastMessage(state)}</Text>
+          )}
+          {state === ShareSaveToastState.saved && (
+            <ReiconIcon color={appColors.white} name="CheckCircle" size={22} />
+          )}
+          {state === ShareSaveToastState.failed && (
+            <ReiconIcon color={appColors.white} name="CloseCircle" size={22} />
+          )}
+          <Text style={styles.toastText}>{toShareSaveToastMessage(state)}</Text>
         </View>
       </View>
     </Modal>
   );
-}
-
-function ToastIcon({ icon }: { icon: ReiconName }) {
-  return (
-    <ReiconIcon color={appColors.white} name={icon} size={22} />
-  );
-}
-
-function toToastMessage(state: ShareSaveToastState) {
-  if (state === ShareSaveToastState.saving) {
-    return "저장 중";
-  }
-
-  if (state === ShareSaveToastState.saved) {
-    return "이미지를 갤러리에 저장했어요.";
-  }
-
-  if (state === ShareSaveToastState.failed) {
-    return "이미지를 저장하지 못했어요.";
-  }
-
-  return "";
 }
 
 const styles = StyleSheet.create({
