@@ -1,12 +1,13 @@
 import { Directory, File, Paths } from "expo-file-system";
 
 import {
-  DEFAULT_RECAP_NOTIFICATION_SETTINGS,
   type RecapNotificationSettings,
   type RecapNotificationSettingsRepository,
-  toRecapNotificationSettings,
 } from "@/shared/settings/recap-notification-settings";
 
+const DEFAULT_RECAP_NOTIFICATION_SETTINGS: RecapNotificationSettings = {
+  isEnabled: false,
+};
 const SETTINGS_DIRECTORY_NAME = "settings";
 const SETTINGS_FILE_NAME = "recap-notifications.json";
 const BROWSER_STORAGE_KEY = "picture-calendar:recap-notifications";
@@ -97,4 +98,20 @@ function getBrowserStorage(): Storage | null {
   }
 
   return globalThis.localStorage;
+}
+
+function toRecapNotificationSettings(
+  value: unknown,
+): RecapNotificationSettings {
+  if (!isObjectRecord(value)) {
+    return DEFAULT_RECAP_NOTIFICATION_SETTINGS;
+  }
+
+  return {
+    isEnabled: value.isEnabled === true,
+  };
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }

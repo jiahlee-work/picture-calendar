@@ -1,4 +1,7 @@
-export async function retry<T>(work: () => Promise<T>, attempts = 2): Promise<T> {
+export async function retry<T>(
+  work: () => Promise<T>,
+  attempts = 2,
+): Promise<T> {
   try {
     return await work();
   } catch (error) {

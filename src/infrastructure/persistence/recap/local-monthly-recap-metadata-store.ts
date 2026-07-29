@@ -15,7 +15,10 @@ const MONTHLY_RECAPS_DIRECTORY_NAME = "monthly-recaps";
 const METADATA_FILE_NAME = "metadata.json";
 
 export function createLocalMonthlyRecapMetadataStore(): MonthlyRecapMetadataStore {
-  const directory = new Directory(Paths.document, MONTHLY_RECAPS_DIRECTORY_NAME);
+  const directory = new Directory(
+    Paths.document,
+    MONTHLY_RECAPS_DIRECTORY_NAME,
+  );
   const file = new File(directory, METADATA_FILE_NAME);
 
   return {
@@ -32,7 +35,9 @@ export function createLocalMonthlyRecapMetadataStore(): MonthlyRecapMetadataStor
 
       const parsed = JSON.parse(contents);
 
-      return Array.isArray(parsed) ? parsed.map(toMonthlyRecap).filter(isMonthlyRecap) : [];
+      return Array.isArray(parsed)
+        ? parsed.map(toMonthlyRecap).filter(isMonthlyRecap)
+        : [];
     },
     async save(recaps) {
       directory.create({
@@ -98,14 +103,16 @@ function stringValue(value: unknown): string | null {
 }
 
 function stringArrayValue(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
 function selectionStatusValue(value: unknown): MonthlyRecapSelectionStatus {
   if (
-    value === MonthlyRecapSelectionStatusValue.prompted
-    || value === MonthlyRecapSelectionStatusValue.selected
-    || value === MonthlyRecapSelectionStatusValue.skipped
+    value === MonthlyRecapSelectionStatusValue.prompted ||
+    value === MonthlyRecapSelectionStatusValue.selected ||
+    value === MonthlyRecapSelectionStatusValue.skipped
   ) {
     return value;
   }
@@ -113,8 +120,14 @@ function selectionStatusValue(value: unknown): MonthlyRecapSelectionStatus {
   return MonthlyRecapSelectionStatusValue.notStarted;
 }
 
-function templateIdValue(value: unknown, selectedPhotoIds: string[]): MonthlyRecapTemplateId {
-  if (value === MonthlyRecapTemplateIdValue.message || value === MonthlyRecapTemplateIdValue.calendarCollage) {
+function templateIdValue(
+  value: unknown,
+  selectedPhotoIds: string[],
+): MonthlyRecapTemplateId {
+  if (
+    value === MonthlyRecapTemplateIdValue.message ||
+    value === MonthlyRecapTemplateIdValue.calendarCollage
+  ) {
     return value;
   }
 

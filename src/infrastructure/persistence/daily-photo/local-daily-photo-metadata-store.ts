@@ -1,8 +1,12 @@
 import { Directory, File, Paths } from "expo-file-system";
 
 import { applyCurrentDailyPhotoFileUri } from "@/infrastructure/persistence/daily-photo/daily-photo-file-uri";
-import { isLegacyDevelopmentDailyPhoto } from "@/shared/daily-photo/legacy-development-photo";
-import type { DailyPhoto, DailyPhotoMetadataStore, DailyPhotoSyncStatus } from "@/shared/daily-photo/types";
+import { isLegacyDevelopmentDailyPhoto } from "@/infrastructure/persistence/daily-photo/legacy-development-photo";
+import type {
+  DailyPhoto,
+  DailyPhotoMetadataStore,
+  DailyPhotoSyncStatus,
+} from "@/shared/daily-photo/types";
 
 const DAILY_PHOTOS_DIRECTORY_NAME = "daily-photos";
 const METADATA_FILE_NAME = "metadata.json";
@@ -29,10 +33,18 @@ export function createLocalDailyPhotoMetadataStore(): DailyPhotoMetadataStore {
         return [];
       }
 
-      const photos = parsed.map(toDailyPhoto).filter(isDailyPhoto).map(toPhotoWithCurrentFileUri);
-      const activePhotos = photos.filter((photo) => !isLegacyDevelopmentDailyPhoto(photo));
+      const photos = parsed
+        .map(toDailyPhoto)
+        .filter(isDailyPhoto)
+        .map(toPhotoWithCurrentFileUri);
+      const activePhotos = photos.filter(
+        (photo) => !isLegacyDevelopmentDailyPhoto(photo),
+      );
 
-      if (activePhotos.length !== parsed.length || hasRepairedPhotoUris(parsed, activePhotos)) {
+      if (
+        activePhotos.length !== parsed.length ||
+        hasRepairedPhotoUris(parsed, activePhotos)
+      ) {
         writeMetadata(directory, file, activePhotos);
       }
 
@@ -106,20 +118,27 @@ function getCurrentStoredFileUri(storageKey: string | null): string | null {
     return null;
   }
 
-  const file = new File(Paths.document, DAILY_PHOTOS_DIRECTORY_NAME, ...storageKey.split("/"));
+  const file = new File(
+    Paths.document,
+    DAILY_PHOTOS_DIRECTORY_NAME,
+    ...storageKey.split("/"),
+  );
 
   return file.exists ? file.uri : null;
 }
 
-function hasRepairedPhotoUris(parsed: unknown[], photos: DailyPhoto[]): boolean {
+function hasRepairedPhotoUris(
+  parsed: unknown[],
+  photos: DailyPhoto[],
+): boolean {
   return photos.some((photo, index) => {
     const parsedPhoto = parsed[index];
 
-    return isObjectRecord(parsedPhoto)
-      && (
-        stringValue(parsedPhoto.imagePath) !== photo.imagePath
-        || stringValue(parsedPhoto.localImagePath) !== photo.localImagePath
-      );
+    return (
+      isObjectRecord(parsedPhoto) &&
+      (stringValue(parsedPhoto.imagePath) !== photo.imagePath ||
+        stringValue(parsedPhoto.localImagePath) !== photo.localImagePath)
+    );
   });
 }
 

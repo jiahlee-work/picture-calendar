@@ -12,8 +12,6 @@ import {
 } from "@/shared/recap/types";
 import { dayjs } from "@/shared/date/dayjs";
 
-const MONTHLY_RECAP_SELECTION_LIMIT = 10;
-
 type LocalMonthlyRecapRepositoryOptions = {
   initialRecaps?: MonthlyRecap[];
   metadataStore?: MonthlyRecapMetadataStore;
@@ -23,8 +21,14 @@ type LocalMonthlyRecapRepositoryOptions = {
 export function createLocalMonthlyRecapRepository(
   options: LocalMonthlyRecapRepositoryOptions | MonthlyRecap[] = [],
 ): MonthlyRecapRepository {
-  const normalizedOptions = Array.isArray(options) ? { initialRecaps: options } : options;
-  const metadataStore = normalizedOptions.metadataStore ?? createMemoryMonthlyRecapMetadataStore(normalizedOptions.initialRecaps ?? []);
+  const normalizedOptions = Array.isArray(options)
+    ? { initialRecaps: options }
+    : options;
+  const metadataStore =
+    normalizedOptions.metadataStore ??
+    createMemoryMonthlyRecapMetadataStore(
+      normalizedOptions.initialRecaps ?? [],
+    );
   const now = normalizedOptions.now ?? (() => dayjs().toDate());
 
   return {
@@ -37,7 +41,9 @@ export function createLocalMonthlyRecapRepository(
       const recapsByUserMonth = await loadRecapsByUserMonth(metadataStore);
 
       return Array.from(recapsByUserMonth.values())
-        .filter((recap) => recap.userId === userId && recap.month.startsWith(year))
+        .filter(
+          (recap) => recap.userId === userId && recap.month.startsWith(year),
+        )
         .sort((left, right) => left.month.localeCompare(right.month));
     },
     async markPrompted(userId, month) {
@@ -56,9 +62,16 @@ export function createLocalMonthlyRecapRepository(
         userId: selection.userId,
         month: selection.month,
         selectedPhotoIds,
-        templateId: selection.templateId ?? toDefaultTemplateId(selectedPhotoIds),
-        calendarPhotoIds: toLayoutPhotoIds(selection.calendarPhotoIds ?? [], selectedPhotoIds),
-        backgroundPhotoIds: toLayoutPhotoIds(selection.backgroundPhotoIds ?? [], selectedPhotoIds),
+        templateId:
+          selection.templateId ?? toDefaultTemplateId(selectedPhotoIds),
+        calendarPhotoIds: toLayoutPhotoIds(
+          selection.calendarPhotoIds ?? [],
+          selectedPhotoIds,
+        ),
+        backgroundPhotoIds: toLayoutPhotoIds(
+          selection.backgroundPhotoIds ?? [],
+          selectedPhotoIds,
+        ),
         status: MonthlyRecapSelectionStatusValue.selected,
         completedAt: now().toISOString(),
       });
@@ -78,7 +91,9 @@ export function createLocalMonthlyRecapRepository(
   };
 }
 
-function createMemoryMonthlyRecapMetadataStore(initialRecaps: MonthlyRecap[]): MonthlyRecapMetadataStore {
+function createMemoryMonthlyRecapMetadataStore(
+  initialRecaps: MonthlyRecap[],
+): MonthlyRecapMetadataStore {
   let recaps = [...initialRecaps];
 
   return {
@@ -91,10 +106,17 @@ function createMemoryMonthlyRecapMetadataStore(initialRecaps: MonthlyRecap[]): M
   };
 }
 
-async function loadRecapsByUserMonth(metadataStore: MonthlyRecapMetadataStore): Promise<Map<string, MonthlyRecap>> {
+async function loadRecapsByUserMonth(
+  metadataStore: MonthlyRecapMetadataStore,
+): Promise<Map<string, MonthlyRecap>> {
   const recaps = await metadataStore.load();
 
-  return new Map(recaps.map((recap) => [toMonthlyRecapKey(recap.userId, recap.month), recap]));
+  return new Map(
+    recaps.map((recap) => [
+      toMonthlyRecapKey(recap.userId, recap.month),
+      recap,
+    ]),
+  );
 }
 
 async function upsertMonthlyRecap(
@@ -139,18 +161,27 @@ function createMonthlyRecap(
   existing: MonthlyRecap | undefined,
   now: string,
 ): MonthlyRecap {
-  const selectionStatus = shouldKeepExistingSelectionStatus(existing, update.status) && existing
-    ? existing.selectionStatus
-    : update.status;
+  const selectionStatus =
+    shouldKeepExistingSelectionStatus(existing, update.status) && existing
+      ? existing.selectionStatus
+      : update.status;
 
   return {
     id: existing?.id ?? `local-recap-${update.month}`,
     userId: update.userId,
     month: update.month,
-    selectedPhotoIds: update.selectedPhotoIds ?? existing?.selectedPhotoIds ?? [],
-    templateId: update.templateId ?? existing?.templateId ?? toDefaultTemplateId(update.selectedPhotoIds ?? existing?.selectedPhotoIds ?? []),
-    calendarPhotoIds: update.calendarPhotoIds ?? existing?.calendarPhotoIds ?? [],
-    backgroundPhotoIds: update.backgroundPhotoIds ?? existing?.backgroundPhotoIds ?? [],
+    selectedPhotoIds:
+      update.selectedPhotoIds ?? existing?.selectedPhotoIds ?? [],
+    templateId:
+      update.templateId ??
+      existing?.templateId ??
+      toDefaultTemplateId(
+        update.selectedPhotoIds ?? existing?.selectedPhotoIds ?? [],
+      ),
+    calendarPhotoIds:
+      update.calendarPhotoIds ?? existing?.calendarPhotoIds ?? [],
+    backgroundPhotoIds:
+      update.backgroundPhotoIds ?? existing?.backgroundPhotoIds ?? [],
     selectionStatus,
     promptedAt: update.promptedAt ?? existing?.promptedAt ?? null,
     completedAt: update.completedAt ?? existing?.completedAt ?? null,
@@ -163,24 +194,31 @@ function shouldKeepExistingSelectionStatus(
   existing: MonthlyRecap | undefined,
   nextStatus: MonthlyRecapSelectionStatus,
 ) {
-  return nextStatus === MonthlyRecapSelectionStatusValue.prompted
-    && (
-      existing?.selectionStatus === MonthlyRecapSelectionStatusValue.selected
-      || existing?.selectionStatus === MonthlyRecapSelectionStatusValue.skipped
-    );
+  return (
+    nextStatus === MonthlyRecapSelectionStatusValue.prompted &&
+    (existing?.selectionStatus === MonthlyRecapSelectionStatusValue.selected ||
+      existing?.selectionStatus === MonthlyRecapSelectionStatusValue.skipped)
+  );
 }
 
 function toSelectedPhotoIds(selection: MonthlyRecapSelectionDraft) {
-  return Array.from(new Set(selection.selectedPhotoIds)).slice(0, MONTHLY_RECAP_SELECTION_LIMIT);
+  return Array.from(new Set(selection.selectedPhotoIds));
 }
 
-function toLayoutPhotoIds(photoIds: string[], selectedPhotoIds: string[]): string[] {
+function toLayoutPhotoIds(
+  photoIds: string[],
+  selectedPhotoIds: string[],
+): string[] {
   const selectedPhotoIdsSet = new Set(selectedPhotoIds);
 
-  return Array.from(new Set(photoIds)).filter((photoId) => selectedPhotoIdsSet.has(photoId));
+  return Array.from(new Set(photoIds)).filter((photoId) =>
+    selectedPhotoIdsSet.has(photoId),
+  );
 }
 
-function toDefaultTemplateId(selectedPhotoIds: string[]): MonthlyRecapTemplateId {
+function toDefaultTemplateId(
+  selectedPhotoIds: string[],
+): MonthlyRecapTemplateId {
   return selectedPhotoIds.length > 0 && selectedPhotoIds.length <= 3
     ? MonthlyRecapTemplateIdValue.message
     : MonthlyRecapTemplateIdValue.calendarCollage;

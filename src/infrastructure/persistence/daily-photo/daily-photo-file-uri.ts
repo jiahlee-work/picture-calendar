@@ -1,11 +1,17 @@
 import type { DailyPhoto } from "@/shared/daily-photo/types";
 
-export function applyCurrentDailyPhotoFileUri(photo: DailyPhoto, currentFileUri: string | null): DailyPhoto {
+export function applyCurrentDailyPhotoFileUri(
+  photo: DailyPhoto,
+  currentFileUri: string | null,
+): DailyPhoto {
   if (!photo.storageKey || !currentFileUri) {
     return photo;
   }
 
-  if (photo.imagePath === currentFileUri && photo.localImagePath === currentFileUri) {
+  if (
+    photo.imagePath === currentFileUri &&
+    photo.localImagePath === currentFileUri
+  ) {
     return photo;
   }
 

@@ -11,7 +11,9 @@ export function toDailyPhotoStorageKey({
   revision?: string | null;
   userId: string;
 }): string {
-  const fileRevision = revision ? `-${sanitizeStoragePathSegment(revision)}` : "";
+  const fileRevision = revision
+    ? `-${sanitizeStoragePathSegment(revision)}`
+    : "";
 
   return `${sanitizeStoragePathSegment(userId)}/${date}${fileRevision}${normalizeImageFileExtension(extension)}`;
 }
@@ -22,12 +24,15 @@ export function sanitizeStoragePathSegment(value: string): string {
   return sanitized.length > 0 ? sanitized : "user";
 }
 
-export function normalizeImageFileExtension(extension: string | null | undefined): string {
+export function normalizeImageFileExtension(
+  extension: string | null | undefined,
+): string {
   if (!extension) {
     return FALLBACK_IMAGE_EXTENSION;
   }
 
-  const normalized = extension.trim().toLowerCase().split("?")[0]?.split("#")[0] ?? "";
+  const normalized =
+    extension.trim().toLowerCase().split("?")[0]?.split("#")[0] ?? "";
   const withDot = normalized.startsWith(".") ? normalized : `.${normalized}`;
 
   if (withDot === ".jpeg") {
@@ -41,7 +46,9 @@ export function normalizeImageFileExtension(extension: string | null | undefined
   return FALLBACK_IMAGE_EXTENSION;
 }
 
-export function imageFileExtensionFromMimeType(mimeType: string | null | undefined): string | null {
+export function imageFileExtensionFromMimeType(
+  mimeType: string | null | undefined,
+): string | null {
   if (!mimeType) {
     return null;
   }
@@ -63,7 +70,9 @@ export function imageFileExtensionFromMimeType(mimeType: string | null | undefin
   }
 }
 
-export function imageFileExtensionFromFileName(fileName: string | null | undefined): string | null {
+export function imageFileExtensionFromFileName(
+  fileName: string | null | undefined,
+): string | null {
   if (!fileName) {
     return null;
   }
