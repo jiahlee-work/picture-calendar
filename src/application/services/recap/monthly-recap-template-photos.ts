@@ -19,8 +19,12 @@ export function resolveMonthlyRecapTemplatePhotos({
   const calendarPhotos = toPhotosByIds(photos, recap.calendarPhotoIds);
 
   return {
-    backgroundPhotos: backgroundPhotos.length > 0 ? backgroundPhotos : selectedPhotos.slice(0, 1),
-    calendarPhotos: calendarPhotos.length > 0 ? calendarPhotos : selectedPhotos.slice(0, 4),
+    backgroundPhotos:
+      backgroundPhotos.length > 0
+        ? backgroundPhotos
+        : selectedPhotos.slice(0, 1),
+    calendarPhotos:
+      calendarPhotos.length > 0 ? calendarPhotos : selectedPhotos.slice(0, 4),
     selectedPhotos,
   };
 }

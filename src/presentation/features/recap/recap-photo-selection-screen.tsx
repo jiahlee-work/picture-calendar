@@ -1,5 +1,12 @@
 import { useRouter } from "expo-router";
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import {
   MonthlyRecapSelectionResult,
@@ -17,7 +24,9 @@ type RecapPhotoSelectionScreenProps = {
   monthKey: string;
 };
 
-export function RecapPhotoSelectionScreen(props: RecapPhotoSelectionScreenProps) {
+export function RecapPhotoSelectionScreen(
+  props: RecapPhotoSelectionScreenProps,
+) {
   const { monthKey } = props;
   const router = useRouter();
   const {
@@ -35,8 +44,11 @@ export function RecapPhotoSelectionScreen(props: RecapPhotoSelectionScreenProps)
     selectionLimit,
   } = useMonthlyRecapSelection(monthKey);
   const monthDate = dayjs(`${monthKey}-01`);
-  const title = monthDate.isValid() ? monthDate.format("MMMM YYYY") : "Monthly Recap";
-  const canSubmitSelection = selectedPhotoCount > 0 && !isLoading && !hasLoadFailed;
+  const title = monthDate.isValid()
+    ? monthDate.format("MMMM YYYY")
+    : "Monthly Recap";
+  const canSubmitSelection =
+    selectedPhotoCount > 0 && !isLoading && !hasLoadFailed;
 
   const handleCancelPress = () => {
     dismissPhotoDetail();
@@ -73,7 +85,10 @@ export function RecapPhotoSelectionScreen(props: RecapPhotoSelectionScreenProps)
     const result = handleTogglePhotoSelection(dateKey);
 
     if (result === MonthlyRecapSelectionResult.selectionLimitReached) {
-      Alert.alert("선택 제한", `대표 사진은 최대 ${selectionLimit}개까지 선택할 수 있습니다.`);
+      Alert.alert(
+        "선택 제한",
+        `대표 사진은 최대 ${selectionLimit}개까지 선택할 수 있습니다.`,
+      );
     }
   };
 
@@ -82,7 +97,11 @@ export function RecapPhotoSelectionScreen(props: RecapPhotoSelectionScreenProps)
       <View style={styles.container}>
         <AppBar>
           <AppBar.Title variant="small">{title}</AppBar.Title>
-          <AppBar.Action accessibilityLabel="대표 사진 선택 취소" label="취소" onPress={handleCancelPress} />
+          <AppBar.Action
+            accessibilityLabel="대표 사진 선택 취소"
+            label="취소"
+            onPress={handleCancelPress}
+          />
         </AppBar>
 
         <View style={styles.content}>
@@ -92,7 +111,9 @@ export function RecapPhotoSelectionScreen(props: RecapPhotoSelectionScreenProps)
             </View>
           ) : hasLoadFailed ? (
             <View style={styles.statusPanel}>
-              <Text style={styles.statusTitle}>사진을 불러오지 못했습니다.</Text>
+              <Text style={styles.statusTitle}>
+                사진을 불러오지 못했습니다.
+              </Text>
             </View>
           ) : (
             <MonthlyCalendar
@@ -106,7 +127,9 @@ export function RecapPhotoSelectionScreen(props: RecapPhotoSelectionScreenProps)
         </View>
       </View>
       <View style={styles.selectionFooter}>
-        <Text style={styles.selectionHint}>최대 10개 선택 가능</Text>
+        <Text style={styles.selectionHint}>
+          최대 {selectionLimit}개 선택 가능
+        </Text>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="대표 사진 선택 완료"
@@ -118,7 +141,14 @@ export function RecapPhotoSelectionScreen(props: RecapPhotoSelectionScreenProps)
           ]}
           onPress={handleCompletePress}
         >
-          <Text style={[styles.completeButtonText, !canSubmitSelection && styles.completeButtonTextDisabled]}>완료</Text>
+          <Text
+            style={[
+              styles.completeButtonText,
+              !canSubmitSelection && styles.completeButtonTextDisabled,
+            ]}
+          >
+            완료
+          </Text>
         </Pressable>
       </View>
       <DailyPhotoDetailSheet

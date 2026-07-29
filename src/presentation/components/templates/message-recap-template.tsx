@@ -7,10 +7,10 @@ import {
   getMessageRecapPhotoFrameLayout,
   getMessageRecapPhotoGroupSize,
   getMonthlyRecapSeasonEmojis,
-} from "@/application/services/recap/monthly-recap-template-layout";
+} from "@/presentation/helpers/recap/monthly-recap-template-layout";
 import { resolveMonthlyRecapTemplatePhotos } from "@/application/services/recap/monthly-recap-template-photos";
 import { MessageRecapBubble } from "@/presentation/components/molecules/message-recap-bubble";
-import { toMonthlyRecapPhotoFrameStyle } from "@/presentation/components/templates/monthly-recap-photo-frame-style";
+import { toMonthlyRecapPhotoFrameStyle } from "@/presentation/helpers/recap/monthly-recap-photo-frame-style";
 import { dayjs } from "@/shared/date/dayjs";
 import type { MonthlyRecap } from "@/shared/recap/types";
 

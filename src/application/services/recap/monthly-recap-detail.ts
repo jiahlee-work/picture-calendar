@@ -1,16 +1,23 @@
-import type { DailyPhoto, DailyPhotoRepository } from "@/application/services/daily-photo/types";
+import type {
+  DailyPhoto,
+  DailyPhotoRepository,
+} from "@/application/services/daily-photo/types";
 import {
   createAutoMonthlyRecapDraft,
   createManualMonthlyRecapDraft,
   shouldRefreshAutoMonthlyRecap,
 } from "@/application/services/recap/monthly-recap-layout";
 import { sortRecapMonthPhotos } from "@/application/services/recap/monthly-recap-photos";
+import { MONTHLY_RECAP_SELECTION_LIMIT } from "@/application/services/recap/recap-selection";
 import {
   canCreateRecapForMonth,
   RecapAvailabilityMode,
 } from "@/application/services/recap/recap-month-list";
 import type { MonthlyRecapRepository } from "@/application/services/recap/types";
-import { MonthlyRecapSelectionStatus, type MonthlyRecap } from "@/shared/recap/types";
+import {
+  MonthlyRecapSelectionStatus,
+  type MonthlyRecap,
+} from "@/shared/recap/types";
 
 export const MonthlyRecapDetailStatus = {
   collecting: "collecting",
@@ -26,7 +33,8 @@ export type MonthlyRecapDetailStatus =
 
 export type LoadedMonthlyRecapDetailStatus = Exclude<
   MonthlyRecapDetailStatus,
-  typeof MonthlyRecapDetailStatus.error | typeof MonthlyRecapDetailStatus.loading
+  | typeof MonthlyRecapDetailStatus.error
+  | typeof MonthlyRecapDetailStatus.loading
 >;
 
 export type MonthlyRecapDetailResult = {
@@ -57,13 +65,18 @@ export async function loadMonthlyRecapDetail(
     recapRepository,
     userId,
   } = options;
-  const monthPhotos = sortRecapMonthPhotos(await dailyPhotoRepository.listByMonth(userId, month));
+  const monthPhotos = sortRecapMonthPhotos(
+    await dailyPhotoRepository.listByMonth(userId, month),
+  );
   const photoIds = monthPhotos.map((photo) => photo.id);
   const photoIdsSet = new Set(photoIds);
   const savedRecap = await recapRepository.getByMonth(userId, month);
-  const savedSelectedPhotoIds = savedRecap?.selectionStatus === MonthlyRecapSelectionStatus.selected
-    ? savedRecap.selectedPhotoIds.filter((photoId) => photoIdsSet.has(photoId))
-    : [];
+  const savedSelectedPhotoIds =
+    savedRecap?.selectionStatus === MonthlyRecapSelectionStatus.selected
+      ? savedRecap.selectedPhotoIds.filter((photoId) =>
+          photoIdsSet.has(photoId),
+        )
+      : [];
 
   if (monthPhotos.length === 0) {
     return {
@@ -73,11 +86,13 @@ export async function loadMonthlyRecapDetail(
     };
   }
 
-  if (!canCreateRecapForMonth({
-    availabilityMode,
-    currentDate: currentDate ?? new Date(),
-    month,
-  })) {
+  if (
+    !canCreateRecapForMonth({
+      availabilityMode,
+      currentDate: currentDate ?? new Date(),
+      month,
+    })
+  ) {
     return {
       photos: monthPhotos,
       recap: savedRecap,
@@ -85,7 +100,10 @@ export async function loadMonthlyRecapDetail(
     };
   }
 
-  if (monthPhotos.length >= 10 && savedSelectedPhotoIds.length === 0) {
+  if (
+    monthPhotos.length >= MONTHLY_RECAP_SELECTION_LIMIT &&
+    savedSelectedPhotoIds.length === 0
+  ) {
     return {
       photos: monthPhotos,
       recap: savedRecap,
@@ -93,9 +111,10 @@ export async function loadMonthlyRecapDetail(
     };
   }
 
-  const canUseSavedRecap = savedRecap?.selectionStatus === MonthlyRecapSelectionStatus.selected
-    && savedSelectedPhotoIds.length > 0
-    && !shouldRefreshMonthlyRecap({
+  const canUseSavedRecap =
+    savedRecap?.selectionStatus === MonthlyRecapSelectionStatus.selected &&
+    savedSelectedPhotoIds.length > 0 &&
+    !shouldRefreshMonthlyRecap({
       photoIds,
       savedRecap,
       savedSelectedPhotoIds,
@@ -109,19 +128,21 @@ export async function loadMonthlyRecapDetail(
     };
   }
 
-  const draft = monthPhotos.length >= 10 && savedSelectedPhotoIds.length > 0
-    ? createManualMonthlyRecapDraft({
-      userId,
-      month,
-      selectedPhotoIds: savedSelectedPhotoIds,
-      random,
-    })
-    : createAutoMonthlyRecapDraft({
-      userId,
-      month,
-      photoIds,
-      random,
-    });
+  const draft =
+    monthPhotos.length >= MONTHLY_RECAP_SELECTION_LIMIT &&
+    savedSelectedPhotoIds.length > 0
+      ? createManualMonthlyRecapDraft({
+          userId,
+          month,
+          selectedPhotoIds: savedSelectedPhotoIds,
+          random,
+        })
+      : createAutoMonthlyRecapDraft({
+          userId,
+          month,
+          photoIds,
+          random,
+        });
 
   if (!draft) {
     return {
@@ -151,7 +172,7 @@ function shouldRefreshMonthlyRecap({
     return true;
   }
 
-  if (photoIds.length >= 10) {
+  if (photoIds.length >= MONTHLY_RECAP_SELECTION_LIMIT) {
     return false;
   }
 

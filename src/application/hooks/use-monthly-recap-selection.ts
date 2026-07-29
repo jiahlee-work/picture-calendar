@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Platform } from "react-native";
-
 import { buildCalendarMonth } from "@/application/services/calendar/calendar-grid";
 import { createDailyPhotoRepositoryForRuntime } from "@/application/services/daily-photo/daily-photo-repository-factory";
-import { isDisplayableDailyPhoto, toPhotosByDate } from "@/application/services/daily-photo/daily-photo-records";
+import {
+  isDisplayableDailyPhoto,
+  toPhotosByDate,
+} from "@/application/services/daily-photo/daily-photo-records";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
+import { LOCAL_USER_ID } from "@/application/services/local-user";
 import { createMonthlyRecapRepositoryForRuntime } from "@/application/services/recap/monthly-recap-repository-factory";
 import { createManualMonthlyRecapDraft } from "@/application/services/recap/monthly-recap-layout";
 import {
@@ -13,9 +15,8 @@ import {
   toggleMonthlyRecapSelectedPhotoId,
 } from "@/application/services/recap/recap-selection";
 import { logger } from "@/infrastructure/logging/logger";
+import { runtimePlatform } from "@/infrastructure/device/runtime-platform";
 import { dayjs } from "@/shared/date/dayjs";
-
-const LOCAL_USER_ID = "local-user";
 
 export const MonthlyRecapSelectionResult = {
   missingPhoto: "missing_photo",
@@ -26,35 +27,64 @@ export const MonthlyRecapSelectionResult = {
 export type MonthlyRecapSelectionResult =
   (typeof MonthlyRecapSelectionResult)[keyof typeof MonthlyRecapSelectionResult];
 
-export function useMonthlyRecapSelection(monthKey: string, today = dayjs().toDate()) {
-  const [photosByDate, setPhotosByDate] = useState<Record<string, DailyPhoto>>({});
-  const [savedSelectedPhotoIds, setSavedSelectedPhotoIds] = useState<string[]>([]);
+export function useMonthlyRecapSelection(
+  monthKey: string,
+  today = dayjs().toDate(),
+) {
+  const [photosByDate, setPhotosByDate] = useState<Record<string, DailyPhoto>>(
+    {},
+  );
+  const [savedSelectedPhotoIds, setSavedSelectedPhotoIds] = useState<string[]>(
+    [],
+  );
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<string[]>([]);
-  const [selectedPhotoDateKey, setSelectedPhotoDateKey] = useState<string | null>(null);
+  const [selectedPhotoDateKey, setSelectedPhotoDateKey] = useState<
+    string | null
+  >(null);
   const [hasLoadFailed, setHasLoadFailed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const activeMonth = useMemo(() => dayjs(`${monthKey}-01`).startOf("month").toDate(), [monthKey]);
-  const dailyPhotoRepository = useMemo(() => createDailyPhotoRepositoryForRuntime(Platform.OS), []);
-  const recapRepository = useMemo(() => createMonthlyRecapRepositoryForRuntime(Platform.OS), []);
-  const calendar = useMemo(() => buildCalendarMonth(activeMonth, today, photosByDate), [activeMonth, photosByDate, today]);
-  const selectedPhotoIdsSet = useMemo(() => new Set(selectedPhotoIds), [selectedPhotoIds]);
+  const activeMonth = useMemo(
+    () => dayjs(`${monthKey}-01`).startOf("month").toDate(),
+    [monthKey],
+  );
+  const dailyPhotoRepository = useMemo(
+    () => createDailyPhotoRepositoryForRuntime(runtimePlatform),
+    [],
+  );
+  const recapRepository = useMemo(
+    () => createMonthlyRecapRepositoryForRuntime(runtimePlatform),
+    [],
+  );
+  const calendar = useMemo(
+    () => buildCalendarMonth(activeMonth, today, photosByDate),
+    [activeMonth, photosByDate, today],
+  );
+  const selectedPhotoIdsSet = useMemo(
+    () => new Set(selectedPhotoIds),
+    [selectedPhotoIds],
+  );
   const selectedDateKeys = useMemo(
     () =>
       selectedPhotoIds.flatMap((photoId) => {
-        const selectedPhoto = Object.values(photosByDate).find((photo) => photo.id === photoId);
+        const selectedPhoto = Object.values(photosByDate).find(
+          (photo) => photo.id === photoId,
+        );
 
         return selectedPhoto ? [selectedPhoto.date] : [];
       }),
     [photosByDate, selectedPhotoIds],
   );
-  const selectedPhoto = selectedPhotoDateKey ? photosByDate[selectedPhotoDateKey] ?? null : null;
-  const photoDetail = selectedPhotoDateKey && selectedPhoto
-    ? {
-      dateLabel: dayjs(selectedPhotoDateKey).format("YYYY.MM.DD"),
-      isToday: false,
-      photo: selectedPhoto,
-    }
+  const selectedPhoto = selectedPhotoDateKey
+    ? (photosByDate[selectedPhotoDateKey] ?? null)
     : null;
+  const photoDetail =
+    selectedPhotoDateKey && selectedPhoto
+      ? {
+          dateLabel: dayjs(selectedPhotoDateKey).format("YYYY.MM.DD"),
+          isToday: false,
+          photo: selectedPhoto,
+        }
+      : null;
 
   useEffect(() => {
     let isMounted = true;
@@ -64,12 +94,19 @@ export function useMonthlyRecapSelection(monthKey: string, today = dayjs().toDat
       setHasLoadFailed(false);
 
       try {
-        const monthPhotos = await dailyPhotoRepository.listByMonth(LOCAL_USER_ID, monthKey);
+        const monthPhotos = await dailyPhotoRepository.listByMonth(
+          LOCAL_USER_ID,
+          monthKey,
+        );
         const displayablePhotos = monthPhotos.filter(isDisplayableDailyPhoto);
-        const displayablePhotoIds = new Set(displayablePhotos.map((photo) => photo.id));
+        const displayablePhotoIds = new Set(
+          displayablePhotos.map((photo) => photo.id),
+        );
         const recap = await recapRepository.getByMonth(LOCAL_USER_ID, monthKey);
         const nextSelectedPhotoIds = applyMonthlyRecapSelectionLimit(
-          recap?.selectedPhotoIds.filter((photoId) => displayablePhotoIds.has(photoId)) ?? [],
+          recap?.selectedPhotoIds.filter((photoId) =>
+            displayablePhotoIds.has(photoId),
+          ) ?? [],
         );
 
         if (!isMounted) {
@@ -82,7 +119,10 @@ export function useMonthlyRecapSelection(monthKey: string, today = dayjs().toDat
         setSelectedPhotoDateKey(null);
         setIsLoading(false);
       } catch (error) {
-        logger.error("Failed to load monthly recap selection", { monthKey, error });
+        logger.error("Failed to load monthly recap selection", {
+          monthKey,
+          error,
+        });
 
         if (!isMounted) {
           return;
@@ -104,40 +144,53 @@ export function useMonthlyRecapSelection(monthKey: string, today = dayjs().toDat
     };
   }, [dailyPhotoRepository, monthKey, recapRepository]);
 
-  const handleOpenPhotoDetail = useCallback((dateKey: string) => {
-    const photo = photosByDate[dateKey] ?? null;
+  const handleOpenPhotoDetail = useCallback(
+    (dateKey: string) => {
+      const photo = photosByDate[dateKey] ?? null;
 
-    if (!photo) {
-      setSelectedPhotoDateKey(null);
-      return;
-    }
+      if (!photo) {
+        setSelectedPhotoDateKey(null);
+        return;
+      }
 
-    setSelectedPhotoDateKey(dateKey);
-  }, [photosByDate]);
+      setSelectedPhotoDateKey(dateKey);
+    },
+    [photosByDate],
+  );
 
-  const handleTogglePhotoSelection = useCallback((dateKey: string): MonthlyRecapSelectionResult => {
-    const photo = photosByDate[dateKey] ?? null;
+  const handleTogglePhotoSelection = useCallback(
+    (dateKey: string): MonthlyRecapSelectionResult => {
+      const photo = photosByDate[dateKey] ?? null;
 
-    if (!photo) {
-      return MonthlyRecapSelectionResult.missingPhoto;
-    }
+      if (!photo) {
+        return MonthlyRecapSelectionResult.missingPhoto;
+      }
 
-    const isSelected = selectedPhotoIdsSet.has(photo.id);
+      const isSelected = selectedPhotoIdsSet.has(photo.id);
 
-    if (!isSelected && selectedPhotoIds.length >= MONTHLY_RECAP_SELECTION_LIMIT) {
-      return MonthlyRecapSelectionResult.selectionLimitReached;
-    }
+      if (
+        !isSelected &&
+        selectedPhotoIds.length >= MONTHLY_RECAP_SELECTION_LIMIT
+      ) {
+        return MonthlyRecapSelectionResult.selectionLimitReached;
+      }
 
-    setSelectedPhotoIds((current) => toggleMonthlyRecapSelectedPhotoId(current, photo.id));
-    return MonthlyRecapSelectionResult.selected;
-  }, [photosByDate, selectedPhotoIds.length, selectedPhotoIdsSet]);
+      setSelectedPhotoIds((current) =>
+        toggleMonthlyRecapSelectedPhotoId(current, photo.id),
+      );
+      return MonthlyRecapSelectionResult.selected;
+    },
+    [photosByDate, selectedPhotoIds.length, selectedPhotoIdsSet],
+  );
 
   const handleSaveSelection = useCallback(async () => {
-    const savedRecap = await recapRepository.saveSelection(createManualMonthlyRecapDraft({
-      userId: LOCAL_USER_ID,
-      month: monthKey,
-      selectedPhotoIds,
-    }));
+    const savedRecap = await recapRepository.saveSelection(
+      createManualMonthlyRecapDraft({
+        userId: LOCAL_USER_ID,
+        month: monthKey,
+        selectedPhotoIds,
+      }),
+    );
 
     setSavedSelectedPhotoIds(savedRecap.selectedPhotoIds);
 

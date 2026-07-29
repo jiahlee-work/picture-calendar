@@ -3,6 +3,7 @@ import type {
   DailyPhoto,
 } from "@/application/services/daily-photo/types";
 import { sortRecapMonthPhotos } from "@/application/services/recap/monthly-recap-photos";
+import { MONTHLY_RECAP_SELECTION_LIMIT } from "@/application/services/recap/recap-selection";
 import type { MonthlyRecapRepository } from "@/application/services/recap/types";
 import { toMonthKey } from "@/shared/date/date-key";
 import { dayjs } from "@/shared/date/dayjs";
@@ -209,7 +210,7 @@ function toRecapMonthStatus({
     return RecapMonthStatus.selected;
   }
 
-  return photoCount < 10
+  return photoCount < MONTHLY_RECAP_SELECTION_LIMIT
     ? RecapMonthStatus.readyAuto
     : RecapMonthStatus.needsSelection;
 }

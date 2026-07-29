@@ -2,7 +2,9 @@ import { createLocalMonthlyRecapMetadataStore } from "@/infrastructure/persisten
 import { createLocalMonthlyRecapRepository } from "@/infrastructure/persistence/recap/local-monthly-recap-repository";
 import type { MonthlyRecapRepository } from "@/application/services/recap/types";
 
-export function createMonthlyRecapRepositoryForRuntime(platform = process.env.EXPO_OS): MonthlyRecapRepository {
+export function createMonthlyRecapRepositoryForRuntime(
+  platform: string,
+): MonthlyRecapRepository {
   if (platform === "web") {
     return createLocalMonthlyRecapRepository();
   }

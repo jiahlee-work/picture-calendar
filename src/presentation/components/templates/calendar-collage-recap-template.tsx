@@ -6,16 +6,13 @@ import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import {
   getCalendarRecapCardSize,
   getCalendarRecapPhotoSlotLayout,
-  type MonthlyRecapPhotoFrameLayout,
-} from "@/application/services/recap/monthly-recap-template-layout";
+  toMonthlyRecapPhotoFrameOrientation,
+} from "@/presentation/helpers/recap/monthly-recap-template-layout";
 import { resolveMonthlyRecapTemplatePhotos } from "@/application/services/recap/monthly-recap-template-photos";
-import {
-  PolaroidPhotoFrame,
-  type PolaroidPhotoFrameOrientation,
-} from "@/presentation/components/atoms/polaroid-photo-frame";
+import { PolaroidPhotoFrame } from "@/presentation/components/atoms/polaroid-photo-frame";
 import { MonthlyRecapBackgroundCollage } from "@/presentation/components/molecules/monthly-recap-background-collage";
-import { MonthlyRecapCalendarGrid } from "@/presentation/components/molecules/monthly-recap-calendar-grid";
-import { toMonthlyRecapPhotoFrameStyle } from "@/presentation/components/templates/monthly-recap-photo-frame-style";
+import { MonthlyRecapCalendarGrid } from "@/presentation/components/organisms/monthly-recap-calendar-grid";
+import { toMonthlyRecapPhotoFrameStyle } from "@/presentation/helpers/recap/monthly-recap-photo-frame-style";
 import type { MonthlyRecap } from "@/shared/recap/types";
 
 type CalendarCollageRecapTemplateProps = {
@@ -58,7 +55,7 @@ export function CalendarCollageRecapTemplate(
                 <PolaroidPhotoFrame
                   key={photo.id}
                   imagePath={photo.imagePath}
-                  orientation={toPolaroidFrameOrientation(layout)}
+                  orientation={toMonthlyRecapPhotoFrameOrientation(layout)}
                   style={toMonthlyRecapPhotoFrameStyle(layout)}
                 />
               );
@@ -68,12 +65,6 @@ export function CalendarCollageRecapTemplate(
       </View>
     </View>
   );
-}
-
-function toPolaroidFrameOrientation(
-  layout: MonthlyRecapPhotoFrameLayout,
-): PolaroidPhotoFrameOrientation {
-  return layout.width >= layout.height ? "landscape" : "portrait";
 }
 
 const styles = StyleSheet.create({

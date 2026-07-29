@@ -1,4 +1,4 @@
-import type { MonthlyRecapPhotoFrameLayout } from "@/application/services/recap/monthly-recap-template-layout";
+import type { MonthlyRecapPhotoFrameLayout } from "@/presentation/helpers/recap/monthly-recap-template-layout";
 
 export function toMonthlyRecapPhotoFrameStyle(
   layout: MonthlyRecapPhotoFrameLayout,

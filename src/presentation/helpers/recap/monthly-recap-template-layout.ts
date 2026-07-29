@@ -12,6 +12,8 @@ export type MonthlyRecapCardSize = {
   width: number;
 };
 
+export type MonthlyRecapPhotoFrameOrientation = "landscape" | "portrait";
+
 export function getMessageRecapPhotoFrameLayout(
   index: number,
   photoCount: number,
@@ -142,6 +144,12 @@ export function getCalendarRecapPhotoSlotLayout(
   const resolvedLayouts = photoCount <= 2 ? twoPhotoLayouts : layoutsByIndex;
 
   return resolvedLayouts[index] ?? resolvedLayouts[resolvedLayouts.length - 1];
+}
+
+export function toMonthlyRecapPhotoFrameOrientation(
+  layout: MonthlyRecapPhotoFrameLayout,
+): MonthlyRecapPhotoFrameOrientation {
+  return layout.width >= layout.height ? "landscape" : "portrait";
 }
 
 export function getMonthlyRecapSeasonEmojis(monthIndex: number): string {

@@ -12,7 +12,6 @@ import {
   useMonthlyRecapDetail,
 } from "@/application/hooks/use-monthly-recap-detail";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
-import type { ReiconName } from "@/presentation/components/atoms/reicon-icon";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { MonthlyRecapTemplate } from "@/presentation/components/templates/monthly-recap-template";
 import { ShareCaptureMenu } from "@/presentation/components/organisms/share-capture-menu";
@@ -23,8 +22,6 @@ type RecapMonthDetailScreenProps = {
   month: string;
   year: string;
 };
-
-const BACK_ICON: ReiconName = "ArrowLeft";
 
 export function RecapMonthDetailScreen(props: RecapMonthDetailScreenProps) {
   const { month, year } = props;
@@ -74,7 +71,7 @@ export function RecapMonthDetailScreen(props: RecapMonthDetailScreenProps) {
           <AppBar>
             <AppBar.Action
               accessibilityLabel="리캡 목록으로 돌아가기"
-              icon={BACK_ICON}
+              icon="ArrowLeft"
               onPress={handleBackPress}
             />
             <AppBar.Spacer />
@@ -128,7 +125,7 @@ export function RecapMonthDetailScreen(props: RecapMonthDetailScreenProps) {
         <AppBar pointerEvents="box-none" variant="overlay">
           <AppBar.Action
             accessibilityLabel="리캡 목록으로 돌아가기"
-            icon={BACK_ICON}
+            icon="ArrowLeft"
             onPress={handleBackPress}
           />
           <AppBar.Spacer />

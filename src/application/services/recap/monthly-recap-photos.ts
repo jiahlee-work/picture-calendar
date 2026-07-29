@@ -6,5 +6,9 @@ export function isRecapMonthPhoto(photo: DailyPhoto): boolean {
 }
 
 export function sortRecapMonthPhotos(photos: DailyPhoto[]): DailyPhoto[] {
-  return [...photos].filter(isRecapMonthPhoto).sort((firstPhoto, secondPhoto) => firstPhoto.date.localeCompare(secondPhoto.date));
+  return [...photos]
+    .filter(isRecapMonthPhoto)
+    .sort((firstPhoto, secondPhoto) =>
+      firstPhoto.date.localeCompare(secondPhoto.date),
+    );
 }

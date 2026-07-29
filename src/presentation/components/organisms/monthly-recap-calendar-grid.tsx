@@ -2,6 +2,7 @@ import type { Dayjs } from "dayjs";
 import { StyleSheet, Text, View } from "react-native";
 
 import type { CalendarGridCell } from "@/application/services/calendar/calendar-grid";
+import { toCalendarWeeks } from "@/presentation/helpers/calendar/calendar-weeks";
 import { appColors } from "@/presentation/theme/colors";
 
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
@@ -38,21 +39,15 @@ export function MonthlyRecapCalendarGrid(props: MonthlyRecapCalendarGridProps) {
                 key={cell?.key ?? `empty-${weekIndex}-${dayIndex}`}
                 style={styles.calendarCell}
               >
-                {cell ? (
+                {cell && (
                   <Text style={styles.calendarDayText}>{cell.dayOfMonth}</Text>
-                ) : null}
+                )}
               </View>
             ))}
           </View>
         ))}
       </View>
     </View>
-  );
-}
-
-function toCalendarWeeks(cells: CalendarGridCell[]) {
-  return Array.from({ length: Math.ceil(cells.length / 7) }, (_, index) =>
-    cells.slice(index * 7, index * 7 + 7),
   );
 }
 

@@ -5,7 +5,8 @@ import {
   getCalendarRecapPhotoSlotLayout,
   getMessageRecapPhotoFrameLayout,
   getMessageRecapPhotoGroupSize,
-} from "@/application/services/recap/monthly-recap-template-layout";
+  toMonthlyRecapPhotoFrameOrientation,
+} from "@/presentation/helpers/recap/monthly-recap-template-layout";
 
 describe("monthly recap template layout", () => {
   it("places message photos inside a flow-based photo group", () => {
@@ -51,5 +52,28 @@ describe("monthly recap template layout", () => {
       top: 26,
       zIndex: 7,
     });
+  });
+
+  it("resolves photo frame orientation from layout dimensions", () => {
+    expect(
+      toMonthlyRecapPhotoFrameOrientation({
+        height: 80,
+        left: 0,
+        rotation: "0deg",
+        top: 0,
+        width: 120,
+        zIndex: 1,
+      }),
+    ).toBe("landscape");
+    expect(
+      toMonthlyRecapPhotoFrameOrientation({
+        height: 120,
+        left: 0,
+        rotation: "0deg",
+        top: 0,
+        width: 80,
+        zIndex: 1,
+      }),
+    ).toBe("portrait");
   });
 });

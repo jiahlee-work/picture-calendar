@@ -13,7 +13,8 @@ export const MonthlyRecapTemplateId = {
   message: "message",
 } as const;
 
-export type MonthlyRecapTemplateId = (typeof MonthlyRecapTemplateId)[keyof typeof MonthlyRecapTemplateId];
+export type MonthlyRecapTemplateId =
+  (typeof MonthlyRecapTemplateId)[keyof typeof MonthlyRecapTemplateId];
 
 export type MonthlyRecap = {
   id: string;
@@ -43,7 +44,9 @@ export type MonthlyRecapRepository = {
   getByMonth: (userId: string, month: string) => Promise<MonthlyRecap | null>;
   listByYear: (userId: string, year: string) => Promise<MonthlyRecap[]>;
   markPrompted: (userId: string, month: string) => Promise<MonthlyRecap>;
-  saveSelection: (selection: MonthlyRecapSelectionDraft) => Promise<MonthlyRecap>;
+  saveSelection: (
+    selection: MonthlyRecapSelectionDraft,
+  ) => Promise<MonthlyRecap>;
   skipSelection: (userId: string, month: string) => Promise<MonthlyRecap>;
 };
 

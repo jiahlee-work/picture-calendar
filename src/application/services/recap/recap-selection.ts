@@ -13,7 +13,9 @@ export function toggleMonthlyRecapSelectedPhotoId(
   limit = MONTHLY_RECAP_SELECTION_LIMIT,
 ): string[] {
   if (selectedPhotoIds.includes(photoId)) {
-    return selectedPhotoIds.filter((selectedPhotoId) => selectedPhotoId !== photoId);
+    return selectedPhotoIds.filter(
+      (selectedPhotoId) => selectedPhotoId !== photoId,
+    );
   }
 
   if (selectedPhotoIds.length >= limit) {
