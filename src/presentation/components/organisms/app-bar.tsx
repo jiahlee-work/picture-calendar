@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { useRouter } from "expo-router";
 import {
   type GestureResponderEvent,
   Pressable,
@@ -16,11 +15,8 @@ import {
   type ReiconName,
 } from "@/presentation/components/atoms/reicon-icon";
 import { SymbolIconButton } from "@/presentation/components/atoms/symbol-icon-button";
-import { Menu } from "@/presentation/components/organisms/menu";
 import { appColors } from "@/presentation/theme/colors";
 import { appSpacing } from "@/presentation/theme/spacing";
-
-type AppRoute = "/" | "/recap" | "/stickers" | "/settings";
 
 type AppBarProps = {
   children: ReactNode;
@@ -53,16 +49,9 @@ type AppBarActionProps = IconAppBarActionProps | TextAppBarActionProps;
 type AppBarComponent = {
   (props: AppBarProps): ReactNode;
   Action: (props: AppBarActionProps) => ReactNode;
-  Menu: () => ReactNode;
   Spacer: () => ReactNode;
   Title: (props: AppBarTitleProps) => ReactNode;
 };
-
-const MENU_ICON: ReiconName = "Menu";
-const CALENDAR_ICON: ReiconName = "Calendar";
-const RECAP_ICON: ReiconName = "ChartBar";
-const STICKER_ICON: ReiconName = "Tag";
-const SETTINGS_ICON: ReiconName = "Gear";
 
 function AppBarRoot(props: AppBarProps) {
   const { children, pointerEvents, variant = "default" } = props;
@@ -109,11 +98,7 @@ function AppBarTitle(props: AppBarTitleProps) {
     >
       <View style={styles.titleRow}>
         {title}
-        <ReiconIcon
-          color={appColors.black}
-          name="ChevronDown"
-          size={18}
-        />
+        <ReiconIcon color={appColors.black} name="ChevronDown" size={18} />
       </View>
     </Pressable>
   );
@@ -147,46 +132,12 @@ function AppBarAction(props: AppBarActionProps) {
   );
 }
 
-function AppBarMenu() {
-  const router = useRouter();
-
-  const handleNavigate = (route: AppRoute) => {
-    router.replace(route);
-  };
-
-  return (
-    <Menu accessibilityLabel="앱 탐색 열기" trigger={{ icon: MENU_ICON }}>
-      <Menu.Item
-        icon={CALENDAR_ICON}
-        label="캘린더"
-        onPress={() => handleNavigate("/")}
-      />
-      <Menu.Item
-        icon={RECAP_ICON}
-        label="리캡"
-        onPress={() => handleNavigate("/recap")}
-      />
-      <Menu.Item
-        icon={STICKER_ICON}
-        label="스티커"
-        onPress={() => handleNavigate("/stickers")}
-      />
-      <Menu.Item
-        icon={SETTINGS_ICON}
-        label="설정"
-        onPress={() => handleNavigate("/settings")}
-      />
-    </Menu>
-  );
-}
-
 function AppBarSpacer() {
   return <View pointerEvents="box-none" style={styles.titleSlot} />;
 }
 
 export const AppBar = Object.assign(AppBarRoot, {
   Action: AppBarAction,
-  Menu: AppBarMenu,
   Spacer: AppBarSpacer,
   Title: AppBarTitle,
 }) as AppBarComponent;

@@ -1,5 +1,8 @@
 import { StyleSheet } from "react-native";
-import { SafeAreaView, type SafeAreaViewProps } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  type SafeAreaViewProps,
+} from "react-native-safe-area-context";
 
 import { appColors } from "@/presentation/theme/colors";
 
@@ -12,12 +15,7 @@ type AppSafeAreaViewProps = SafeAreaViewProps & {
 export function AppSafeAreaView(props: AppSafeAreaViewProps) {
   const { style, variant = "screen", ...safeAreaProps } = props;
 
-  return (
-    <SafeAreaView
-      {...safeAreaProps}
-      style={[styles[variant], style]}
-    />
-  );
+  return <SafeAreaView {...safeAreaProps} style={[styles[variant], style]} />;
 }
 
 const styles = StyleSheet.create({

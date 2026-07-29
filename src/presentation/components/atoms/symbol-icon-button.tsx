@@ -26,11 +26,7 @@ export function SymbolIconButton(props: SymbolIconButtonProps) {
       style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
       onPress={onPress}
     >
-      <ReiconIcon
-        color={appColors.white}
-        name={icon}
-        size={24}
-      />
+      <ReiconIcon color={appColors.white} name={icon} size={24} />
     </Pressable>
   );
 }

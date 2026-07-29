@@ -1,5 +1,11 @@
 import { createContext, use, useState, type ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  type LayoutChangeEvent,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import Animated, {
   Easing,
   FadeOut,
@@ -15,6 +21,7 @@ import { appColors } from "@/presentation/theme/colors";
 type MenuProps = {
   accessibilityLabel: string;
   children: ReactNode;
+  disabled?: boolean;
   trigger: MenuTriggerConfig | ((props: MenuTriggerRenderProps) => ReactNode);
 };
 
@@ -37,37 +44,53 @@ type MenuItemProps = {
 type MenuComponent = {
   (props: MenuProps): ReactNode;
   Item: (props: MenuItemProps) => ReactNode;
+  useClose: () => (() => void) | null;
 };
 
 const MenuCloseContext = createContext<(() => void) | null>(null);
 
 const MENU_BUTTON_SIZE = 40;
 const MENU_PANEL_GAP = 8;
-const MENU_PANEL_TOP = MENU_BUTTON_SIZE + MENU_PANEL_GAP;
 
 function MenuRoot(props: MenuProps) {
-  const { accessibilityLabel, children, trigger } = props;
+  const { accessibilityLabel, children, disabled = false, trigger } = props;
   const [isOpen, setIsOpen] = useState(false);
+  const [triggerHeight, setTriggerHeight] = useState(MENU_BUTTON_SIZE);
+  const panelTop = triggerHeight + MENU_PANEL_GAP;
 
   const handleToggle = () => {
+    if (disabled) {
+      return;
+    }
+
     setIsOpen((current) => !current);
   };
   const handleClose = () => {
     setIsOpen(false);
   };
+  const handleTriggerLayout = (event: LayoutChangeEvent) => {
+    const nextHeight = Math.round(event.nativeEvent.layout.height);
+
+    setTriggerHeight((current) =>
+      current === nextHeight ? current : nextHeight,
+    );
+  };
 
   return (
     <View style={styles.root}>
-      {typeof trigger === "function" ? (
-        trigger({ isOpen, toggle: handleToggle })
-      ) : (
-        <MenuTrigger
-          accessibilityLabel={accessibilityLabel}
-          isOpen={isOpen}
-          trigger={trigger}
-          onPress={handleToggle}
-        />
-      )}
+      <View onLayout={handleTriggerLayout}>
+        {typeof trigger === "function" ? (
+          trigger({ isOpen, toggle: handleToggle })
+        ) : (
+          <MenuTrigger
+            accessibilityLabel={accessibilityLabel}
+            disabled={disabled}
+            isOpen={isOpen}
+            trigger={trigger}
+            onPress={handleToggle}
+          />
+        )}
+      </View>
 
       {isOpen && (
         <>
@@ -82,7 +105,7 @@ function MenuRoot(props: MenuProps) {
               Easing.out(Easing.cubic),
             )}
             exiting={FadeOut.duration(120).easing(Easing.out(Easing.quad))}
-            style={styles.panel}
+            style={[styles.panel, { top: panelTop }]}
           >
             <MenuCloseContext value={handleClose}>{children}</MenuCloseContext>
           </Animated.View>
@@ -94,11 +117,13 @@ function MenuRoot(props: MenuProps) {
 
 function MenuTrigger({
   accessibilityLabel,
+  disabled,
   isOpen,
   onPress,
   trigger,
 }: {
   accessibilityLabel: string;
+  disabled: boolean;
   isOpen: boolean;
   onPress: () => void;
   trigger: MenuTriggerConfig;
@@ -110,31 +135,27 @@ function MenuTrigger({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      accessibilityState={{ expanded: isOpen }}
+      accessibilityState={{ disabled, expanded: isOpen }}
+      disabled={disabled}
       style={({ pressed }) => [
         styles.trigger,
         hasIcon && !hasLabel && styles.iconOnlyTrigger,
+        disabled && styles.triggerDisabled,
         pressed && styles.triggerPressed,
       ]}
       onPress={onPress}
     >
-      {trigger.icon ? (
-        <ReiconIcon
-          color={appColors.white}
-          name={trigger.icon}
-          size={24}
-        />
-      ) : null}
-      {trigger.label ? (
-        <Text style={styles.triggerText}>{trigger.label}</Text>
-      ) : null}
+      {trigger.icon && (
+        <ReiconIcon color={appColors.white} name={trigger.icon} size={24} />
+      )}
+      {trigger.label && <Text style={styles.triggerText}>{trigger.label}</Text>}
     </Pressable>
   );
 }
 
 function MenuItem(props: MenuItemProps) {
   const { icon, label, onPress } = props;
-  const closeMenu = use(MenuCloseContext);
+  const closeMenu = useMenuClose();
 
   const handlePress = () => {
     closeMenu?.();
@@ -147,20 +168,19 @@ function MenuItem(props: MenuItemProps) {
       style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
       onPress={handlePress}
     >
-      {icon ? (
-        <ReiconIcon
-          color={appColors.black}
-          name={icon}
-          size={20}
-        />
-      ) : null}
+      {icon && <ReiconIcon color={appColors.black} name={icon} size={20} />}
       <Text style={styles.itemText}>{label}</Text>
     </Pressable>
   );
 }
 
+function useMenuClose() {
+  return use(MenuCloseContext);
+}
+
 export const Menu = Object.assign(MenuRoot, {
   Item: MenuItem,
+  useClose: useMenuClose,
 }) as MenuComponent;
 
 const styles = StyleSheet.create({
@@ -188,6 +208,9 @@ const styles = StyleSheet.create({
   triggerPressed: {
     backgroundColor: appColors.blackOverlay34,
   },
+  triggerDisabled: {
+    opacity: 0.38,
+  },
   triggerText: {
     color: appColors.white,
     fontSize: 15,
@@ -212,7 +235,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "absolute",
     right: 0,
-    top: MENU_PANEL_TOP,
     zIndex: 11,
   },
   item: {

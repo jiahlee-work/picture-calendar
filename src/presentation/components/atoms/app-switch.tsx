@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 
+import { getPressedSwitchTrackColor } from "@/presentation/helpers/controls/app-switch-colors";
 import { appColors } from "@/presentation/theme/colors";
 
 const SWITCH_TRAVEL = 18;
@@ -132,11 +133,11 @@ export function AppSwitch(props: AppSwitchProps) {
               {
                 backgroundColor:
                   pressed && !disabled
-                    ? getPressedTrackColor(value)
+                    ? getPressedSwitchTrackColor(value)
                     : trackBackgroundColor,
                 borderColor:
                   pressed && !disabled
-                    ? getPressedTrackColor(value)
+                    ? getPressedSwitchTrackColor(value)
                     : trackBorderColor,
               },
             ]}
@@ -154,10 +155,6 @@ export function AppSwitch(props: AppSwitchProps) {
       )}
     </Pressable>
   );
-}
-
-function getPressedTrackColor(value: boolean) {
-  return value ? "#2B2B2B" : "#E7E9EE";
 }
 
 const styles = StyleSheet.create({
