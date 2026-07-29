@@ -1,7 +1,7 @@
-import { registerRootComponent } from 'expo';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { registerRootComponent } from "expo";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { view } from './storybook.requires';
+import { view } from "./storybook.requires";
 
 /**
  * This file is user-editable.
