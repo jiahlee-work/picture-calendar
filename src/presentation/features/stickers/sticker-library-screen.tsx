@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -7,27 +8,30 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { useState } from "react";
+import Animated, {
+  Easing,
+  FadeInDown,
+  FadeOutDown,
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useStickerLibrary } from "@/application/hooks/use-sticker-library";
+import { getStickerLibraryGridLayout } from "@/presentation/helpers/stickers/sticker-library-layout";
 import type {
   StickerAsset,
   UserStickerAsset,
 } from "@/application/services/stickers/types";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
-import type { ReiconName } from "@/presentation/components/atoms/reicon-icon";
-import { SegmentedTabs } from "@/presentation/components/atoms/segmented-tabs";
+import { Menu } from "@/presentation/components/molecules/menu";
+import { SegmentedTabs } from "@/presentation/components/molecules/segmented-tabs";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
-import { Menu } from "@/presentation/components/organisms/menu";
-import { StickerAssetPreview } from "@/presentation/features/stickers/sticker-asset-preview";
 import { StickerDetailSheet } from "@/presentation/components/organisms/sticker-detail-sheet";
+import { StickerTile } from "@/presentation/components/organisms/sticker-tile";
+import { useAppBottomNavigationHidden } from "@/presentation/providers/app-bottom-navigation-controller";
 import { appColors } from "@/presentation/theme/colors";
+import { appLayers } from "@/presentation/theme/layers";
 import { appSpacing } from "@/presentation/theme/spacing";
 
-const ADD_ICON: ReiconName = "Add";
-const LIBRARY_ICON: ReiconName = "Gallery";
-const CLIPBOARD_ICON: ReiconName = "Clipboard";
-const CARD_GAP = 22;
 const STICKER_TAB_OPTIONS = [
   {
     label: "All",
@@ -39,12 +43,23 @@ const STICKER_TAB_OPTIONS = [
   },
 ] as const;
 
+const ACTION_BAR_ENTERING = FadeInDown.duration(350)
+  .easing(Easing.bezier(0.22, 1, 0.36, 1))
+  .withInitialValues({
+    opacity: 0,
+    transform: [{ translateY: 16 }, { scale: 0.97 }],
+  });
+const ACTION_BAR_EXITING = FadeOutDown.duration(250).easing(
+  Easing.bezier(0.22, 1, 0.36, 1),
+);
+
 export function StickerLibraryScreen() {
   const {
     stickers,
     isLoading,
     isSaving,
     deleteUserSticker,
+    deleteUserStickers,
     registerFromClipboard,
     registerFromLibrary,
     updateUserStickerFavorite,
@@ -52,12 +67,48 @@ export function StickerLibraryScreen() {
   const [selectedSticker, setSelectedSticker] = useState<StickerAsset | null>(
     null,
   );
+  const [selectedStickerIdSet, setSelectedStickerIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const cardWidth = getStickerCardWidth(width);
+  const { cardGap, cardWidth } = getStickerLibraryGridLayout(
+    width,
+    appSpacing.screenHorizontalPadding,
+  );
+  const userStickerIds = useMemo(
+    () =>
+      stickers
+        .filter(
+          (sticker): sticker is UserStickerAsset => sticker.source === "user",
+        )
+        .map((sticker) => sticker.id),
+    [stickers],
+  );
+  const userStickerIdSet = useMemo(
+    () => new Set(userStickerIds),
+    [userStickerIds],
+  );
+  const selectedStickerIds = useMemo(
+    () =>
+      new Set(
+        Array.from(selectedStickerIdSet).filter((assetId) =>
+          userStickerIdSet.has(assetId),
+        ),
+      ),
+    [selectedStickerIdSet, userStickerIdSet],
+  );
+  const allUserStickersSelected =
+    userStickerIds.length > 0 &&
+    userStickerIds.every((assetId) => selectedStickerIds.has(assetId));
   const currentSelectedSticker = selectedSticker
     ? (stickers.find((sticker) => sticker.id === selectedSticker.id) ??
       selectedSticker)
     : null;
+  const bottomActionOffset = Math.max(insets.bottom - 10, 8);
+
+  useAppBottomNavigationHidden(isSelectionMode);
 
   const handleRegisterFromLibrary = async () => {
     const result = await registerFromLibrary();
@@ -73,7 +124,7 @@ export function StickerLibraryScreen() {
     if (result === "empty") {
       Alert.alert(
         "이미지 없음",
-        "클립보드에서 붙여넣을 이미지를 찾지 못했어요. iOS에서 붙여넣기 권한을 거부한 경우에도 이 안내가 표시될 수 있어요.",
+        "기기 클립보드에서 붙여넣을 이미지를 찾지 못했어요.",
       );
       return;
     }
@@ -100,6 +151,10 @@ export function StickerLibraryScreen() {
   };
 
   const handleOpenStickerDetails = (asset: StickerAsset) => {
+    if (isSelectionMode) {
+      return;
+    }
+
     setSelectedSticker(asset);
   };
 
@@ -134,23 +189,103 @@ export function StickerLibraryScreen() {
     return true;
   };
 
+  const handleToggleStickerSelection = (asset: StickerAsset) => {
+    if (asset.source !== "user") {
+      return;
+    }
+
+    setIsSelectionMode(true);
+    setSelectedStickerIds((current) => {
+      const nextSelectedStickerIds = new Set(current);
+
+      if (nextSelectedStickerIds.has(asset.id)) {
+        nextSelectedStickerIds.delete(asset.id);
+      } else {
+        nextSelectedStickerIds.add(asset.id);
+      }
+
+      return nextSelectedStickerIds;
+    });
+  };
+
+  const handleCancelSelection = () => {
+    setIsSelectionMode(false);
+    setSelectedStickerIds(new Set());
+  };
+
+  const handleSelectAllUserStickers = () => {
+    setSelectedStickerIds(new Set(userStickerIds));
+  };
+
+  const handleClearAllSelectedStickers = () => {
+    setSelectedStickerIds(new Set());
+  };
+
+  const handleDeleteSelectedStickers = () => {
+    const selectedIds = Array.from(selectedStickerIds);
+
+    if (selectedIds.length === 0 || isSaving) {
+      return;
+    }
+
+    Alert.alert(
+      "스티커 삭제",
+      `선택한 스티커 ${selectedIds.length}개를 삭제할까요?`,
+      [
+        {
+          text: "취소",
+          style: "cancel",
+        },
+        {
+          text: "삭제",
+          style: "destructive",
+          onPress: () => {
+            void deleteUserStickers(selectedIds).then(
+              ({ deletedIds, failedIds }) => {
+                if (deletedIds.length > 0) {
+                  setIsSelectionMode(false);
+                  setSelectedStickerIds(new Set());
+                } else {
+                  setSelectedStickerIds(
+                    new Set(
+                      selectedIds.filter((assetId) =>
+                        failedIds.includes(assetId),
+                      ),
+                    ),
+                  );
+                }
+
+                if (failedIds.length === 0) {
+                  return;
+                }
+
+                Alert.alert("삭제 실패", "일부 스티커를 삭제하지 못했어요.");
+              },
+            );
+          },
+        },
+      ],
+    );
+  };
+
   return (
     <AppSafeAreaView>
       <AppBar>
         <AppBar.Title variant="large">Stickers</AppBar.Title>
         <Menu
           accessibilityLabel="스티커 등록 메뉴 열기"
-          trigger={{ icon: ADD_ICON }}
+          disabled={isSelectionMode}
+          trigger={{ icon: "Add" }}
         >
           <Menu.Item
-            icon={LIBRARY_ICON}
+            icon="Gallery"
             label="갤러리에서 등록"
             onPress={() => {
               void handleRegisterFromLibrary();
             }}
           />
           <Menu.Item
-            icon={CLIPBOARD_ICON}
+            icon="Clipboard"
             label="클립보드 붙여넣기"
             onPress={() => {
               void handleRegisterFromClipboard();
@@ -160,7 +295,10 @@ export function StickerLibraryScreen() {
       </AppBar>
 
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          isSelectionMode && styles.contentWithSelectionActionBar,
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <SegmentedTabs
@@ -174,23 +312,28 @@ export function StickerLibraryScreen() {
             <Text style={styles.emptyText}>스티커를 불러오는 중이에요.</Text>
           </View>
         ) : (
-          <View style={styles.grid}>
+          <View style={[styles.grid, { gap: cardGap }]}>
             {stickers.map((asset) => (
               <StickerTile
                 key={asset.id}
                 asset={asset}
+                isSelectable={asset.source === "user"}
+                isSelected={selectedStickerIds.has(asset.id)}
+                selectionMode={isSelectionMode}
+                showsSelectionControl
                 tileSize={cardWidth}
                 onOpenDetails={handleOpenStickerDetails}
+                onToggleSelection={handleToggleStickerSelection}
               />
             ))}
           </View>
         )}
 
-        {isSaving ? (
+        {isSaving && (
           <View style={styles.savingPanel}>
             <Text style={styles.savingText}>스티커를 저장하는 중이에요.</Text>
           </View>
-        ) : null}
+        )}
       </ScrollView>
       <StickerDetailSheet
         asset={currentSelectedSticker}
@@ -200,45 +343,92 @@ export function StickerLibraryScreen() {
         onDeleteUserSticker={handleDeleteStickerFromDetails}
         onToggleUserStickerFavorite={handleToggleStickerFavorite}
       />
+      {isSelectionMode && (
+        <StickerSelectionActionBar
+          allSelected={allUserStickersSelected}
+          bottomOffset={bottomActionOffset}
+          isSaving={isSaving}
+          selectedCount={selectedStickerIds.size}
+          onCancel={handleCancelSelection}
+          onClearAll={handleClearAllSelectedStickers}
+          onDelete={handleDeleteSelectedStickers}
+          onSelectAll={handleSelectAllUserStickers}
+        />
+      )}
     </AppSafeAreaView>
   );
 }
 
-function StickerTile(props: {
-  asset: StickerAsset;
-  tileSize: number;
-  onOpenDetails: (asset: StickerAsset) => void;
+function StickerSelectionActionBar(props: {
+  allSelected: boolean;
+  bottomOffset: number;
+  isSaving: boolean;
+  selectedCount: number;
+  onCancel: () => void;
+  onClearAll: () => void;
+  onDelete: () => void;
+  onSelectAll: () => void;
 }) {
-  const { asset, onOpenDetails, tileSize } = props;
-  const title = asset.name ?? "Sticker";
+  const {
+    allSelected,
+    bottomOffset,
+    isSaving,
+    onCancel,
+    onClearAll,
+    onDelete,
+    onSelectAll,
+    selectedCount,
+  } = props;
+
+  return (
+    <View
+      pointerEvents="box-none"
+      style={[styles.selectionOverlay, { bottom: bottomOffset }]}
+    >
+      <Animated.View
+        entering={ACTION_BAR_ENTERING}
+        exiting={ACTION_BAR_EXITING}
+        style={styles.selectionBar}
+      >
+        <SelectionActionButton label="취소" onPress={onCancel} />
+        <SelectionActionButton
+          label={allSelected ? "모두 해제" : "모두 선택"}
+          onPress={allSelected ? onClearAll : onSelectAll}
+        />
+        <SelectionActionButton
+          accessibilityLabel={`선택한 스티커 ${selectedCount}개 삭제`}
+          disabled={isSaving}
+          label="삭제"
+          onPress={onDelete}
+        />
+      </Animated.View>
+    </View>
+  );
+}
+
+function SelectionActionButton(props: {
+  accessibilityLabel?: string;
+  disabled?: boolean;
+  label: string;
+  onPress: () => void;
+}) {
+  const { accessibilityLabel, disabled = false, label, onPress } = props;
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={title}
-      accessibilityHint="길게 눌러 스티커 상세보기"
-      delayLongPress={260}
+      accessibilityLabel={accessibilityLabel ?? label}
+      disabled={disabled}
       style={({ pressed }) => [
-        styles.stickerTile,
-        pressed && styles.stickerTilePressed,
-        {
-          height: tileSize,
-          width: tileSize,
-        },
+        styles.selectionActionButton,
+        pressed && !disabled && styles.selectionActionButtonPressed,
+        disabled && styles.selectionActionButtonDisabled,
       ]}
-      onLongPress={() => onOpenDetails(asset)}
+      onPress={onPress}
     >
-      <StickerAssetPreview asset={asset} />
+      <Text style={styles.selectionActionButtonLabel}>{label}</Text>
     </Pressable>
   );
-}
-
-function getStickerCardWidth(windowWidth: number): number {
-  const contentWidth = windowWidth - appSpacing.screenHorizontalPadding * 2;
-  const columnCount = contentWidth >= 720 ? 4 : 3;
-  const totalGap = CARD_GAP * (columnCount - 1);
-
-  return Math.floor((contentWidth - totalGap) / columnCount);
 }
 
 const styles = StyleSheet.create({
@@ -248,19 +438,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: appSpacing.screenHorizontalPadding,
     paddingTop: appSpacing.screenContentTopPadding,
   },
+  contentWithSelectionActionBar: {
+    paddingBottom: appSpacing.screenContentBottomPadding + 72,
+  },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: CARD_GAP,
-  },
-  stickerTile: {
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "visible",
-    position: "relative",
-  },
-  stickerTilePressed: {
-    opacity: 0.72,
   },
   emptyPanel: {
     alignItems: "center",
@@ -287,6 +470,55 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: "center",
     padding: 14,
+  },
+  selectionActionButton: {
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.68)",
+    borderColor: "rgba(255,255,255,0.82)",
+    borderRadius: 21,
+    borderWidth: 1,
+    flex: 1,
+    height: 40,
+    justifyContent: "center",
+    paddingHorizontal: 14,
+  },
+  selectionActionButtonDisabled: {
+    opacity: 0.45,
+  },
+  selectionActionButtonLabel: {
+    color: appColors.black,
+    fontSize: 14,
+    fontWeight: "800",
+    lineHeight: 18,
+  },
+  selectionActionButtonPressed: {
+    backgroundColor: "rgba(18,18,18,0.16)",
+  },
+  selectionBar: {
+    alignItems: "center",
+    backgroundColor: "transparent",
+    borderColor: "transparent",
+    borderRadius: 26,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 8,
+    height: 52,
+    maxWidth: 316,
+    paddingHorizontal: 6,
+    shadowColor: appColors.black,
+    shadowOffset: { height: 10, width: 0 },
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    width: "100%",
+  },
+  selectionOverlay: {
+    alignItems: "center",
+    elevation: 6,
+    left: 0,
+    paddingHorizontal: 36,
+    position: "absolute",
+    right: 0,
+    zIndex: appLayers.bottomNavigation,
   },
   savingText: {
     color: appColors.white,

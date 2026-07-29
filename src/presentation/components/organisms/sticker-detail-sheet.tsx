@@ -1,6 +1,6 @@
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
-import { useEffect, useMemo, useRef } from "react";
-import { Alert, Pressable, StyleSheet, View } from "react-native";
+import { useEffect, useRef } from "react";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type {
@@ -8,13 +8,12 @@ import type {
   UserStickerAsset,
 } from "@/application/services/stickers/types";
 import { AppBottomSheetBackdrop } from "@/presentation/components/atoms/app-bottom-sheet-backdrop";
-import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
-import { StickerAssetPreview } from "@/presentation/features/stickers/sticker-asset-preview";
+import { StickerAssetPreview } from "@/presentation/components/organisms/sticker-asset-preview";
 import { appColors } from "@/presentation/theme/colors";
 import { appLayers } from "@/presentation/theme/layers";
 import { appSpacing } from "@/presentation/theme/spacing";
 
-type StickerDetailSheetProps = {
+export type StickerDetailSheetProps = {
   asset: StickerAsset | null;
   isSaving: boolean;
   visible: boolean;
@@ -34,7 +33,6 @@ export function StickerDetailSheet(props: StickerDetailSheetProps) {
   } = props;
   const insets = useSafeAreaInsets();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
-  const snapPoints = useMemo(() => ["46%"], []);
 
   useEffect(() => {
     if (visible && asset) {
@@ -59,18 +57,17 @@ export function StickerDetailSheet(props: StickerDetailSheetProps) {
       backdropComponent={AppBottomSheetBackdrop}
       backgroundStyle={styles.sheetBackground}
       containerStyle={styles.sheetContainer}
-      enableDynamicSizing={false}
+      enableDynamicSizing
       enablePanDownToClose
       handleIndicatorStyle={styles.handleIndicator}
       index={0}
-      snapPoints={snapPoints}
       onDismiss={onClose}
     >
       <StickerDetailSheetContent
         key={asset.id}
         asset={asset}
         isSaving={isSaving}
-        paddingBottom={Math.max(insets.bottom, 18) + 10}
+        paddingBottom={Math.max(insets.bottom, 18)}
         onClose={handleClose}
         onDeleteUserSticker={onDeleteUserSticker}
         onToggleUserStickerFavorite={onToggleUserStickerFavorite}
@@ -132,48 +129,68 @@ function StickerDetailSheetContent(props: {
     <BottomSheetView style={[styles.content, { paddingBottom }]}>
       <View style={styles.previewPanel}>
         <StickerAssetPreview asset={asset} size="detail" />
-        {asset.source === "user" ? (
-          <View style={styles.previewActions}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={
-                asset.isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"
-              }
-              accessibilityState={{ selected: Boolean(asset.isFavorite) }}
-              disabled={isSaving}
-              style={({ pressed }) => [
-                styles.iconButton,
-                asset.isFavorite && styles.iconButtonActive,
-                isSaving && styles.iconButtonDisabled,
-                pressed && !isSaving && styles.iconButtonPressed,
-              ]}
-              onPress={handleFavoritePress}
-            >
-              <ReiconIcon
-                color={appColors.white}
-                name="Star"
-                size={24}
-                weight={asset.isFavorite ? "Filled" : "Outline"}
-              />
-            </Pressable>
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="스티커 삭제"
-              disabled={isSaving}
-              style={({ pressed }) => [
-                styles.iconButton,
-                isSaving && styles.iconButtonDisabled,
-                pressed && !isSaving && styles.iconButtonPressed,
-              ]}
-              onPress={handleDeletePress}
-            >
-              <ReiconIcon color={appColors.white} name="Trash5" size={24} />
-            </Pressable>
-          </View>
-        ) : null}
       </View>
+      {asset.source === "user" && (
+        <View style={styles.actionRow}>
+          <DetailActionButton
+            accessibilityLabel={
+              asset.isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"
+            }
+            disabled={isSaving}
+            label={asset.isFavorite ? "북마크 해제" : "북마크"}
+            selected={Boolean(asset.isFavorite)}
+            onPress={handleFavoritePress}
+          />
+          <DetailActionButton
+            accessibilityLabel="스티커 삭제"
+            disabled={isSaving}
+            label="삭제"
+            onPress={handleDeletePress}
+          />
+        </View>
+      )}
     </BottomSheetView>
+  );
+}
+
+function DetailActionButton(props: {
+  accessibilityLabel: string;
+  disabled: boolean;
+  label: string;
+  selected?: boolean;
+  onPress: () => void;
+}) {
+  const {
+    accessibilityLabel,
+    disabled,
+    label,
+    onPress,
+    selected = false,
+  } = props;
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled, selected }}
+      disabled={disabled}
+      style={({ pressed }) => [
+        styles.actionButton,
+        selected && styles.actionButtonSelected,
+        disabled && styles.actionButtonDisabled,
+        pressed && !disabled && styles.actionButtonPressed,
+      ]}
+      onPress={onPress}
+    >
+      <Text
+        style={[
+          styles.actionButtonLabel,
+          selected && styles.actionButtonSelectedLabel,
+        ]}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -192,8 +209,43 @@ const styles = StyleSheet.create({
     width: 44,
   },
   content: {
+    gap: 14,
     paddingHorizontal: appSpacing.screenHorizontalPadding,
     paddingTop: 14,
+  },
+  actionButton: {
+    alignItems: "center",
+    backgroundColor: appColors.white,
+    borderColor: "#D1D5DB",
+    borderRadius: 999,
+    borderWidth: 1,
+    flex: 1,
+    height: 42,
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+  actionButtonDisabled: {
+    opacity: 0.45,
+  },
+  actionButtonLabel: {
+    color: appColors.black,
+    fontSize: 14,
+    fontWeight: "800",
+    lineHeight: 18,
+  },
+  actionButtonPressed: {
+    opacity: 0.78,
+  },
+  actionButtonSelected: {
+    backgroundColor: appColors.black,
+    borderColor: appColors.black,
+  },
+  actionButtonSelectedLabel: {
+    color: appColors.white,
+  },
+  actionRow: {
+    flexDirection: "row",
+    gap: 10,
   },
   previewPanel: {
     alignItems: "center",
@@ -205,29 +257,5 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     padding: 12,
     position: "relative",
-  },
-  previewActions: {
-    flexDirection: "row",
-    gap: 8,
-    position: "absolute",
-    right: 12,
-    top: 12,
-  },
-  iconButton: {
-    alignItems: "center",
-    backgroundColor: appColors.blackOverlay26,
-    borderRadius: 20,
-    height: 40,
-    justifyContent: "center",
-    width: 40,
-  },
-  iconButtonActive: {
-    backgroundColor: appColors.blackOverlay34,
-  },
-  iconButtonPressed: {
-    backgroundColor: appColors.blackOverlay34,
-  },
-  iconButtonDisabled: {
-    opacity: 0.45,
   },
 });
