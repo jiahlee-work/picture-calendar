@@ -7,7 +7,7 @@ import {
   clampCalendarMonth,
 } from "@/application/services/calendar/calendar-month-navigation";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
-import { DailyPhotoPolicyDialog } from "@/presentation/components/molecules/daily-photo-policy-dialog";
+import { DailyPhotoPolicyDialog } from "@/presentation/components/organisms/daily-photo-policy-dialog";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { CalendarWheelPickerSheet } from "@/presentation/components/organisms/calendar-wheel-picker-sheet";
 import { DailyPhotoDetailSheet } from "@/presentation/components/organisms/daily-photo-detail-sheet";
@@ -43,22 +43,28 @@ export function MonthlyCalendarScreen() {
   } = useTodayPhotoFlow(activeMonth);
   const isShareReady = calendar.days.length > 0;
   const shareFileName = dayjs(activeMonth).format("YYYY-MM");
+
   const handlePreviousMonth = () => {
     setActiveMonth((current) => addNavigableCalendarMonths(current, -1));
   };
+
   const handleNextMonth = () => {
     setActiveMonth((current) => addNavigableCalendarMonths(current, 1));
   };
+
   const handleOpenYearMonthPicker = () => {
     setIsYearMonthPickerVisible(true);
   };
+
   const handleCloseYearMonthPicker = () => {
     setIsYearMonthPickerVisible(false);
   };
+
   const handleConfirmYearMonth = (date: Date) => {
     setActiveMonth(clampCalendarMonth(date));
     setIsYearMonthPickerVisible(false);
   };
+
   const handleContainerLayout = (event: LayoutChangeEvent) => {
     const nextLayout = {
       height: Math.round(event.nativeEvent.layout.height),
@@ -76,6 +82,7 @@ export function MonthlyCalendarScreen() {
       return nextLayout;
     });
   };
+
   const handleRequestDeletePhoto = () => {
     Alert.alert(
       "사진 삭제",
@@ -115,7 +122,6 @@ export function MonthlyCalendarScreen() {
             />
           </View>
         </AppBar>
-
         <View style={styles.content}>
           <MonthlyCalendar
             calendar={calendar}
@@ -125,7 +131,7 @@ export function MonthlyCalendarScreen() {
           />
         </View>
       </View>
-      {shareContentLayout ? (
+      {shareContentLayout && (
         <View
           ref={shareCaptureRef}
           collapsable={false}
@@ -154,7 +160,7 @@ export function MonthlyCalendarScreen() {
             </View>
           </View>
         </View>
-      ) : null}
+      )}
       <DailyPhotoPolicyDialog dialog={policyDialog} onCancel={dismissDialog} />
       <DailyPhotoDetailSheet
         dateLabel={photoDetail?.dateLabel ?? ""}

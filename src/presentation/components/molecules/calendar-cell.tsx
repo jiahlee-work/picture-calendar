@@ -14,32 +14,53 @@ type CalendarCellProps = {
 };
 
 export function CalendarCell(props: CalendarCellProps) {
-  const { cellHeight, cellWidth, day, onLongPressDate, onPressDate, selectionOrder = null } = props;
+  const {
+    cellHeight,
+    cellWidth,
+    day,
+    onLongPressDate,
+    onPressDate,
+    selectionOrder = null,
+  } = props;
   const isToday = day?.isToday;
   const photo = day?.photo;
   const isSelected = typeof selectionOrder === "number";
 
   if (!day) {
-    return <View style={[styles.cell, styles.emptyCell, { height: cellHeight, width: cellWidth }]} />;
+    return (
+      <View
+        style={[
+          styles.cell,
+          styles.emptyCell,
+          { height: cellHeight, width: cellWidth },
+        ]}
+      />
+    );
   }
 
   return (
     <Pressable
       accessibilityState={isSelected ? { selected: true } : undefined}
-      style={[styles.cell, { height: cellHeight, width: cellWidth }, isToday && styles.todayCell]}
+      style={[
+        styles.cell,
+        { height: cellHeight, width: cellWidth },
+        isToday && styles.todayCell,
+      ]}
       onLongPress={onLongPressDate ? () => onLongPressDate(day.key) : undefined}
       onPress={() => onPressDate(day.key)}
     >
-      {isToday ? <View style={styles.todayMark} /> : null}
-      {photo ? <DailyPhotoImage imagePath={photo.imagePath} /> : null}
-      <Text style={[styles.dateText, isToday && styles.todayText]}>{day.dayOfMonth}</Text>
-      {isSelected ? (
+      {isToday && <View style={styles.todayMark} />}
+      {photo && <DailyPhotoImage imagePath={photo.imagePath} />}
+      <Text style={[styles.dateText, isToday && styles.todayText]}>
+        {day.dayOfMonth}
+      </Text>
+      {isSelected && (
         <View pointerEvents="none" style={styles.selectedOverlay}>
           <View style={styles.selectionBadge}>
             <Text style={styles.selectionText}>{selectionOrder}</Text>
           </View>
         </View>
-      ) : null}
+      )}
     </Pressable>
   );
 }

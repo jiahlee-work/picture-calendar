@@ -1,15 +1,19 @@
-import { Linking, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { toMediaLibraryPermissionMessage } from "@/presentation/helpers/permissions/media-library-permission-message";
 import { appColors } from "@/presentation/theme/colors";
 
 type MediaLibraryPermissionAlertProps = {
   canAskAgain: boolean;
   visible: boolean;
   onClose: () => void;
+  onOpenSettings: () => void;
 };
 
-export function MediaLibraryPermissionAlert(props: MediaLibraryPermissionAlertProps) {
-  const { canAskAgain, onClose, visible } = props;
+export function MediaLibraryPermissionAlert(
+  props: MediaLibraryPermissionAlertProps,
+) {
+  const { canAskAgain, onClose, onOpenSettings, visible } = props;
 
   if (!visible) {
     return null;
@@ -17,37 +21,41 @@ export function MediaLibraryPermissionAlert(props: MediaLibraryPermissionAlertPr
 
   const handleOpenSettings = () => {
     onClose();
-    void Linking.openSettings();
+    onOpenSettings();
   };
 
   return (
     <Modal animationType="fade" transparent visible onRequestClose={onClose}>
-      <Pressable accessibilityLabel="저장 권한 안내 닫기" style={styles.backdrop} onPress={onClose}>
-        <Pressable style={styles.card} onPress={(event) => event.stopPropagation()}>
+      <Pressable
+        accessibilityLabel="저장 권한 안내 닫기"
+        style={styles.backdrop}
+        onPress={onClose}
+      >
+        <Pressable
+          style={styles.card}
+          onPress={(event) => event.stopPropagation()}
+        >
           <Text style={styles.title}>저장 권한 필요</Text>
-          <Text style={styles.message}>{toPermissionMessage(canAskAgain)}</Text>
+          <Text style={styles.message}>
+            {toMediaLibraryPermissionMessage(canAskAgain)}
+          </Text>
           <View style={styles.actions}>
             <Pressable style={styles.secondaryButton} onPress={onClose}>
               <Text style={styles.secondaryButtonText}>확인</Text>
             </Pressable>
-            {!canAskAgain ? (
-              <Pressable style={styles.primaryButton} onPress={handleOpenSettings}>
+            {!canAskAgain && (
+              <Pressable
+                style={styles.primaryButton}
+                onPress={handleOpenSettings}
+              >
                 <Text style={styles.primaryButtonText}>설정 열기</Text>
               </Pressable>
-            ) : null}
+            )}
           </View>
         </Pressable>
       </Pressable>
     </Modal>
   );
-}
-
-function toPermissionMessage(canAskAgain: boolean) {
-  if (canAskAgain) {
-    return "이미지를 갤러리에 저장하려면 사진 저장 권한이 필요해요.";
-  }
-
-  return "사진 저장 권한이 꺼져 있어 이미지를 저장할 수 없어요. 설정에서 권한을 허용해 주세요.";
 }
 
 const styles = StyleSheet.create({

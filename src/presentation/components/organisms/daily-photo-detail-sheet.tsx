@@ -100,11 +100,7 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
               style={styles.iconButton}
               onPress={onDeletePhoto}
             >
-              <ReiconIcon
-                color="#ffffff"
-                name="Trash5"
-                size={20}
-              />
+              <ReiconIcon color="#ffffff" name="Trash5" size={20} />
             </Pressable>
           ) : (
             <View style={styles.topSpacer} />
@@ -121,11 +117,7 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
                 오늘 안에는 사진을 바꿀 수 있어요.
               </Text>
               <View style={styles.galleryIcon}>
-                <ReiconIcon
-                  color="#ffffff"
-                  name="Gallery"
-                  size={24}
-                />
+                <ReiconIcon color="#ffffff" name="Gallery" size={24} />
               </View>
             </Pressable>
           </View>

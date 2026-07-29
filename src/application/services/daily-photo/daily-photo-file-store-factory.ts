@@ -2,7 +2,9 @@ import { createLocalDailyPhotoFileStore } from "@/infrastructure/persistence/dai
 import { dayjs } from "@/shared/date/dayjs";
 import type { DailyPhotoFileStore } from "@/shared/daily-photo/types";
 
-export function createDailyPhotoFileStoreForRuntime(platform = process.env.EXPO_OS): DailyPhotoFileStore {
+export function createDailyPhotoFileStoreForRuntime(
+  platform: string,
+): DailyPhotoFileStore {
   if (platform === "web") {
     return createWebDailyPhotoFileStore();
   }

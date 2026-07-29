@@ -13,18 +13,10 @@ export function PhotoStorageNoticeBanner() {
       >
         <View style={[styles.photoCard, styles.backPhotoCard]} />
         <View style={[styles.photoCard, styles.frontPhotoCard]}>
-          <ReiconIcon
-            color={appColors.white}
-            name="Image"
-            size={27}
-          />
+          <ReiconIcon color={appColors.white} name="Image" size={27} />
         </View>
         <View style={styles.warningBadge}>
-          <ReiconIcon
-            color={appColors.white}
-            name="AlertCircle"
-            size={15}
-          />
+          <ReiconIcon color={appColors.white} name="AlertCircle" size={15} />
         </View>
       </View>
       <View style={styles.bannerCopy}>

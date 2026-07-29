@@ -17,8 +17,15 @@ export function DailyPhotoPolicyDialog(props: DailyPhotoPolicyDialogProps) {
 
   return (
     <Modal animationType="fade" transparent visible onRequestClose={onCancel}>
-      <Pressable accessibilityLabel="안내 닫기" style={styles.backdrop} onPress={onCancel}>
-        <Pressable style={styles.card} onPress={(event) => event.stopPropagation()}>
+      <Pressable
+        accessibilityLabel="안내 닫기"
+        style={styles.backdrop}
+        onPress={onCancel}
+      >
+        <Pressable
+          style={styles.card}
+          onPress={(event) => event.stopPropagation()}
+        >
           <Text style={styles.title}>{dialog.title}</Text>
           <Text style={styles.message}>{dialog.message}</Text>
           <View style={styles.actions}>
