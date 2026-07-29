@@ -6,7 +6,6 @@ import type {
   UserStickerAssetDraft,
   UserStickerAssetUpdate,
 } from "@/shared/stickers/types";
-import { DEFAULT_BUILT_IN_STICKER_ASSETS } from "@/shared/stickers/types";
 import { dayjs } from "@/shared/date/dayjs";
 
 type LocalStickerRepositoryOptions = {
@@ -28,11 +27,6 @@ export function createLocalStickerRepository(
   const now = normalizedOptions.now ?? (() => dayjs().toDate());
 
   return {
-    async listAssets(userId) {
-      const userAssets = await listUserStickerAssets(metadataStore, userId);
-
-      return [...DEFAULT_BUILT_IN_STICKER_ASSETS, ...userAssets];
-    },
     async listUserAssets(userId) {
       return listUserStickerAssets(metadataStore, userId);
     },

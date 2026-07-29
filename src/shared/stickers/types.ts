@@ -82,7 +82,6 @@ export type StickerMetadataStore = {
 };
 
 export type StickerRepository = {
-  listAssets: (userId: string) => Promise<StickerAsset[]>;
   listUserAssets: (userId: string) => Promise<UserStickerAsset[]>;
   saveUserAsset: (sticker: UserStickerAssetDraft) => Promise<UserStickerAsset>;
   updateUserAsset: (
@@ -95,20 +94,3 @@ export type StickerRepository = {
     assetId: string,
   ) => Promise<UserStickerAsset | null>;
 };
-
-export const DEFAULT_BUILT_IN_STICKER_ASSETS: BuiltInStickerAsset[] = [
-  {
-    id: "built-in-calendar",
-    source: "builtIn",
-    name: "달력",
-    variant: "calendar",
-    tags: ["calendar"],
-  },
-  {
-    id: "built-in-polaroid-frame",
-    source: "builtIn",
-    name: "폴라로이드 프레임",
-    variant: "polaroidFrame",
-    tags: ["polaroid", "photo"],
-  },
-];

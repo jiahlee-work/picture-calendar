@@ -1,7 +1,7 @@
 import {
   normalizeImageFileExtension,
   sanitizeStoragePathSegment,
-} from "@/shared/daily-photo/storage-key";
+} from "@/infrastructure/persistence/daily-photo/daily-photo-storage-key";
 
 export function toStickerStorageKey({
   extension,

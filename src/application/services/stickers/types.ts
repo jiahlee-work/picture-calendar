@@ -1,5 +1,4 @@
 export {
-  DEFAULT_BUILT_IN_STICKER_ASSETS,
   type BuiltInStickerAsset,
   type BuiltInStickerPlacementState,
   type BuiltInStickerVariant,

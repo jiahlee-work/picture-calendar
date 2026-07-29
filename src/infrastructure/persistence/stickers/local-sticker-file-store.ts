@@ -8,9 +8,9 @@ import {
   imageFileExtensionFromFileName,
   imageFileExtensionFromMimeType,
   sanitizeStoragePathSegment,
-} from "@/shared/daily-photo/storage-key";
+} from "@/infrastructure/persistence/daily-photo/daily-photo-storage-key";
 import { dayjs } from "@/shared/date/dayjs";
-import { toStickerStorageKey } from "@/shared/stickers/storage-key";
+import { toStickerStorageKey } from "@/infrastructure/persistence/stickers/sticker-storage-key";
 
 const STICKERS_DIRECTORY_NAME = "stickers";
 
@@ -23,7 +23,8 @@ export function createLocalStickerFileStore(): StickerFileStore {
         extension:
           imageFileExtensionFromMimeType(mimeType) ??
           imageFileExtensionFromFileName(fileName) ??
-          source?.extension,
+          source?.extension ??
+          "png",
         revision: dayjs().valueOf().toString(36),
       });
       const destination = toStickerFile(storageKey);
