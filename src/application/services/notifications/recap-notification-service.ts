@@ -15,10 +15,16 @@ import {
 import { createLocalNotificationAdapterForRuntime } from "@/application/services/notifications/local-notification-adapter-factory";
 import { sortRecapMonthPhotos } from "@/application/services/recap/monthly-recap-photos";
 import { createMonthlyRecapRepositoryForRuntime } from "@/application/services/recap/monthly-recap-repository-factory";
-import { MonthlyRecapSelectionStatus, type MonthlyRecapRepository } from "@/application/services/recap/types";
+import {
+  MonthlyRecapSelectionStatus,
+  type MonthlyRecapRepository,
+} from "@/application/services/recap/types";
 import { createRecapNotificationSettingsRepositoryForRuntime } from "@/application/services/settings/recap-notification-settings-repository-factory";
 import type { RecapNotificationSettingsRepository } from "@/application/services/settings/recap-notification-settings";
-import { LocalNotificationPermissionStatus, type LocalNotificationAdapter } from "@/shared/notifications/types";
+import {
+  LocalNotificationPermissionStatus,
+  type LocalNotificationAdapter,
+} from "@/shared/notifications/types";
 
 type BuildNextMonthlyRecapNotificationPlanOptions = {
   currentDate?: Date;
@@ -51,6 +57,12 @@ type ResolveMonthlyRecapNotificationRouteOptions = {
   userId: string;
 };
 
+type HandleMonthlyRecapNotificationResponseOptions =
+  ResolveMonthlyRecapNotificationRouteOptions & {
+    notificationAdapter: LocalNotificationAdapter;
+    settingsRepository: RecapNotificationSettingsRepository;
+  };
+
 export async function buildNextMonthlyRecapNotificationPlan({
   currentDate,
   dailyPhotoRepository,
@@ -80,9 +92,9 @@ export async function syncMonthlyRecapNotificationSchedule({
   const permissionStatus = await notificationAdapter.getPermissionStatus();
 
   if (
-    !settings.isEnabled
-    || !notificationAdapter.isSupported
-    || permissionStatus !== LocalNotificationPermissionStatus.granted
+    !settings.isEnabled ||
+    !notificationAdapter.isSupported ||
+    permissionStatus !== LocalNotificationPermissionStatus.granted
   ) {
     await cancelMonthlyRecapNotifications(notificationAdapter);
     return null;
@@ -115,7 +127,7 @@ export async function syncMonthlyRecapNotificationSchedule({
 }
 
 export async function syncMonthlyRecapNotificationScheduleForRuntime(
-  platform?: string,
+  platform: string,
   currentDate?: Date,
 ): Promise<MonthlyRecapNotificationPlan | null> {
   return syncMonthlyRecapNotificationSchedule({
@@ -123,9 +135,37 @@ export async function syncMonthlyRecapNotificationScheduleForRuntime(
     dailyPhotoRepository: createDailyPhotoRepositoryForRuntime(platform),
     notificationAdapter: createLocalNotificationAdapterForRuntime(platform),
     recapRepository: createMonthlyRecapRepositoryForRuntime(platform),
-    settingsRepository: createRecapNotificationSettingsRepositoryForRuntime(platform),
+    settingsRepository:
+      createRecapNotificationSettingsRepositoryForRuntime(platform),
     userId: LOCAL_USER_ID,
   });
+}
+
+export async function handleMonthlyRecapNotificationResponse({
+  dailyPhotoRepository,
+  data,
+  notificationAdapter,
+  recapRepository,
+  settingsRepository,
+  userId,
+}: HandleMonthlyRecapNotificationResponseOptions): Promise<MonthlyRecapNotificationRoute | null> {
+  const route = await resolveMonthlyRecapNotificationRoute({
+    dailyPhotoRepository,
+    data,
+    recapRepository,
+    userId,
+  });
+
+  notificationAdapter.clearLastResponse();
+  await syncMonthlyRecapNotificationSchedule({
+    dailyPhotoRepository,
+    notificationAdapter,
+    recapRepository,
+    settingsRepository,
+    userId,
+  });
+
+  return route;
 }
 
 async function buildMonthlyRecapNotificationPlanForMonth({
@@ -135,11 +175,16 @@ async function buildMonthlyRecapNotificationPlanForMonth({
   triggerDate,
   userId,
 }: BuildMonthlyRecapNotificationPlanForMonthOptions): Promise<MonthlyRecapNotificationPlan | null> {
-  const photos = sortRecapMonthPhotos(await dailyPhotoRepository.listByMonth(userId, month));
+  const photos = sortRecapMonthPhotos(
+    await dailyPhotoRepository.listByMonth(userId, month),
+  );
   const recap = await recapRepository.getByMonth(userId, month);
 
   return createMonthlyRecapNotificationPlan({
-    hasSelectedRecap: hasSelectedRecapForCurrentPhotos(recap, photos.map((photo) => photo.id)),
+    hasSelectedRecap: hasSelectedRecapForCurrentPhotos(
+      recap,
+      photos.map((photo) => photo.id),
+    ),
     month,
     photoCount: photos.length,
     triggerDate,
@@ -158,10 +203,15 @@ export async function resolveMonthlyRecapNotificationRoute({
     return null;
   }
 
-  const photos = sortRecapMonthPhotos(await dailyPhotoRepository.listByMonth(userId, payload.month));
+  const photos = sortRecapMonthPhotos(
+    await dailyPhotoRepository.listByMonth(userId, payload.month),
+  );
   const recap = await recapRepository.getByMonth(userId, payload.month);
   const plan = createMonthlyRecapNotificationPlan({
-    hasSelectedRecap: hasSelectedRecapForCurrentPhotos(recap, photos.map((photo) => photo.id)),
+    hasSelectedRecap: hasSelectedRecapForCurrentPhotos(
+      recap,
+      photos.map((photo) => photo.id),
+    ),
     month: payload.month,
     photoCount: photos.length,
     triggerDate: new Date(),

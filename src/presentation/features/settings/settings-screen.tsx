@@ -8,42 +8,13 @@ import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { appColors } from "@/presentation/theme/colors";
 import { appSpacing } from "@/presentation/theme/spacing";
 
-type SettingsScreenViewProps = {
-  isEnabled: boolean;
-  isLoading: boolean;
-  isSupported: boolean;
-  onToggleRecapNotification: (isEnabled: boolean) => void;
-  onUpdateAppVersion: () => void;
-};
-
 export function SettingsScreen() {
   const { isEnabled, isLoading, isSupported, setEnabled } =
     useRecapNotificationSettings();
 
-  // TODO: 앱 최신 버전 아닐 경우 업데이트
-  const handleUpdateAppVer = () => {
+  const handleUpdateAppVersion = () => {
     console.log("update app version");
   };
-
-  return (
-    <SettingsScreenView
-      isEnabled={isEnabled}
-      isLoading={isLoading}
-      isSupported={isSupported}
-      onToggleRecapNotification={setEnabled}
-      onUpdateAppVersion={handleUpdateAppVer}
-    />
-  );
-}
-
-export function SettingsScreenView(props: SettingsScreenViewProps) {
-  const {
-    isEnabled,
-    isLoading,
-    isSupported,
-    onToggleRecapNotification,
-    onUpdateAppVersion,
-  } = props;
 
   return (
     <AppSafeAreaView>
@@ -68,7 +39,7 @@ export function SettingsScreenView(props: SettingsScreenViewProps) {
               accessibilityLabel="리캡 알림"
               disabled={isLoading || !isSupported}
               value={isEnabled}
-              onValueChange={onToggleRecapNotification}
+              onValueChange={setEnabled}
             />
           </View>
           <View style={styles.settingItem}>
@@ -80,7 +51,7 @@ export function SettingsScreenView(props: SettingsScreenViewProps) {
               accessibilityRole="button"
               accessibilityLabel="업데이트"
               style={styles.update}
-              onPress={onUpdateAppVersion}
+              onPress={handleUpdateAppVersion}
             >
               <Text style={styles.updateLabel}>업데이트</Text>
             </Pressable>
@@ -105,17 +76,17 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 12,
   },
-  settingItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: appColors.blackOverlay26,
-  },
   settingCopy: {
     flex: 1,
     gap: 2,
+  },
+  settingItem: {
+    alignItems: "center",
+    borderBottomColor: appColors.blackOverlay26,
+    borderBottomWidth: 1,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 16,
   },
   settingSubtitle: {
     color: "#6B7280",
@@ -130,10 +101,10 @@ const styles = StyleSheet.create({
     lineHeight: 34,
   },
   update: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
     backgroundColor: appColors.black,
     borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
   updateLabel: {
     color: appColors.white,

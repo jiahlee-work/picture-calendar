@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AppState, Platform } from "react-native";
 
 import { createDailyPhotoRepositoryForRuntime } from "@/application/services/daily-photo/daily-photo-repository-factory";
 import { LOCAL_USER_ID } from "@/application/services/local-user";
@@ -10,8 +9,13 @@ import {
 } from "@/application/services/notifications/recap-notification-service";
 import { createMonthlyRecapRepositoryForRuntime } from "@/application/services/recap/monthly-recap-repository-factory";
 import { createRecapNotificationSettingsRepositoryForRuntime } from "@/application/services/settings/recap-notification-settings-repository-factory";
+import { subscribeToAppActive } from "@/infrastructure/device/app-lifecycle";
+import { runtimePlatform } from "@/infrastructure/device/runtime-platform";
 import { logger } from "@/infrastructure/logging/logger";
-import { LocalNotificationPermissionStatus, type LocalNotificationPermissionStatus as LocalNotificationPermissionStatusType } from "@/shared/notifications/types";
+import {
+  LocalNotificationPermissionStatus,
+  type LocalNotificationPermissionStatus as LocalNotificationPermissionStatusType,
+} from "@/shared/notifications/types";
 
 type UseRecapNotificationSettingsState = {
   errorMessage: string | null;
@@ -30,10 +34,22 @@ const INITIAL_STATE: UseRecapNotificationSettingsState = {
 };
 
 export function useRecapNotificationSettings() {
-  const dailyPhotoRepository = useMemo(() => createDailyPhotoRepositoryForRuntime(Platform.OS), []);
-  const notificationAdapter = useMemo(() => createLocalNotificationAdapterForRuntime(Platform.OS), []);
-  const recapRepository = useMemo(() => createMonthlyRecapRepositoryForRuntime(Platform.OS), []);
-  const settingsRepository = useMemo(() => createRecapNotificationSettingsRepositoryForRuntime(Platform.OS), []);
+  const dailyPhotoRepository = useMemo(
+    () => createDailyPhotoRepositoryForRuntime(runtimePlatform),
+    [],
+  );
+  const notificationAdapter = useMemo(
+    () => createLocalNotificationAdapterForRuntime(runtimePlatform),
+    [],
+  );
+  const recapRepository = useMemo(
+    () => createMonthlyRecapRepositoryForRuntime(runtimePlatform),
+    [],
+  );
+  const settingsRepository = useMemo(
+    () => createRecapNotificationSettingsRepositoryForRuntime(runtimePlatform),
+    [],
+  );
   const [state, setState] = useState<UseRecapNotificationSettingsState>({
     ...INITIAL_STATE,
     isSupported: notificationAdapter.isSupported,
@@ -69,85 +85,107 @@ export function useRecapNotificationSettings() {
         isLoading: false,
       }));
     }
-  }, [dailyPhotoRepository, notificationAdapter, recapRepository, settingsRepository]);
+  }, [
+    dailyPhotoRepository,
+    notificationAdapter,
+    recapRepository,
+    settingsRepository,
+  ]);
 
-  const setEnabled = useCallback(async (isEnabled: boolean) => {
-    setState((current) => ({
-      ...current,
-      errorMessage: null,
-      isLoading: true,
-    }));
+  const setEnabled = useCallback(
+    async (isEnabled: boolean) => {
+      setState((current) => ({
+        ...current,
+        errorMessage: null,
+        isLoading: true,
+      }));
 
-    try {
-      if (!isEnabled || !notificationAdapter.isSupported) {
-        await settingsRepository.save({ isEnabled: false });
-        await cancelMonthlyRecapNotifications(notificationAdapter);
+      try {
+        if (!isEnabled || !notificationAdapter.isSupported) {
+          await settingsRepository.save({ isEnabled: false });
+          await cancelMonthlyRecapNotifications(notificationAdapter);
 
-        setState({
-          errorMessage: null,
-          isEnabled: false,
-          isLoading: false,
-          isSupported: notificationAdapter.isSupported,
-          permissionStatus: await notificationAdapter.getPermissionStatus(),
+          setState({
+            errorMessage: null,
+            isEnabled: false,
+            isLoading: false,
+            isSupported: notificationAdapter.isSupported,
+            permissionStatus: await notificationAdapter.getPermissionStatus(),
+          });
+          return;
+        }
+
+        let permissionStatus = await notificationAdapter.getPermissionStatus();
+
+        if (
+          permissionStatus === LocalNotificationPermissionStatus.undetermined
+        ) {
+          permissionStatus = await notificationAdapter.requestPermission();
+        }
+
+        if (permissionStatus !== LocalNotificationPermissionStatus.granted) {
+          await settingsRepository.save({ isEnabled: false });
+          await cancelMonthlyRecapNotifications(notificationAdapter);
+
+          setState({
+            errorMessage: null,
+            isEnabled: false,
+            isLoading: false,
+            isSupported: notificationAdapter.isSupported,
+            permissionStatus,
+          });
+          return;
+        }
+
+        await settingsRepository.save({ isEnabled: true });
+        await syncMonthlyRecapNotificationSchedule({
+          dailyPhotoRepository,
+          notificationAdapter,
+          recapRepository,
+          settingsRepository,
+          userId: LOCAL_USER_ID,
         });
-        return;
-      }
-
-      let permissionStatus = await notificationAdapter.getPermissionStatus();
-
-      if (permissionStatus === LocalNotificationPermissionStatus.undetermined) {
-        permissionStatus = await notificationAdapter.requestPermission();
-      }
-
-      if (permissionStatus !== LocalNotificationPermissionStatus.granted) {
-        await settingsRepository.save({ isEnabled: false });
-        await cancelMonthlyRecapNotifications(notificationAdapter);
 
         setState({
           errorMessage: null,
-          isEnabled: false,
+          isEnabled: true,
           isLoading: false,
           isSupported: notificationAdapter.isSupported,
           permissionStatus,
         });
-        return;
+      } catch (error) {
+        logger.error("Failed to update recap notification settings", {
+          error,
+          isEnabled,
+        });
+        setState((current) => ({
+          ...current,
+          errorMessage: "리캡 알림 설정을 저장하지 못했습니다.",
+          isLoading: false,
+        }));
       }
-
-      await settingsRepository.save({ isEnabled: true });
-      await syncMonthlyRecapNotificationSchedule({
-        dailyPhotoRepository,
-        notificationAdapter,
-        recapRepository,
-        settingsRepository,
-        userId: LOCAL_USER_ID,
-      });
-
-      setState({
-        errorMessage: null,
-        isEnabled: true,
-        isLoading: false,
-        isSupported: notificationAdapter.isSupported,
-        permissionStatus,
-      });
-    } catch (error) {
-      logger.error("Failed to update recap notification settings", { error, isEnabled });
-      setState((current) => ({
-        ...current,
-        errorMessage: "리캡 알림 설정을 저장하지 못했습니다.",
-        isLoading: false,
-      }));
-    }
-  }, [dailyPhotoRepository, notificationAdapter, recapRepository, settingsRepository]);
+    },
+    [
+      dailyPhotoRepository,
+      notificationAdapter,
+      recapRepository,
+      settingsRepository,
+    ],
+  );
 
   useEffect(() => {
-    void refresh();
+    const frame = requestAnimationFrame(() => {
+      void refresh();
+    });
+
+    return () => {
+      cancelAnimationFrame(frame);
+    };
   }, [refresh]);
 
   useEffect(() => {
-    const subscription = AppState.addEventListener("change", (nextAppState) => {
-      if (nextAppState === "active") {
-        void refresh();
-      }
+    const subscription = subscribeToAppActive(() => {
+      void refresh();
     });
 
     return () => {

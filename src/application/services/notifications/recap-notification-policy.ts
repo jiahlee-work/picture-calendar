@@ -1,4 +1,8 @@
-import { canCreateRecapForMonth, RecapAvailabilityMode } from "@/application/services/recap/recap-month-list";
+import {
+  canCreateRecapForMonth,
+  RecapAvailabilityMode,
+} from "@/application/services/recap/recap-month-list";
+import { MONTHLY_RECAP_SELECTION_LIMIT } from "@/application/services/recap/recap-selection";
 import { dayjs } from "@/shared/date/dayjs";
 
 export const MONTHLY_RECAP_NOTIFICATION_KIND = "monthly-recap";
@@ -6,8 +10,6 @@ export const MONTHLY_RECAP_NOTIFICATION_IDENTIFIER_PREFIX = "monthly-recap";
 
 const MONTHLY_RECAP_NOTIFICATION_HOUR = 9;
 const MONTHLY_RECAP_NOTIFICATION_MINUTE = 0;
-const MONTHLY_RECAP_SELECTION_THRESHOLD = 10;
-
 export const MonthlyRecapNotificationDestination = {
   detail: "detail",
   select: "select",
@@ -41,7 +43,10 @@ export type MonthlyRecapNotificationPayload = {
 export type MonthlyRecapNotificationRoute =
   | { pathname: "/recap" }
   | { params: { month: string }; pathname: "/recap/select" }
-  | { params: { month: string; year: string }; pathname: "/recap/[year]/[month]" };
+  | {
+      params: { month: string; year: string };
+      pathname: "/recap/[year]/[month]";
+    };
 
 type CreateMonthlyRecapNotificationPlanOptions = {
   availabilityMode?: RecapAvailabilityMode;
@@ -81,17 +86,25 @@ export function createMonthlyRecapNotificationPlan({
     return null;
   }
 
-  if (!canCreateRecapForMonth({ availabilityMode, currentDate: triggerDate, month })) {
+  if (
+    !canCreateRecapForMonth({
+      availabilityMode,
+      currentDate: triggerDate,
+      month,
+    })
+  ) {
     return null;
   }
 
-  const destination = hasSelectedRecap || photoCount < MONTHLY_RECAP_SELECTION_THRESHOLD
-    ? MonthlyRecapNotificationDestination.detail
-    : MonthlyRecapNotificationDestination.select;
+  const destination =
+    hasSelectedRecap || photoCount < MONTHLY_RECAP_SELECTION_LIMIT
+      ? MonthlyRecapNotificationDestination.detail
+      : MonthlyRecapNotificationDestination.select;
   const monthLabel = toKoreanMonthLabel(month);
-  const body = destination === MonthlyRecapNotificationDestination.select
-    ? `${monthLabel}의 대표 사진 10장을 골라볼까요?`
-    : `${monthLabel} 리캡이 준비됐어요.`;
+  const body =
+    destination === MonthlyRecapNotificationDestination.select
+      ? `${monthLabel}의 대표 사진 10장을 골라볼까요?`
+      : `${monthLabel} 리캡이 준비됐어요.`;
 
   return {
     body,
@@ -113,10 +126,10 @@ export function parseMonthlyRecapNotificationPayload(
   data: Record<string, unknown>,
 ): MonthlyRecapNotificationPayload | null {
   if (
-    data.kind !== MONTHLY_RECAP_NOTIFICATION_KIND
-    || !isMonthKey(data.month)
-    || !isMonthlyRecapNotificationDestination(data.destination)
-    || typeof data.photoCount !== "number"
+    data.kind !== MONTHLY_RECAP_NOTIFICATION_KIND ||
+    !isMonthKey(data.month) ||
+    !isMonthlyRecapNotificationDestination(data.destination) ||
+    typeof data.photoCount !== "number"
   ) {
     return null;
   }
@@ -160,8 +173,8 @@ function isMonthlyRecapNotificationDestination(
   value: unknown,
 ): value is MonthlyRecapNotificationDestination {
   return (
-    value === MonthlyRecapNotificationDestination.detail
-    || value === MonthlyRecapNotificationDestination.select
+    value === MonthlyRecapNotificationDestination.detail ||
+    value === MonthlyRecapNotificationDestination.select
   );
 }
 

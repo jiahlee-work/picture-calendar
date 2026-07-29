@@ -31,11 +31,15 @@ export type LocalNotificationAdapter = {
   addResponseListener: (
     listener: (data: Record<string, unknown>) => void,
   ) => LocalNotificationSubscription;
-  cancelScheduledNotifications: (matcher: LocalNotificationMatcher) => Promise<void>;
+  cancelScheduledNotifications: (
+    matcher: LocalNotificationMatcher,
+  ) => Promise<void>;
   clearLastResponse: () => void;
   configure: () => Promise<void>;
   getLastResponseData: () => Record<string, unknown> | null;
   getPermissionStatus: () => Promise<LocalNotificationPermissionStatus>;
   requestPermission: () => Promise<LocalNotificationPermissionStatus>;
-  scheduleNotification: (request: LocalNotificationRequest) => Promise<string | null>;
+  scheduleNotification: (
+    request: LocalNotificationRequest,
+  ) => Promise<string | null>;
 };
