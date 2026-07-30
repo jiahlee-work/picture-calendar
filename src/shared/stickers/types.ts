@@ -1,5 +1,7 @@
 export type BuiltInStickerVariant = "calendar" | "polaroidFrame";
 
+export type StickerPlacementPageType = "calendar" | "calendarRecap";
+
 export type UserStickerAsset = {
   id: string;
   source: "user";
@@ -25,7 +27,7 @@ export type StickerAsset = UserStickerAsset | BuiltInStickerAsset;
 export type StickerPlacement = {
   id: string;
   assetId: string;
-  pageType: "calendar" | "calendarRecap";
+  pageType: StickerPlacementPageType;
   pageId: string;
   x: number;
   y: number;
@@ -45,6 +47,10 @@ export type BuiltInStickerPlacementState =
       variant: "polaroidFrame";
       selectedImageId?: string;
     };
+
+export type StoredStickerPlacement = StickerPlacement & {
+  userId: string;
+};
 
 export type UserStickerAssetDraft = {
   userId: string;
@@ -81,6 +87,11 @@ export type StickerMetadataStore = {
   save: (stickers: UserStickerAsset[]) => Promise<void>;
 };
 
+export type StickerPlacementMetadataStore = {
+  load: () => Promise<StoredStickerPlacement[]>;
+  save: (placements: StoredStickerPlacement[]) => Promise<void>;
+};
+
 export type StickerRepository = {
   listUserAssets: (userId: string) => Promise<UserStickerAsset[]>;
   saveUserAsset: (sticker: UserStickerAssetDraft) => Promise<UserStickerAsset>;
@@ -93,4 +104,23 @@ export type StickerRepository = {
     userId: string,
     assetId: string,
   ) => Promise<UserStickerAsset | null>;
+};
+
+export type StickerPlacementRepository = {
+  listByPage: (
+    userId: string,
+    pageType: StickerPlacementPageType,
+    pageId: string,
+  ) => Promise<StickerPlacement[]>;
+  savePagePlacements: (
+    userId: string,
+    pageType: StickerPlacementPageType,
+    pageId: string,
+    placements: StickerPlacement[],
+  ) => Promise<StickerPlacement[]>;
+  deletePagePlacements: (
+    userId: string,
+    pageType: StickerPlacementPageType,
+    pageId: string,
+  ) => Promise<StickerPlacement[]>;
 };
