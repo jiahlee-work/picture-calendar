@@ -2,13 +2,15 @@ import type { Meta, StoryObj } from "@storybook/react-native";
 import { StyleSheet, View } from "react-native";
 
 import { RecapMonthStatus } from "@/application/services/recap/recap-month-list";
-import { RecapMonthFolderView } from "@/presentation/components/molecules/recap-month-folder";
-import { recapMonthFixtures } from "@/presentation/storybook/recap-fixtures";
+import { RecapMonthFolder } from "@/presentation/components/molecules/recap-month-folder";
+import { recapMonthFixtures } from "@/presentation/storybook/fixtures/recap-fixtures";
 
 const RECAP_MONTH_FOLDER_STATUSES = {
   disabled: RecapMonthStatus.disabledEmpty,
+  locked: RecapMonthStatus.disabledCollecting,
   needsSelection: RecapMonthStatus.needsSelection,
   readyAuto: RecapMonthStatus.readyAuto,
+  selected: RecapMonthStatus.selected,
 } as const;
 
 type RecapMonthFolderStoryStatus = keyof typeof RECAP_MONTH_FOLDER_STATUSES;
@@ -24,7 +26,7 @@ function RecapMonthFolderStoryView(props: RecapMonthFolderStoryProps) {
     recapMonthFixtures.find((fixture) => fixture.status === recapStatus) ??
     recapMonthFixtures[0];
 
-  return <RecapMonthFolderView month={month} onPress={() => undefined} />;
+  return <RecapMonthFolder month={month} onPress={() => undefined} />;
 }
 
 const meta = {
@@ -33,8 +35,10 @@ const meta = {
       control: {
         labels: {
           disabled: "Disabled",
+          locked: "Locked",
           needsSelection: "Needs Selection",
           readyAuto: "Ready Auto",
+          selected: "Selected",
         },
         type: "select",
       },

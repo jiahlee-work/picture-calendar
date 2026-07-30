@@ -1,5 +1,10 @@
 import { useRouter } from "expo-router";
-import { ScrollView, StyleSheet, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
 import { useRecapMonthList } from "@/application/hooks/use-recap-month-list";
 import {
@@ -11,9 +16,17 @@ import { RecapMonthFolder } from "@/presentation/components/molecules/recap-mont
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { appSpacing } from "@/presentation/theme/spacing";
 
+const RECAP_MONTH_GRID_COLUMN_GAP = 16;
+
 export function RecapMonthListScreen() {
   const { months } = useRecapMonthList();
+  const { width: windowWidth } = useWindowDimensions();
   const router = useRouter();
+  const contentWidth = windowWidth - appSpacing.screenHorizontalPadding * 2;
+  const monthFolderItemWidth = Math.max(
+    0,
+    (contentWidth - RECAP_MONTH_GRID_COLUMN_GAP) / 2,
+  );
 
   const handlePressMonth = (month: RecapMonthSummary) => {
     if (month.status === RecapMonthStatus.needsSelection) {
@@ -48,7 +61,9 @@ export function RecapMonthListScreen() {
           {months.map((month) => (
             <RecapMonthFolder
               key={month.month}
+              folderWidth={monthFolderItemWidth}
               month={month}
+              style={{ width: monthFolderItemWidth }}
               onPress={handlePressMonth}
             />
           ))}
@@ -65,6 +80,7 @@ const styles = StyleSheet.create({
     paddingTop: appSpacing.screenContentTopPadding,
   },
   grid: {
+    columnGap: RECAP_MONTH_GRID_COLUMN_GAP,
     flexDirection: "row",
     flexWrap: "wrap",
   },
