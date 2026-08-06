@@ -39,6 +39,10 @@ export function RecapMonthListScreen() {
       return;
     }
 
+    if (month.status !== RecapMonthStatus.selected) {
+      return;
+    }
+
     router.push({
       params: {
         month: month.monthNumber,

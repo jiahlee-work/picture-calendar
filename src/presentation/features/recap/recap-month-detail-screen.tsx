@@ -55,24 +55,14 @@ export function RecapMonthDetailScreen(props: RecapMonthDetailScreenProps) {
     }
   }, [monthKey, router, status]);
 
-  const handleBackPress = () => {
-    if (router.canGoBack()) {
-      router.back();
-      return;
-    }
-
-    router.replace("/recap");
-  };
-
   if (!recap) {
     return (
       <View style={styles.screen}>
         <AppSafeAreaView edges={["top"]} variant="inset">
           <AppBar>
-            <AppBar.Action
+            <AppBar.BackAction
               accessibilityLabel="리캡 목록으로 돌아가기"
-              icon="ArrowLeft"
-              onPress={handleBackPress}
+              fallbackHref="/recap"
             />
             <AppBar.Spacer />
           </AppBar>
@@ -123,10 +113,9 @@ export function RecapMonthDetailScreen(props: RecapMonthDetailScreenProps) {
         variant="overlay"
       >
         <AppBar pointerEvents="box-none" variant="overlay">
-          <AppBar.Action
+          <AppBar.BackAction
             accessibilityLabel="리캡 목록으로 돌아가기"
-            icon="ArrowLeft"
-            onPress={handleBackPress}
+            fallbackHref="/recap"
           />
           <AppBar.Spacer />
           <View pointerEvents="box-none" style={styles.appBarActions}>

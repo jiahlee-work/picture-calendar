@@ -23,6 +23,7 @@ type ShareCaptureMenuProps = {
   captureHeight?: number;
   captureRef: RefObject<View | null>;
   captureWidth?: number;
+  disabled?: boolean;
   fileName: string;
   isReady: boolean;
 };
@@ -38,6 +39,7 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
     captureHeight,
     captureRef,
     captureWidth,
+    disabled = false,
     fileName,
     isReady,
   } = props;
@@ -50,14 +52,14 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
     captureWidth,
     fileName,
     getCaptureTarget: () => captureRef.current,
-    isReady,
+    isReady: isReady && !disabled,
   });
   const [saveToastState, setSaveToastState] = useState<ShareSaveToastStateType>(
     ShareSaveToastState.hidden,
   );
 
   const handleSaveImage = async () => {
-    if (isProcessing) {
+    if (disabled || isProcessing) {
       return;
     }
 
@@ -88,7 +90,7 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
   };
 
   const handleShareImage = async () => {
-    if (isProcessing) {
+    if (disabled || isProcessing) {
       return;
     }
 
@@ -124,6 +126,7 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
       {shouldShowActionMenu ? (
         <Menu
           accessibilityLabel={accessibilityLabel}
+          disabled={disabled}
           trigger={{ icon: "Share" }}
         >
           <Menu.Item
@@ -136,6 +139,7 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
       ) : (
         <SymbolIconButton
           accessibilityLabel={accessibilityLabel}
+          disabled={disabled}
           icon="Share"
           onPress={handleShareImage}
         />

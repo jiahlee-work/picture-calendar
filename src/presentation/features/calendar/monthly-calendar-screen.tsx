@@ -125,6 +125,7 @@ export function MonthlyCalendarScreen() {
         <View style={styles.content}>
           <MonthlyCalendar
             calendar={calendar}
+            canSwipeMonth
             onNextMonth={handleNextMonth}
             onPreviousMonth={handlePreviousMonth}
             onSelectDate={handleSelectDate}

@@ -47,7 +47,7 @@ export function ShareSaveToast(props: ShareSaveToastProps) {
             <ActivityIndicator color={appColors.white} size="small" />
           )}
           {state === ShareSaveToastState.saved && (
-            <ReiconIcon color={appColors.white} name="CheckCircle" size={22} />
+            <ReiconIcon color={appColors.white} name="Check" size={22} />
           )}
           {state === ShareSaveToastState.failed && (
             <ReiconIcon color={appColors.white} name="CloseCircle" size={22} />

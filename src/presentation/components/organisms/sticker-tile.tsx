@@ -1,26 +1,8 @@
-import {
-  Pressable,
-  StyleSheet,
-  type GestureResponderEvent,
-} from "react-native";
-import Animated, {
-  Easing,
-  interpolateColor,
-  useAnimatedProps,
-  useAnimatedStyle,
-  useDerivedValue,
-  withTiming,
-} from "react-native-reanimated";
-import Svg, { Path } from "react-native-svg";
+import { Pressable, StyleSheet } from "react-native";
 
 import type { StickerAsset } from "@/application/services/stickers/types";
+import { SelectionCheckbox } from "@/presentation/components/atoms/selection-checkbox";
 import { StickerAssetPreview } from "@/presentation/components/organisms/sticker-asset-preview";
-import { appColors } from "@/presentation/theme/colors";
-
-const AnimatedPath = Animated.createAnimatedComponent(Path);
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-const CHECK_PATH_LENGTH = 15;
-const CHECK_EASING = Easing.bezier(0.22, 1, 0.36, 1);
 
 export type StickerTileProps = {
   asset: StickerAsset;
@@ -98,68 +80,15 @@ function StickerTileSelectionControl(props: {
   onPress: () => void;
 }) {
   const { accessibilityLabel, disabled, isSelected, onPress } = props;
-  const handlePress = (event: GestureResponderEvent) => {
-    event.stopPropagation();
-    onPress();
-  };
-  const boxProgress = useDerivedValue(() =>
-    withTiming(isSelected ? 1 : 0, {
-      duration: 150,
-      easing: CHECK_EASING,
-    }),
-  );
-  const checkProgress = useDerivedValue(() =>
-    withTiming(isSelected ? 1 : 0, {
-      duration: isSelected ? 350 : 150,
-      easing: CHECK_EASING,
-    }),
-  );
-  const animatedControlStyle = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(
-      boxProgress.value,
-      [0, 1],
-      [appColors.white, appColors.black],
-    ),
-    borderColor: interpolateColor(
-      boxProgress.value,
-      [0, 1],
-      ["#D1D5DB", appColors.black],
-    ),
-  }));
-  const animatedCheckProps = useAnimatedProps(() => ({
-    strokeDashoffset: CHECK_PATH_LENGTH * (1 - checkProgress.value),
-  }));
 
   return (
-    <AnimatedPressable
-      accessibilityRole="checkbox"
+    <SelectionCheckbox
       accessibilityLabel={accessibilityLabel}
-      accessibilityState={{
-        checked: isSelected,
-        disabled,
-      }}
       disabled={disabled}
-      hitSlop={10}
-      style={[
-        styles.selectionControl,
-        animatedControlStyle,
-        disabled && styles.selectionControlDisabled,
-      ]}
-      onPress={handlePress}
-    >
-      <Svg height={14} viewBox="0 0 10.1668 10.1668" width={14}>
-        <AnimatedPath
-          animatedProps={animatedCheckProps}
-          d="M1 5.52L3.92 9.17L9.17 1"
-          fill="none"
-          stroke={appColors.white}
-          strokeDasharray={CHECK_PATH_LENGTH}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.8}
-        />
-      </Svg>
-    </AnimatedPressable>
+      isSelected={isSelected}
+      style={styles.selectionControl}
+      onPress={onPress}
+    />
   );
 }
 
@@ -177,20 +106,8 @@ const styles = StyleSheet.create({
     opacity: 0.92,
   },
   selectionControl: {
-    alignItems: "center",
-    backgroundColor: appColors.white,
-    borderColor: "#D1D5DB",
-    borderRadius: 14,
-    borderWidth: 2,
-    height: 28,
-    justifyContent: "center",
     position: "absolute",
     right: 4,
     top: 4,
-    width: 28,
-  },
-  selectionControlDisabled: {
-    backgroundColor: "#F3F4F6",
-    opacity: 0.62,
   },
 });

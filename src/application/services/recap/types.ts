@@ -1,5 +1,9 @@
 export type {
   MonthlyRecap,
+  MonthlyRecapCanvas,
+  MonthlyRecapCanvasDraft,
+  MonthlyRecapCanvasMetadataStore,
+  MonthlyRecapCanvasRepository,
   MonthlyRecapMetadataStore,
   MonthlyRecapRepository,
   MonthlyRecapSelectionDraft,
