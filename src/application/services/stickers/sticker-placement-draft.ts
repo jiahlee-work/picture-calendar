@@ -50,9 +50,9 @@ export function createStickerPlacementDraft(
     scale,
     rotation,
     zIndex,
-    builtInState:
-      asset.source === "builtIn"
-        ? toInitialBuiltInState(asset.variant, { date, selectedImageId })
+    widgetState:
+      asset.source === "widget"
+        ? toInitialWidgetState(asset.variant, { date, selectedImageId })
         : undefined,
   };
 }
@@ -108,10 +108,10 @@ export function updateStickerPlacement(
         ...placement,
         ...update,
         id: placement.id,
-        builtInState:
-          "builtInState" in update
-            ? cloneBuiltInState(update.builtInState)
-            : cloneBuiltInState(placement.builtInState),
+        widgetState:
+          "widgetState" in update
+            ? cloneWidgetState(update.widgetState)
+            : cloneWidgetState(placement.widgetState),
       };
     }),
   );
@@ -129,31 +129,37 @@ export function deleteStickerPlacement(
 function cloneStickerPlacement(placement: StickerPlacement): StickerPlacement {
   return {
     ...placement,
-    builtInState: cloneBuiltInState(placement.builtInState),
+    widgetState: cloneWidgetState(placement.widgetState),
   };
 }
 
-function cloneBuiltInState(
-  builtInState: StickerPlacement["builtInState"],
-): StickerPlacement["builtInState"] {
-  if (!builtInState) {
+function cloneWidgetState(
+  widgetState: StickerPlacement["widgetState"],
+): StickerPlacement["widgetState"] {
+  if (!widgetState) {
     return undefined;
   }
 
-  return { ...builtInState };
+  return { ...widgetState };
 }
 
-function toInitialBuiltInState(
-  variant: "calendar" | "polaroidFrame",
+function toInitialWidgetState(
+  variant: "calendar" | "polaroidFrame" | "speechBubble",
   options: {
     date?: string;
     selectedImageId?: string;
   },
-): StickerPlacement["builtInState"] {
+): StickerPlacement["widgetState"] {
   if (variant === "calendar") {
     return {
       variant,
       date: options.date,
+    };
+  }
+
+  if (variant === "speechBubble") {
+    return {
+      variant,
     };
   }
 

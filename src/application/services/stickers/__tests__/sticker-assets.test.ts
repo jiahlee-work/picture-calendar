@@ -4,19 +4,24 @@ import { listStickerAssets } from "@/application/services/stickers/sticker-asset
 import type { StickerRepository } from "@/application/services/stickers/types";
 
 describe("listStickerAssets", () => {
-  it("places built-in assets before the current user's assets", async () => {
+  it("places widget assets before the current user's assets", async () => {
     const repository = createStickerRepository();
 
     await expect(
       listStickerAssets(repository, "user-1"),
     ).resolves.toMatchObject([
-      { id: "built-in-calendar", source: "builtIn", variant: "calendar" },
+      { id: "widget-calendar", source: "widget", variant: "calendar" },
       {
-        id: "built-in-polaroid-frame",
-        source: "builtIn",
+        id: "widget-polaroid-frame",
+        source: "widget",
         variant: "polaroidFrame",
       },
-      { id: "user-sticker", source: "user", userId: "user-1" },
+      {
+        id: "widget-speech-bubble",
+        source: "widget",
+        variant: "speechBubble",
+      },
+      { id: "user-sticker", source: "sticker", userId: "user-1" },
     ]);
   });
 });
@@ -27,7 +32,7 @@ function createStickerRepository(): StickerRepository {
       return [
         {
           id: "user-sticker",
-          source: "user",
+          source: "sticker",
           userId,
           imagePath: "file://sticker.png",
           storageKey: "user-1/sticker.png",

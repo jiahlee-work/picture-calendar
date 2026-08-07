@@ -9,13 +9,13 @@ import {
   upsertStickerPlacement,
 } from "@/application/services/stickers/sticker-placement-draft";
 import type {
-  BuiltInStickerAsset,
+  WidgetAsset,
   StickerPlacement,
   UserStickerAsset,
 } from "@/application/services/stickers/types";
 
 describe("sticker placement draft helpers", () => {
-  it("creates a user sticker placement without built-in state", () => {
+  it("creates a sticker placement without widget state", () => {
     expect(
       createStickerPlacementDraft({
         asset: createUserStickerAsset(),
@@ -36,14 +36,14 @@ describe("sticker placement draft helpers", () => {
       scale: 1,
       rotation: 0,
       zIndex: 3,
-      builtInState: undefined,
+      widgetState: undefined,
     });
   });
 
-  it("creates a built-in calendar placement with initial state", () => {
+  it("creates a widget calendar placement with initial state", () => {
     expect(
       createStickerPlacementDraft({
-        asset: createBuiltInStickerAsset(),
+        asset: createWidgetAsset(),
         id: "placement-1",
         pageType: "calendar",
         pageId: "2026-07",
@@ -54,10 +54,34 @@ describe("sticker placement draft helpers", () => {
       }),
     ).toMatchObject({
       id: "placement-1",
-      assetId: "built-in-calendar",
-      builtInState: {
+      assetId: "widget-calendar",
+      widgetState: {
         variant: "calendar",
         date: "2026-07-01",
+      },
+    });
+  });
+
+  it("creates a widget speech bubble placement with initial state", () => {
+    expect(
+      createStickerPlacementDraft({
+        asset: createWidgetAsset({
+          id: "widget-speech-bubble",
+          name: "말풍선",
+          variant: "speechBubble",
+        }),
+        id: "placement-1",
+        pageType: "calendarRecap",
+        pageId: "2026-07",
+        x: 120,
+        y: 220,
+        zIndex: 3,
+      }),
+    ).toMatchObject({
+      id: "placement-1",
+      assetId: "widget-speech-bubble",
+      widgetState: {
+        variant: "speechBubble",
       },
     });
   });
@@ -81,7 +105,7 @@ describe("sticker placement draft helpers", () => {
     const placements = [
       createPlacement({
         id: "placement-1",
-        builtInState: { variant: "calendar", date: "2026-07-01" },
+        widgetState: { variant: "calendar", date: "2026-07-01" },
       }),
     ];
     const nextPlacements = resolveStickerPlacementDraftUpdate(
@@ -89,8 +113,8 @@ describe("sticker placement draft helpers", () => {
       (currentPlacements) => {
         currentPlacements[0].x = 100;
 
-        if (currentPlacements[0].builtInState?.variant === "calendar") {
-          currentPlacements[0].builtInState.date = "2026-07-02";
+        if (currentPlacements[0].widgetState?.variant === "calendar") {
+          currentPlacements[0].widgetState.date = "2026-07-02";
         }
 
         return currentPlacements;
@@ -101,14 +125,14 @@ describe("sticker placement draft helpers", () => {
       {
         id: "placement-1",
         x: 100,
-        builtInState: { variant: "calendar", date: "2026-07-02" },
+        widgetState: { variant: "calendar", date: "2026-07-02" },
       },
     ]);
     expect(placements).toMatchObject([
       {
         id: "placement-1",
         x: 0,
-        builtInState: { variant: "calendar", date: "2026-07-01" },
+        widgetState: { variant: "calendar", date: "2026-07-01" },
       },
     ]);
   });
@@ -175,7 +199,7 @@ function createUserStickerAsset(
 ): UserStickerAsset {
   return {
     id: "user-sticker",
-    source: "user",
+    source: "sticker",
     userId: "user-1",
     imagePath: "file://sticker.png",
     storageKey: null,
@@ -184,12 +208,10 @@ function createUserStickerAsset(
   };
 }
 
-function createBuiltInStickerAsset(
-  overrides: Partial<BuiltInStickerAsset> = {},
-): BuiltInStickerAsset {
+function createWidgetAsset(overrides: Partial<WidgetAsset> = {}): WidgetAsset {
   return {
-    id: "built-in-calendar",
-    source: "builtIn",
+    id: "widget-calendar",
+    source: "widget",
     name: "달력",
     variant: "calendar",
     ...overrides,

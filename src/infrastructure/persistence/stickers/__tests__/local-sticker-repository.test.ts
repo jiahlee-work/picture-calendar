@@ -27,7 +27,7 @@ describe("createLocalStickerRepository", () => {
     const stickers = await repository.listUserAssets("user-1");
 
     expect(stickers).toMatchObject([
-      { id: "sticker-1", source: "user", userId: "user-1" },
+      { id: "sticker-1", source: "sticker", userId: "user-1" },
     ]);
   });
 
@@ -49,7 +49,7 @@ describe("createLocalStickerRepository", () => {
 
     expect(savedSticker).toMatchObject({
       id: "local-sticker-mpvvf9c0-0",
-      source: "user",
+      source: "sticker",
       userId: "user-1",
       imagePath: "file://stickers/user-1/sticker.png",
       storageKey: "user-1/sticker.png",
@@ -159,7 +159,7 @@ function createUserStickerAsset(
 ): UserStickerAsset {
   return {
     id: "sticker-1",
-    source: "user",
+    source: "sticker",
     userId: "user-1",
     imagePath: "file://sticker.png",
     storageKey: "user-1/sticker.png",

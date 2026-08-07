@@ -94,7 +94,7 @@ function StickerDetailSheetContent(props: {
   } = props;
 
   const handleFavoritePress = () => {
-    if (asset.source !== "user" || isSaving) {
+    if (asset.source !== "sticker" || isSaving) {
       return;
     }
 
@@ -102,7 +102,7 @@ function StickerDetailSheetContent(props: {
   };
 
   const handleDeletePress = () => {
-    if (asset.source !== "user" || isSaving) {
+    if (asset.source !== "sticker" || isSaving) {
       return;
     }
 
@@ -130,7 +130,7 @@ function StickerDetailSheetContent(props: {
       <View style={styles.previewPanel}>
         <StickerAssetPreview asset={asset} size="detail" />
       </View>
-      {asset.source === "user" && (
+      {asset.source === "sticker" && (
         <View style={styles.actionRow}>
           <DetailActionButton
             accessibilityLabel={

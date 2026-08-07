@@ -1,8 +1,23 @@
 import { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
 import { useMonthlyRecapCanvas } from "@/application/hooks/use-monthly-recap-canvas";
 import { useMonthlyRecapDetail } from "@/application/hooks/use-monthly-recap-detail";
+import {
+  createRecapTextElement,
+  deleteRecapCanvasElement,
+  getNextRecapCanvasElementZIndex,
+  updateRecapCanvasTextElement,
+  upsertRecapCanvasElement,
+  type RecapCanvasTextElementUpdate,
+} from "@/application/services/recap/recap-canvas-elements";
 import {
   createEmptyRecapCanvasLayoutSlotPhotoMap,
   getRecapCanvasLayoutDefinition,
@@ -11,6 +26,7 @@ import {
 } from "@/application/services/recap/recap-canvas-layout";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
+import { RecapCanvasTextLayer } from "@/presentation/components/organisms/recap-canvas-text-layer";
 import {
   RecapDecoratingToolbar,
   type RecapDecoratingToolbarAction,
@@ -18,13 +34,21 @@ import {
 import { RecapLayoutCanvas } from "@/presentation/components/organisms/recap-layout-canvas";
 import { RecapLayoutPhotoPicker } from "@/presentation/components/organisms/recap-layout-photo-picker";
 import { RecapLayoutToolbar } from "@/presentation/components/organisms/recap-layout-toolbar";
+import { RecapTextColorSheet } from "@/presentation/components/organisms/recap-text-color-sheet";
+import {
+  RecapTextToolbar,
+  type RecapTextStyleUpdate,
+} from "@/presentation/components/organisms/recap-text-toolbar";
+import { RecapTextTypographySheet } from "@/presentation/components/organisms/recap-text-typography-sheet";
 import { useAppBottomNavigationHidden } from "@/presentation/providers/app-bottom-navigation-controller";
 import { appColors } from "@/presentation/theme/colors";
 import { appLayers } from "@/presentation/theme/layers";
 import {
   RecapCanvasLayoutId,
+  type RecapCanvasElement,
   type RecapCanvasLayoutId as RecapCanvasLayoutIdType,
   type RecapCanvasLayoutState,
+  type RecapCanvasTextElement,
 } from "@/shared/recap/types";
 
 type RecapDecoratingScreenProps = {
@@ -42,6 +66,7 @@ const DEFAULT_LAYOUT_ID = RecapCanvasLayoutId.twoColumns;
 
 export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   const { month, year } = props;
+  const windowDimensions = useWindowDimensions();
   const monthKey = `${year}-${month}`;
   const { photos, recap } = useMonthlyRecapDetail(monthKey);
   const {
@@ -54,6 +79,21 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   const [committedLayoutOverride, setCommittedLayoutOverride] = useState<
     RecapCanvasLayoutState | null | undefined
   >(undefined);
+  const [committedElementsOverride, setCommittedElementsOverride] = useState<
+    RecapCanvasElement[] | undefined
+  >(undefined);
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(
+    null,
+  );
+  const [editingTextElementId, setEditingTextElementId] = useState<
+    string | null
+  >(null);
+  const [isTextTypographySheetVisible, setIsTextTypographySheetVisible] =
+    useState(false);
+  const [isTextColorSheetVisible, setIsTextColorSheetVisible] = useState(false);
+  const [textSheetElementId, setTextSheetElementId] = useState<string | null>(
+    null,
+  );
   const [draftLayoutId, setDraftLayoutId] =
     useState<RecapCanvasLayoutIdType | null>(DEFAULT_LAYOUT_ID);
   const [draftSlotPhotoIds, setDraftSlotPhotoIds] =
@@ -96,6 +136,10 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     committedLayoutOverride === undefined
       ? (savedCanvas?.layout ?? null)
       : committedLayoutOverride;
+  const committedElements =
+    committedElementsOverride === undefined
+      ? (savedCanvas?.elements ?? [])
+      : committedElementsOverride;
   const committedLayoutId = committedLayout?.layoutId ?? null;
   const committedSlotPhotoIds = committedLayout?.slotPhotoIds ?? {};
   const visibleLayoutId = mode === "layout" ? draftLayoutId : committedLayoutId;
@@ -112,9 +156,25 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
           slotPhotoIds: draftSlotPhotoIds,
         })
       : true);
+  const selectedTextElement =
+    committedElements.find(
+      (element): element is RecapCanvasTextElement =>
+        element.id === selectedElementId && element.type === "text",
+    ) ?? null;
+  const textSheetElement =
+    committedElements.find(
+      (element): element is RecapCanvasTextElement =>
+        element.id === textSheetElementId && element.type === "text",
+    ) ?? null;
   const hasUnsavedDecoratingChanges =
-    JSON.stringify(committedLayout) !==
-    JSON.stringify(savedCanvas?.layout ?? null);
+    JSON.stringify({
+      elements: committedElements,
+      layout: committedLayout,
+    }) !==
+    JSON.stringify({
+      elements: savedCanvas?.elements ?? [],
+      layout: savedCanvas?.layout ?? null,
+    });
 
   const handleCompletePress = async () => {
     if (!hasUnsavedDecoratingChanges || isCanvasSaving) {
@@ -123,9 +183,11 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
     try {
       await saveCanvas({
-        elements: savedCanvas?.elements ?? [],
+        elements: committedElements,
         layout: committedLayout,
       });
+      setCommittedElementsOverride(undefined);
+      setCommittedLayoutOverride(undefined);
     } catch {
       Alert.alert("저장 실패", "꾸민 내용을 저장하지 못했습니다.");
     }
@@ -164,6 +226,84 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     if (action.id === "layout") {
       handleStartLayoutMode();
     }
+
+    if (action.id === "text") {
+      handleAddTextElement();
+    }
+  };
+
+  const handleAddTextElement = () => {
+    const nextTextElement = createRecapTextElement({
+      id: `recap-text-${Date.now()}`,
+      x: Math.max(Math.round(windowDimensions.width / 2 - 178), 24),
+      y: Math.max(Math.round(windowDimensions.height / 2 - 28), 120),
+      zIndex: getNextRecapCanvasElementZIndex(committedElements),
+    });
+    const nextElements = upsertRecapCanvasElement(
+      committedElements,
+      nextTextElement,
+    );
+
+    setCommittedElementsOverride(nextElements);
+    setSelectedElementId(nextTextElement.id);
+    setEditingTextElementId(null);
+    setIsTextTypographySheetVisible(false);
+    setIsTextColorSheetVisible(false);
+    setTextSheetElementId(null);
+  };
+
+  const handleSelectElement = (elementId: string | null) => {
+    setSelectedElementId(elementId);
+    setEditingTextElementId(null);
+  };
+
+  const handleStartTextEditing = (elementId: string) => {
+    setSelectedElementId(elementId);
+    setEditingTextElementId(elementId);
+    setIsTextTypographySheetVisible(false);
+    setIsTextColorSheetVisible(false);
+  };
+
+  const handleChangeTextElement = (element: RecapCanvasTextElement) => {
+    setCommittedElementsOverride(
+      upsertRecapCanvasElement(committedElements, element),
+    );
+  };
+
+  const handleUpdateSelectedText = (update: RecapCanvasTextElementUpdate) => {
+    if (!selectedTextElement) {
+      return;
+    }
+
+    handleUpdateTextElement(selectedTextElement.id, update);
+  };
+
+  const handleUpdateTextElement = (
+    elementId: string,
+    update: RecapCanvasTextElementUpdate,
+  ) => {
+    setCommittedElementsOverride(
+      updateRecapCanvasTextElement(committedElements, elementId, update),
+    );
+  };
+
+  const handleUpdateSelectedTextStyle = (update: RecapTextStyleUpdate) => {
+    handleUpdateSelectedText(update);
+  };
+
+  const handleDeleteSelectedText = () => {
+    if (!selectedTextElement) {
+      return;
+    }
+
+    setCommittedElementsOverride(
+      deleteRecapCanvasElement(committedElements, selectedTextElement.id),
+    );
+    setSelectedElementId(null);
+    setEditingTextElementId(null);
+    setIsTextTypographySheetVisible(false);
+    setIsTextColorSheetVisible(false);
+    setTextSheetElementId(null);
   };
 
   const handleStartLayoutMode = () => {
@@ -186,6 +326,10 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     setSelectedLayoutSlotId(null);
     setDraftSlotPhotoIdsByLayoutId({});
     setEditedLayoutIds({});
+    setSelectedElementId(null);
+    setEditingTextElementId(null);
+    setIsTextTypographySheetVisible(false);
+    setIsTextColorSheetVisible(false);
     setMode("default");
   };
 
@@ -342,6 +486,17 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
             : "리캡 페이지를 직접 만들어보세요!"}
         </Text>
       </RecapLayoutCanvas>
+      {mode === "default" ? (
+        <RecapCanvasTextLayer
+          editingElementId={editingTextElementId}
+          elements={committedElements}
+          selectedElementId={selectedElementId}
+          onChangeTextElement={handleChangeTextElement}
+          onEndTextEditing={() => setEditingTextElementId(null)}
+          onSelectElement={handleSelectElement}
+          onStartTextEditing={handleStartTextEditing}
+        />
+      ) : null}
       <AppSafeAreaView
         edges={["top"]}
         pointerEvents="box-none"
@@ -389,6 +544,20 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
             selectedLayoutId={draftLayoutId}
             onSelectLayout={handleSelectLayout}
           />
+        ) : selectedTextElement ? (
+          <RecapTextToolbar
+            textElement={selectedTextElement}
+            onDelete={handleDeleteSelectedText}
+            onOpenColorPicker={() => {
+              setTextSheetElementId(selectedTextElement.id);
+              setIsTextColorSheetVisible(true);
+            }}
+            onOpenTypographyPicker={() => {
+              setTextSheetElementId(selectedTextElement.id);
+              setIsTextTypographySheetVisible(true);
+            }}
+            onUpdateTextStyle={handleUpdateSelectedTextStyle}
+          />
         ) : (
           <RecapDecoratingToolbar onSelectAction={handleToolbarActionPress} />
         )}
@@ -402,6 +571,50 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
         }
         visible={mode === "layout" && Boolean(selectedLayoutSlotId)}
         onSelectPhoto={handleSelectLayoutPhoto}
+      />
+      <RecapTextTypographySheet
+        fontFamily={
+          textSheetElement?.fontFamily ?? selectedTextElement?.fontFamily
+        }
+        fontSize={
+          textSheetElement?.fontSize ?? selectedTextElement?.fontSize ?? 24
+        }
+        visible={isTextTypographySheetVisible}
+        onChangeFontFamily={(fontFamily) => {
+          const targetElementId = textSheetElementId ?? selectedTextElement?.id;
+
+          if (targetElementId) {
+            handleUpdateTextElement(targetElementId, { fontFamily });
+          }
+        }}
+        onChangeFontSize={(fontSize) => {
+          const targetElementId = textSheetElementId ?? selectedTextElement?.id;
+
+          if (targetElementId) {
+            handleUpdateTextElement(targetElementId, { fontSize });
+          }
+        }}
+        onClose={() => {
+          setIsTextTypographySheetVisible(false);
+          setTextSheetElementId(null);
+        }}
+      />
+      <RecapTextColorSheet
+        value={
+          textSheetElement?.color ?? selectedTextElement?.color ?? "#121212"
+        }
+        visible={isTextColorSheetVisible}
+        onChangeColor={(color) => {
+          const targetElementId = textSheetElementId ?? selectedTextElement?.id;
+
+          if (targetElementId) {
+            handleUpdateTextElement(targetElementId, { color });
+          }
+        }}
+        onClose={() => {
+          setIsTextColorSheetVisible(false);
+          setTextSheetElementId(null);
+        }}
       />
     </View>
   );
@@ -426,6 +639,7 @@ const styles = StyleSheet.create({
   toolbarContainer: {
     alignItems: "center",
     bottom: 28,
+    elevation: appLayers.bottomNavigation,
     left: 0,
     paddingHorizontal: 36,
     position: "absolute",

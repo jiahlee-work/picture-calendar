@@ -92,7 +92,7 @@ function toUserStickerAsset(value: unknown): UserStickerAsset | null {
 
   return {
     id,
-    source: "user",
+    source: "sticker",
     userId,
     imagePath,
     storageKey: stringValue(value.storageKey),

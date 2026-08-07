@@ -1,10 +1,10 @@
-export type BuiltInStickerVariant = "calendar" | "polaroidFrame";
+export type WidgetVariant = "calendar" | "polaroidFrame" | "speechBubble";
 
 export type StickerPlacementPageType = "calendar" | "calendarRecap";
 
 export type UserStickerAsset = {
   id: string;
-  source: "user";
+  source: "sticker";
   userId: string;
   imagePath: string;
   storageKey: string | null;
@@ -14,15 +14,15 @@ export type UserStickerAsset = {
   createdAt: string;
 };
 
-export type BuiltInStickerAsset = {
+export type WidgetAsset = {
   id: string;
-  source: "builtIn";
+  source: "widget";
   name: string;
-  variant: BuiltInStickerVariant;
+  variant: WidgetVariant;
   tags?: string[];
 };
 
-export type StickerAsset = UserStickerAsset | BuiltInStickerAsset;
+export type StickerAsset = UserStickerAsset | WidgetAsset;
 
 export type StickerPlacement = {
   id: string;
@@ -35,10 +35,10 @@ export type StickerPlacement = {
   rotation: number;
   zIndex: number;
   opacity?: number;
-  builtInState?: BuiltInStickerPlacementState;
+  widgetState?: WidgetPlacementState;
 };
 
-export type BuiltInStickerPlacementState =
+export type WidgetPlacementState =
   | {
       variant: "calendar";
       date?: string;
@@ -46,6 +46,10 @@ export type BuiltInStickerPlacementState =
   | {
       variant: "polaroidFrame";
       selectedImageId?: string;
+    }
+  | {
+      variant: "speechBubble";
+      text?: string;
     };
 
 export type StoredStickerPlacement = StickerPlacement & {

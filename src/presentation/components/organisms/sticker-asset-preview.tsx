@@ -2,7 +2,7 @@ import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 
 import type { StickerAsset } from "@/application/services/stickers/types";
-import { BuiltInStickerPreview } from "@/presentation/components/organisms/built-in-sticker-preview";
+import { WidgetPreview } from "@/presentation/components/organisms/widget-preview";
 
 type StickerAssetPreviewProps = {
   asset: StickerAsset;
@@ -19,7 +19,7 @@ export function StickerAssetPreview(props: StickerAssetPreviewProps) {
         size === "detail" ? styles.detailRoot : styles.tileRoot,
       ]}
     >
-      {asset.source === "user" ? (
+      {asset.source === "sticker" ? (
         <Image
           cachePolicy="none"
           contentFit="contain"
@@ -27,7 +27,7 @@ export function StickerAssetPreview(props: StickerAssetPreviewProps) {
           style={styles.userStickerImage}
         />
       ) : (
-        <BuiltInStickerPreview asset={asset} size={size} />
+        <WidgetPreview asset={asset} size={size} />
       )}
     </View>
   );

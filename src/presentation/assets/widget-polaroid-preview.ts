@@ -1,4 +1,4 @@
-const BUILT_IN_POLAROID_PREVIEW_SVG = `
+const WIDGET_POLAROID_PREVIEW_SVG = `
   <svg xmlns="http://www.w3.org/2000/svg" width="360" height="260" viewBox="0 0 360 260">
     <defs>
       <linearGradient id="background" x1="0" x2="1" y1="0" y2="1">
@@ -12,6 +12,6 @@ const BUILT_IN_POLAROID_PREVIEW_SVG = `
   </svg>
 `;
 
-export const builtInPolaroidPreviewImageUri = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
-  BUILT_IN_POLAROID_PREVIEW_SVG,
+export const widgetPolaroidPreviewImageUri = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+  WIDGET_POLAROID_PREVIEW_SVG,
 )}`;

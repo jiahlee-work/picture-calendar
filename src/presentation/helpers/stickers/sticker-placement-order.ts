@@ -37,8 +37,8 @@ export function normalizeStickerPlacementZIndexes(
 ): StickerPlacement[] {
   return placements.map((placement, index) => ({
     ...placement,
-    builtInState: placement.builtInState
-      ? { ...placement.builtInState }
+    widgetState: placement.widgetState
+      ? { ...placement.widgetState }
       : undefined,
     zIndex: index + 1,
   }));

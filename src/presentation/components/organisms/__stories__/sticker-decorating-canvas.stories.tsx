@@ -2,22 +2,22 @@ import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-native";
 import { StyleSheet, View } from "react-native";
 
-import { BUILT_IN_STICKER_ASSETS } from "@/application/services/stickers/sticker-assets";
+import { WIDGET_ASSETS } from "@/application/services/stickers/sticker-assets";
 import type {
   StickerAsset,
   StickerPlacement,
 } from "@/application/services/stickers/types";
-import { builtInPolaroidPreviewImageUri } from "@/presentation/assets/built-in-polaroid-preview";
+import { widgetPolaroidPreviewImageUri } from "@/presentation/assets/widget-polaroid-preview";
 import { StickerDecoratingCanvas } from "@/presentation/components/organisms/sticker-decorating-canvas";
 import { appColors } from "@/presentation/theme/colors";
 
 const STICKER_ASSETS = [
-  ...BUILT_IN_STICKER_ASSETS,
+  ...WIDGET_ASSETS,
   {
     id: "story-user-sticker",
-    source: "user",
+    source: "sticker",
     userId: "storybook-user",
-    imagePath: builtInPolaroidPreviewImageUri,
+    imagePath: widgetPolaroidPreviewImageUri,
     storageKey: null,
     name: "사용자 스티커",
     createdAt: "2026-07-01T00:00:00.000Z",
@@ -27,7 +27,7 @@ const STICKER_ASSETS = [
 const INITIAL_PLACEMENTS: StickerPlacement[] = [
   {
     id: "calendar-placement",
-    assetId: "built-in-calendar",
+    assetId: "widget-calendar",
     pageType: "calendarRecap",
     pageId: "storybook-recap",
     x: 36,
@@ -35,7 +35,7 @@ const INITIAL_PLACEMENTS: StickerPlacement[] = [
     scale: 1.15,
     rotation: -4,
     zIndex: 1,
-    builtInState: {
+    widgetState: {
       variant: "calendar",
       date: "2026-07-24",
     },

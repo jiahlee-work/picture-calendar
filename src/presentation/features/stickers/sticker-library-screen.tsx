@@ -81,7 +81,8 @@ export function StickerLibraryScreen() {
     () =>
       stickers
         .filter(
-          (sticker): sticker is UserStickerAsset => sticker.source === "user",
+          (sticker): sticker is UserStickerAsset =>
+            sticker.source === "sticker",
         )
         .map((sticker) => sticker.id),
     [stickers],
@@ -190,7 +191,7 @@ export function StickerLibraryScreen() {
   };
 
   const handleToggleStickerSelection = (asset: StickerAsset) => {
-    if (asset.source !== "user") {
+    if (asset.source !== "sticker") {
       return;
     }
 
@@ -317,7 +318,7 @@ export function StickerLibraryScreen() {
               <StickerTile
                 key={asset.id}
                 asset={asset}
-                isSelectable={asset.source === "user"}
+                isSelectable={asset.source === "sticker"}
                 isSelected={selectedStickerIds.has(asset.id)}
                 selectionMode={isSelectionMode}
                 showsSelectionControl

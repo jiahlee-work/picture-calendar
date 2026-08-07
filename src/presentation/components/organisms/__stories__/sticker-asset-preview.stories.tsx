@@ -1,20 +1,20 @@
 import type { Meta, StoryObj } from "@storybook/react-native";
 import { StyleSheet, View } from "react-native";
 
-import { BUILT_IN_STICKER_ASSETS } from "@/application/services/stickers/sticker-assets";
+import { WIDGET_ASSETS } from "@/application/services/stickers/sticker-assets";
 import type { StickerAsset } from "@/application/services/stickers/types";
-import { builtInPolaroidPreviewImageUri } from "@/presentation/assets/built-in-polaroid-preview";
+import { widgetPolaroidPreviewImageUri } from "@/presentation/assets/widget-polaroid-preview";
 import { StickerAssetPreview } from "@/presentation/components/organisms/sticker-asset-preview";
 import { appColors } from "@/presentation/theme/colors";
 
 const STICKER_ASSETS = {
-  calendar: BUILT_IN_STICKER_ASSETS[0],
-  polaroid: BUILT_IN_STICKER_ASSETS[1],
-  user: {
+  calendar: WIDGET_ASSETS[0],
+  polaroid: WIDGET_ASSETS[1],
+  sticker: {
     id: "story-user-sticker",
-    source: "user",
+    source: "sticker",
     userId: "storybook-user",
-    imagePath: builtInPolaroidPreviewImageUri,
+    imagePath: widgetPolaroidPreviewImageUri,
     storageKey: null,
     name: "사용자 스티커",
     createdAt: "2026-07-01T00:00:00.000Z",
@@ -76,9 +76,9 @@ export const Polaroid: Story = {
   },
 };
 
-export const UserSticker: Story = {
+export const Sticker: Story = {
   args: {
-    assetType: "user",
+    assetType: "sticker",
     size: "tile",
   },
 };

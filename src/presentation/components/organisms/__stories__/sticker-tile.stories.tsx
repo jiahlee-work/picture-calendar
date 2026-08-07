@@ -1,19 +1,19 @@
 import type { Meta, StoryObj } from "@storybook/react-native";
 import { StyleSheet, View } from "react-native";
 
-import { BUILT_IN_STICKER_ASSETS } from "@/application/services/stickers/sticker-assets";
+import { WIDGET_ASSETS } from "@/application/services/stickers/sticker-assets";
 import type { StickerAsset } from "@/application/services/stickers/types";
-import { builtInPolaroidPreviewImageUri } from "@/presentation/assets/built-in-polaroid-preview";
+import { widgetPolaroidPreviewImageUri } from "@/presentation/assets/widget-polaroid-preview";
 import { StickerTile } from "@/presentation/components/organisms/sticker-tile";
 import { appColors } from "@/presentation/theme/colors";
 
 const STICKER_ASSETS = {
-  builtIn: BUILT_IN_STICKER_ASSETS[0],
-  user: {
+  widget: WIDGET_ASSETS[0],
+  sticker: {
     id: "story-user-sticker",
-    source: "user",
+    source: "sticker",
     userId: "storybook-user",
-    imagePath: builtInPolaroidPreviewImageUri,
+    imagePath: widgetPolaroidPreviewImageUri,
     storageKey: null,
     name: "사용자 스티커",
     createdAt: "2026-07-01T00:00:00.000Z",
@@ -67,16 +67,16 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const BuiltIn: Story = {
+export const Widget: Story = {
   args: {
-    assetType: "builtIn",
+    assetType: "widget",
     tileSize: 144,
   },
 };
 
-export const UserSticker: Story = {
+export const Sticker: Story = {
   args: {
-    assetType: "user",
+    assetType: "sticker",
     tileSize: 144,
   },
 };

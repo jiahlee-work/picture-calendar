@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
+import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
 
 import {
   ReiconIcon,
@@ -36,6 +37,8 @@ export const RECAP_DECORATING_TOOLBAR_ACTIONS: RecapDecoratingToolbarAction[] =
     },
   ];
 
+const RECAP_DECORATING_TOOLBAR_ICON_SIZE = 24;
+
 type RecapDecoratingToolbarProps = {
   onSelectAction: (action: RecapDecoratingToolbarAction) => void;
 };
@@ -44,7 +47,11 @@ export function RecapDecoratingToolbar(props: RecapDecoratingToolbarProps) {
   const { onSelectAction } = props;
 
   return (
-    <View style={styles.toolbar}>
+    <Animated.View
+      entering={FadeInDown.duration(180)}
+      exiting={FadeOutDown.duration(140)}
+      style={styles.toolbar}
+    >
       {RECAP_DECORATING_TOOLBAR_ACTIONS.map((action) => (
         <Pressable
           key={action.id}
@@ -57,10 +64,14 @@ export function RecapDecoratingToolbar(props: RecapDecoratingToolbarProps) {
           ]}
           onPress={() => onSelectAction(action)}
         >
-          <ReiconIcon color={appColors.black} name={action.icon} size={28} />
+          <ReiconIcon
+            color={appColors.black}
+            name={action.icon}
+            size={RECAP_DECORATING_TOOLBAR_ICON_SIZE}
+          />
         </Pressable>
       ))}
-    </View>
+    </Animated.View>
   );
 }
 

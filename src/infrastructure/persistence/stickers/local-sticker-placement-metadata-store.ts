@@ -1,7 +1,7 @@
 import { Directory, File, Paths } from "expo-file-system";
 
 import type {
-  BuiltInStickerPlacementState,
+  WidgetPlacementState,
   StickerPlacementMetadataStore,
   StickerPlacementPageType,
   StoredStickerPlacement,
@@ -101,13 +101,11 @@ function toStoredStickerPlacement(
     rotation,
     zIndex,
     opacity: numberValue(value.opacity) ?? undefined,
-    builtInState: builtInStateValue(value.builtInState),
+    widgetState: widgetStateValue(value.widgetState ?? value.builtInState),
   };
 }
 
-function builtInStateValue(
-  value: unknown,
-): BuiltInStickerPlacementState | undefined {
+function widgetStateValue(value: unknown): WidgetPlacementState | undefined {
   if (!isObjectRecord(value)) {
     return undefined;
   }
@@ -123,6 +121,13 @@ function builtInStateValue(
     return {
       variant: "polaroidFrame",
       selectedImageId: stringValue(value.selectedImageId) ?? undefined,
+    };
+  }
+
+  if (value.variant === "speechBubble") {
+    return {
+      variant: "speechBubble",
+      text: stringValue(value.text) ?? undefined,
     };
   }
 

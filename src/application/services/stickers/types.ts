@@ -1,7 +1,7 @@
 export {
-  type BuiltInStickerAsset,
-  type BuiltInStickerPlacementState,
-  type BuiltInStickerVariant,
+  type WidgetAsset,
+  type WidgetPlacementState,
+  type WidgetVariant,
   type StickerAsset,
   type StickerFileStore,
   type StickerMetadataStore,

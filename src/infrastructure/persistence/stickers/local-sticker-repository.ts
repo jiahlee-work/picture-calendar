@@ -134,7 +134,7 @@ function createUserStickerAsset(
 ): UserStickerAsset {
   return {
     id: `local-sticker-${dayjs(now).valueOf().toString(36)}-${stickerCount.toString(36)}`,
-    source: "user",
+    source: "sticker",
     userId: sticker.userId,
     imagePath: sticker.imagePath,
     storageKey: sticker.storageKey ?? null,

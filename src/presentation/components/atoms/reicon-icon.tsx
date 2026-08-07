@@ -1,8 +1,13 @@
 import type { StyleProp, ViewStyle } from "react-native";
 import type { IconComponent, IconWeight } from "reicon-react-native/createIcon";
 import AddIcon from "reicon-react-native/icons/Add";
+import AlignHCenterIcon from "reicon-react-native/icons/AlignHCenter";
+import AlignLeftIcon from "reicon-react-native/icons/AlignLeft";
+import AlignRightIcon from "reicon-react-native/icons/AlignRight";
 import AlertCircleIcon from "reicon-react-native/icons/AlertCircle";
+import AngleRightIcon from "reicon-react-native/icons/AngleRight";
 import ArrowRightIcon from "reicon-react-native/icons/ArrowRight";
+import BoldIcon from "reicon-react-native/icons/Bold";
 import CalendarIcon from "reicon-react-native/icons/Calendar";
 import ChartBarIcon from "reicon-react-native/icons/ChartBar";
 import CheckIcon from "reicon-react-native/icons/Check";
@@ -25,14 +30,20 @@ import StickerSmileIcon from "reicon-react-native/icons/StickerSmile";
 import TagIcon from "reicon-react-native/icons/Tag";
 import TextIcon from "reicon-react-native/icons/Text";
 import Trash5Icon from "reicon-react-native/icons/Trash5";
+import ItalicIcon from "reicon-react-native/icons/Italic";
+import UnderlineIcon from "reicon-react-native/icons/Underline";
 import Wand3Icon from "reicon-react-native/icons/Wand3";
 import XIcon from "reicon-react-native/icons/X";
-import AngleRightIcon from "reicon-react-native/icons/AngleRight";
 
 const REICON_COMPONENTS = {
   Add: AddIcon,
+  AlignHCenter: AlignHCenterIcon,
+  AlignLeft: AlignLeftIcon,
+  AlignRight: AlignRightIcon,
   AlertCircle: AlertCircleIcon,
   ArrowRight: ArrowRightIcon,
+  AngleRight: AngleRightIcon,
+  Bold: BoldIcon,
   Calendar: CalendarIcon,
   ChartBar: ChartBarIcon,
   Check: CheckIcon,
@@ -48,6 +59,7 @@ const REICON_COMPONENTS = {
   Grid10: Grid10Icon,
   Grid3: Grid3Icon,
   Image: ImageIcon,
+  Italic: ItalicIcon,
   Menu: MenuIcon,
   Share: ShareIcon,
   Star: StarIcon,
@@ -55,9 +67,9 @@ const REICON_COMPONENTS = {
   Tag: TagIcon,
   Text: TextIcon,
   Trash5: Trash5Icon,
+  Underline: UnderlineIcon,
   Wand3: Wand3Icon,
   X: XIcon,
-  AngleRight: AngleRightIcon,
 } satisfies Record<string, IconComponent>;
 
 export type ReiconName = keyof typeof REICON_COMPONENTS;
