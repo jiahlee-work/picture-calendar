@@ -15,6 +15,7 @@ export type RecapCanvasTextElementUpdate = Partial<
 >;
 
 export const DEFAULT_RECAP_TEXT_CONTENT = "텍스트를 입력하려면 두 번 탭하세요.";
+export const DEFAULT_RECAP_TEXT_WIDTH = 340;
 
 export function createRecapTextElement(
   options: CreateRecapTextElementOptions,
@@ -33,6 +34,7 @@ export function createRecapTextElement(
     textAlign: "left",
     textDecorationLine: "none",
     type: "text",
+    width: DEFAULT_RECAP_TEXT_WIDTH,
     x,
     y,
     zIndex,

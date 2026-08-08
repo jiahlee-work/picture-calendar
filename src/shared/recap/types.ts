@@ -79,6 +79,7 @@ export type RecapCanvasTextElement = RecapCanvasBaseElement & {
   textAlign?: "center" | "left" | "right";
   textDecorationLine?: "none" | "underline";
   type: "text";
+  width?: number;
 };
 
 export type RecapCanvasWidgetElement =

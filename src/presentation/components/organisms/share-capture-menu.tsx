@@ -24,6 +24,7 @@ type ShareCaptureMenuProps = {
   captureRef: RefObject<View | null>;
   captureWidth?: number;
   disabled?: boolean;
+  disabledMessage?: string;
   fileName: string;
   isReady: boolean;
 };
@@ -40,6 +41,7 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
     captureRef,
     captureWidth,
     disabled = false,
+    disabledMessage,
     fileName,
     isReady,
   } = props;
@@ -57,9 +59,19 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
   const [saveToastState, setSaveToastState] = useState<ShareSaveToastStateType>(
     ShareSaveToastState.hidden,
   );
+  const isBlockedWithMessage = disabled && Boolean(disabledMessage);
+
+  const handleBlockedPress = () => {
+    if (!disabledMessage) {
+      return;
+    }
+
+    Alert.alert("저장 필요", disabledMessage);
+  };
 
   const handleSaveImage = async () => {
     if (disabled || isProcessing) {
+      handleBlockedPress();
       return;
     }
 
@@ -91,6 +103,7 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
 
   const handleShareImage = async () => {
     if (disabled || isProcessing) {
+      handleBlockedPress();
       return;
     }
 
@@ -123,7 +136,7 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
 
   return (
     <View style={styles.root}>
-      {shouldShowActionMenu ? (
+      {shouldShowActionMenu && !isBlockedWithMessage ? (
         <Menu
           accessibilityLabel={accessibilityLabel}
           disabled={disabled}
@@ -139,8 +152,9 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
       ) : (
         <SymbolIconButton
           accessibilityLabel={accessibilityLabel}
-          disabled={disabled}
+          disabled={disabled && !isBlockedWithMessage}
           icon="Share"
+          isDimmed={isBlockedWithMessage}
           onPress={handleShareImage}
         />
       )}

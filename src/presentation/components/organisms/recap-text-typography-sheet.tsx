@@ -140,6 +140,16 @@ export function RecapTextTypographySheet(props: RecapTextTypographySheetProps) {
     },
     [activePopover],
   );
+  const handleSelectFontFamily = (nextFontFamily: string | undefined) => {
+    onChangeFontFamily(nextFontFamily);
+    setActivePopover(null);
+    setPopoverFrame(null);
+  };
+  const handleSelectFontSize = (nextFontSize: number) => {
+    onChangeFontSize(nextFontSize);
+    setActivePopover(null);
+    setPopoverFrame(null);
+  };
 
   return (
     <BottomSheetModal
@@ -211,7 +221,7 @@ export function RecapTextTypographySheet(props: RecapTextTypographySheetProps) {
                         ? { fontFamily: option.fontFamily }
                         : undefined
                     }
-                    onPress={() => onChangeFontFamily(option.fontFamily)}
+                    onPress={() => handleSelectFontFamily(option.fontFamily)}
                   />
                 );
               })}
@@ -231,7 +241,7 @@ export function RecapTextTypographySheet(props: RecapTextTypographySheetProps) {
                     key={option}
                     isSelected={option === fontSize}
                     label={`${option}pt`}
-                    onPress={() => onChangeFontSize(option)}
+                    onPress={() => handleSelectFontSize(option)}
                   />
                 ))}
               </ScrollView>

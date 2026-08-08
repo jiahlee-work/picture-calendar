@@ -5,7 +5,11 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import { MenuView, type NativeActionEvent } from "@expo/ui/community/menu";
+import {
+  MenuView,
+  type MenuAction,
+  type NativeActionEvent,
+} from "@expo/ui/community/menu";
 import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
 
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
@@ -32,6 +36,7 @@ export type RecapTextStyleUpdate = Partial<
 type StyleAction = {
   accessibilityLabel: string;
   id: "bold" | "italic" | "underline";
+  image: MenuAction["image"];
   title: string;
   isSelected: (textElement: RecapCanvasTextElement) => boolean;
   resolveUpdate: (textElement: RecapCanvasTextElement) => RecapTextStyleUpdate;
@@ -49,6 +54,7 @@ const STYLE_ACTIONS: StyleAction[] = [
   {
     accessibilityLabel: "텍스트 굵게",
     id: "bold",
+    image: "bold",
     title: "굵게",
     isSelected: (textElement) => textElement.fontWeight === "bold",
     resolveUpdate: (textElement) => ({
@@ -58,6 +64,7 @@ const STYLE_ACTIONS: StyleAction[] = [
   {
     accessibilityLabel: "텍스트 기울임",
     id: "italic",
+    image: "italic",
     title: "기울임",
     isSelected: (textElement) => textElement.fontStyle === "italic",
     resolveUpdate: (textElement) => ({
@@ -67,6 +74,7 @@ const STYLE_ACTIONS: StyleAction[] = [
   {
     accessibilityLabel: "텍스트 밑줄",
     id: "underline",
+    image: "underline",
     title: "밑줄",
     isSelected: (textElement) => textElement.textDecorationLine === "underline",
     resolveUpdate: (textElement) => ({
@@ -78,7 +86,8 @@ const STYLE_ACTIONS: StyleAction[] = [
 
 const TEXT_TOOLBAR_WIDTH = 320;
 const TEXT_TOOLBAR_ICON_SIZE = 24;
-const TEXT_TOOLBAR_CUSTOM_ICON_SIZE = 28;
+const TEXT_TOOLBAR_TEXT_FORMAT_ICON_SIZE = 28;
+const TEXT_TOOLBAR_TEXT_STYLE_ICON_SIZE = 28;
 const TEXT_TOOLBAR_BUTTON_PADDING = 10;
 const TEXT_TOOLBAR_HORIZONTAL_PADDING = 10;
 
@@ -117,9 +126,10 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
   } = props;
   const styleMenuActions = STYLE_ACTIONS.map((action) => ({
     id: action.id,
+    image: action.image,
     state: action.isSelected(textElement) ? ("on" as const) : ("off" as const),
     title: action.title,
-  }));
+  })).reverse();
   const alignMenuActions = ALIGN_ACTIONS.map((action) => ({
     id: action.id,
     state: action.isSelected(textElement) ? ("on" as const) : ("off" as const),
@@ -162,7 +172,7 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
         >
           <TextFormatIcon
             color={appColors.black}
-            size={TEXT_TOOLBAR_CUSTOM_ICON_SIZE}
+            size={TEXT_TOOLBAR_TEXT_FORMAT_ICON_SIZE}
           />
         </ToolbarButton>
         <ToolbarMenuButton
@@ -172,7 +182,7 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
         >
           <TextStyleIcon
             color={appColors.black}
-            size={TEXT_TOOLBAR_CUSTOM_ICON_SIZE}
+            size={TEXT_TOOLBAR_TEXT_STYLE_ICON_SIZE}
           />
         </ToolbarMenuButton>
         <ToolbarMenuButton
@@ -211,7 +221,7 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
 
 function ToolbarMenuButton(props: {
   accessibilityLabel: string;
-  actions: { id: string; state: "off" | "on"; title: string }[];
+  actions: MenuAction[];
   children: ReactNode;
   onPressAction: (event: NativeActionEvent) => void;
 }) {

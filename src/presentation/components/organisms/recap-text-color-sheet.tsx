@@ -90,6 +90,8 @@ export function RecapTextColorSheet(props: RecapTextColorSheetProps) {
       containerStyle={styles.sheetContainer}
       enableDynamicSizing={false}
       enableContentPanningGesture={!isCustomPickerVisible}
+      enableHandlePanningGesture={!isCustomPickerVisible}
+      enableOverDrag={false}
       enablePanDownToClose
       handleIndicatorStyle={styles.handleIndicator}
       index={0}
@@ -106,7 +108,7 @@ export function RecapTextColorSheet(props: RecapTextColorSheetProps) {
       >
         <Text style={styles.title}>색상</Text>
         {isCustomPickerVisible ? (
-          <CustomColorPicker onChangeColor={onChangeColor} />
+          <CustomColorPicker value={value} onChangeColor={onChangeColor} />
         ) : (
           <View style={styles.palette}>
             {colorRows.map((row) => (
@@ -182,14 +184,18 @@ function ColorChip(props: {
   );
 }
 
-function CustomColorPicker(props: { onChangeColor: (color: string) => void }) {
-  const { onChangeColor } = props;
+function CustomColorPicker(props: {
+  value: string;
+  onChangeColor: (color: string) => void;
+}) {
+  const { onChangeColor, value } = props;
   const { width } = useWindowDimensions();
   const pickerSize = Math.min(width - 92, CUSTOM_PICKER_MAX_SIZE);
   const sliderWidth = pickerSize;
-  const [hue, setHue] = useState(220);
-  const [saturation, setSaturation] = useState(0.68);
-  const [brightness, setBrightness] = useState(0.86);
+  const initialColor = useMemo(() => hexToHsv(value), [value]);
+  const [hue, setHue] = useState(initialColor.hue);
+  const [saturation, setSaturation] = useState(initialColor.saturation);
+  const [brightness, setBrightness] = useState(initialColor.brightness);
   const hueColor = hsvToHex(hue, 1, 1);
   const updatePickerFromEvent = useCallback(
     (locationX: number, locationY: number) => {
@@ -370,6 +376,36 @@ function hsvToHex(hue: number, saturation: number, value: number): string {
   const blue = Math.round((blue1 + match) * 255);
 
   return `#${toHex(red)}${toHex(green)}${toHex(blue)}`;
+}
+
+function hexToHsv(hexColor: string): {
+  brightness: number;
+  hue: number;
+  saturation: number;
+} {
+  const normalizedHex = hexColor.replace("#", "");
+  const red = Number.parseInt(normalizedHex.slice(0, 2), 16) / 255;
+  const green = Number.parseInt(normalizedHex.slice(2, 4), 16) / 255;
+  const blue = Number.parseInt(normalizedHex.slice(4, 6), 16) / 255;
+  const max = Math.max(red, green, blue);
+  const min = Math.min(red, green, blue);
+  const delta = max - min;
+  const saturation = max === 0 ? 0 : delta / max;
+  const brightness = max;
+  const hue =
+    delta === 0
+      ? 0
+      : max === red
+        ? 60 * (((green - blue) / delta) % 6)
+        : max === green
+          ? 60 * ((blue - red) / delta + 2)
+          : 60 * ((red - green) / delta + 4);
+
+  return {
+    brightness,
+    hue: hue < 0 ? hue + 360 : hue,
+    saturation,
+  };
 }
 
 function toHex(value: number): string {

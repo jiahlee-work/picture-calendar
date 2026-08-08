@@ -30,6 +30,7 @@ describe("recap canvas elements", () => {
       textAlign: "left",
       textDecorationLine: "none",
       type: "text",
+      width: 340,
       x: 120,
       y: 240,
       zIndex: 3,

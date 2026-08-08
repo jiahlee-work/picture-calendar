@@ -11,6 +11,7 @@ type SymbolIconButtonProps = {
   disabled?: boolean;
   icon: ReiconName;
   isExpanded?: boolean;
+  isDimmed?: boolean;
   onPress: () => void;
 };
 
@@ -19,6 +20,7 @@ export function SymbolIconButton(props: SymbolIconButtonProps) {
     accessibilityLabel,
     disabled = false,
     icon,
+    isDimmed = false,
     isExpanded,
     onPress,
   } = props;
@@ -39,7 +41,7 @@ export function SymbolIconButton(props: SymbolIconButtonProps) {
       disabled={disabled}
       style={({ pressed }) => [
         styles.button,
-        disabled && styles.buttonDisabled,
+        (disabled || isDimmed) && styles.buttonDisabled,
         pressed && styles.buttonPressed,
       ]}
       onPress={onPress}

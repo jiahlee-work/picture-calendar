@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -40,6 +40,7 @@ import {
   type RecapTextStyleUpdate,
 } from "@/presentation/components/organisms/recap-text-toolbar";
 import { RecapTextTypographySheet } from "@/presentation/components/organisms/recap-text-typography-sheet";
+import { ShareCaptureMenu } from "@/presentation/components/organisms/share-capture-menu";
 import { useAppBottomNavigationHidden } from "@/presentation/providers/app-bottom-navigation-controller";
 import { appColors } from "@/presentation/theme/colors";
 import { appLayers } from "@/presentation/theme/layers";
@@ -67,6 +68,7 @@ const DEFAULT_LAYOUT_ID = RecapCanvasLayoutId.twoColumns;
 export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   const { month, year } = props;
   const windowDimensions = useWindowDimensions();
+  const shareCaptureRef = useRef<View>(null);
   const monthKey = `${year}-${month}`;
   const { photos, recap } = useMonthlyRecapDetail(monthKey);
   const {
@@ -136,6 +138,9 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     committedLayoutOverride === undefined
       ? (savedCanvas?.layout ?? null)
       : committedLayoutOverride;
+  const committedLayoutDefinition = committedLayout?.layoutId
+    ? getRecapCanvasLayoutDefinition(committedLayout.layoutId)
+    : null;
   const committedElements =
     committedElementsOverride === undefined
       ? (savedCanvas?.elements ?? [])
@@ -175,6 +180,15 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       elements: savedCanvas?.elements ?? [],
       layout: savedCanvas?.layout ?? null,
     });
+  const hasCanvasContent =
+    Boolean(committedLayout) || committedElements.length > 0;
+  const isShareVisible = mode === "default" && hasCanvasContent;
+  const emptyCanvasMessage =
+    mode === "layout" && !visibleLayout
+      ? "레이아웃 미적용"
+      : hasCanvasContent
+        ? null
+        : "리캡 페이지를 직접 만들어보세요!";
 
   const handleCompletePress = async () => {
     if (!hasUnsavedDecoratingChanges || isCanvasSaving) {
@@ -188,6 +202,11 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       });
       setCommittedElementsOverride(undefined);
       setCommittedLayoutOverride(undefined);
+      setSelectedElementId(null);
+      setEditingTextElementId(null);
+      setIsTextTypographySheetVisible(false);
+      setIsTextColorSheetVisible(false);
+      setTextSheetElementId(null);
     } catch {
       Alert.alert("저장 실패", "꾸민 내용을 저장하지 못했습니다.");
     }
@@ -480,11 +499,9 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
         slotPhotoIds={visibleSlotPhotoIds}
         onSelectSlot={handleSelectLayoutSlot}
       >
-        <Text style={styles.emptyText}>
-          {mode === "layout" && !visibleLayout
-            ? "레이아웃 미적용"
-            : "리캡 페이지를 직접 만들어보세요!"}
-        </Text>
+        {emptyCanvasMessage ? (
+          <Text style={styles.emptyText}>{emptyCanvasMessage}</Text>
+        ) : null}
       </RecapLayoutCanvas>
       {mode === "default" ? (
         <RecapCanvasTextLayer
@@ -525,16 +542,38 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
               onPress={handleCompleteLayoutPress}
             />
           ) : (
-            <AppBar.Action
-              accessibilityLabel="꾸미기 완료"
-              disabled={
-                !hasUnsavedDecoratingChanges ||
-                isCanvasLoading ||
-                isCanvasSaving
-              }
-              icon="Check"
-              onPress={handleCompletePress}
-            />
+            <View pointerEvents="box-none" style={styles.appBarActions}>
+              {isShareVisible ? (
+                <ShareCaptureMenu
+                  accessibilityLabel="리캡 공유 버튼"
+                  captureHeight={windowDimensions.height}
+                  captureRef={shareCaptureRef}
+                  captureWidth={windowDimensions.width}
+                  disabled={
+                    hasUnsavedDecoratingChanges ||
+                    isCanvasLoading ||
+                    isCanvasSaving
+                  }
+                  disabledMessage={
+                    hasUnsavedDecoratingChanges
+                      ? "공유하려면 먼저 꾸미기 완료를 눌러 저장해 주세요."
+                      : undefined
+                  }
+                  fileName={monthKey}
+                  isReady={hasCanvasContent && !hasUnsavedDecoratingChanges}
+                />
+              ) : null}
+              <AppBar.Action
+                accessibilityLabel="꾸미기 완료"
+                disabled={
+                  !hasUnsavedDecoratingChanges ||
+                  isCanvasLoading ||
+                  isCanvasSaving
+                }
+                icon="Check"
+                onPress={handleCompletePress}
+              />
+            </View>
           )}
         </AppBar>
       </AppSafeAreaView>
@@ -616,13 +655,53 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
           setTextSheetElementId(null);
         }}
       />
+      {hasCanvasContent ? (
+        <View
+          ref={shareCaptureRef}
+          accessibilityElementsHidden
+          collapsable={false}
+          importantForAccessibility="no-hide-descendants"
+          pointerEvents="none"
+          renderToHardwareTextureAndroid
+          style={[
+            styles.shareCaptureCanvas,
+            {
+              height: windowDimensions.height,
+              transform: [{ translateX: -(windowDimensions.width + 120) }],
+              width: windowDimensions.width,
+            },
+          ]}
+        >
+          <RecapLayoutCanvas
+            isEditing={false}
+            layout={committedLayoutDefinition}
+            photosById={photosById}
+            selectedSlotId={null}
+            slotPhotoIds={committedSlotPhotoIds}
+            onSelectSlot={() => {}}
+          />
+          <RecapCanvasTextLayer
+            editingElementId={null}
+            elements={committedElements}
+            selectedElementId={null}
+            onChangeTextElement={() => {}}
+            onEndTextEditing={() => {}}
+            onSelectElement={() => {}}
+            onStartTextEditing={() => {}}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  appBarActions: {
+    flexDirection: "row",
+    gap: 10,
+  },
   emptyText: {
-    color: appColors.black,
+    color: "#8C8C8C",
     fontSize: 15,
     fontWeight: "900",
     lineHeight: 22,
@@ -633,8 +712,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   screen: {
-    backgroundColor: appColors.background,
+    backgroundColor: appColors.white,
     flex: 1,
+  },
+  shareCaptureCanvas: {
+    backgroundColor: appColors.white,
+    left: 0,
+    position: "absolute",
+    top: 0,
   },
   toolbarContainer: {
     alignItems: "center",

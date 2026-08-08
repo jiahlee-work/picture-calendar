@@ -138,7 +138,7 @@ function toLineStyle(line: RecapCanvasLayoutLine): ViewStyle {
 const styles = StyleSheet.create({
   canvas: {
     alignItems: "center",
-    backgroundColor: appColors.background,
+    backgroundColor: appColors.white,
     flex: 1,
     justifyContent: "center",
     overflow: "hidden",
