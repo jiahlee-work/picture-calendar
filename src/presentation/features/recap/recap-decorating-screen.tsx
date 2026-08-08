@@ -8,10 +8,13 @@ import {
   View,
 } from "react-native";
 
+import { useStickerLibrary } from "@/application/hooks/use-sticker-library";
 import { useMonthlyRecapCanvas } from "@/application/hooks/use-monthly-recap-canvas";
 import { useMonthlyRecapDetail } from "@/application/hooks/use-monthly-recap-detail";
 import {
+  createRecapStickerElement,
   createRecapTextElement,
+  createRecapWidgetElement,
   deleteRecapCanvasElement,
   getNextRecapCanvasElementZIndex,
   updateRecapCanvasTextElement,
@@ -24,8 +27,10 @@ import {
   isRecapCanvasLayoutPhotoSelectionComplete,
   type RecapCanvasLayoutSlotPhotoMap,
 } from "@/application/services/recap/recap-canvas-layout";
+import type { StickerAsset } from "@/application/services/stickers/types";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
+import { RecapCanvasStickerLayer } from "@/presentation/components/organisms/recap-canvas-sticker-layer";
 import { RecapCanvasTextLayer } from "@/presentation/components/organisms/recap-canvas-text-layer";
 import {
   RecapDecoratingToolbar,
@@ -41,6 +46,7 @@ import {
 } from "@/presentation/components/organisms/recap-text-toolbar";
 import { RecapTextTypographySheet } from "@/presentation/components/organisms/recap-text-typography-sheet";
 import { ShareCaptureMenu } from "@/presentation/components/organisms/share-capture-menu";
+import { StickerPickerSheet } from "@/presentation/components/organisms/sticker-picker-sheet";
 import { useAppBottomNavigationHidden } from "@/presentation/providers/app-bottom-navigation-controller";
 import { appColors } from "@/presentation/theme/colors";
 import { appLayers } from "@/presentation/theme/layers";
@@ -50,6 +56,7 @@ import {
   type RecapCanvasLayoutId as RecapCanvasLayoutIdType,
   type RecapCanvasLayoutState,
   type RecapCanvasTextElement,
+  type RecapCanvasWidgetElement,
 } from "@/shared/recap/types";
 
 type RecapDecoratingScreenProps = {
@@ -71,6 +78,8 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   const shareCaptureRef = useRef<View>(null);
   const monthKey = `${year}-${month}`;
   const { photos, recap } = useMonthlyRecapDetail(monthKey);
+  const { stickers, registerFromClipboard, registerFromLibrary } =
+    useStickerLibrary();
   const {
     canvas: savedCanvas,
     isLoading: isCanvasLoading,
@@ -90,6 +99,13 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   const [editingTextElementId, setEditingTextElementId] = useState<
     string | null
   >(null);
+  const [editingWidgetElementId, setEditingWidgetElementId] = useState<
+    string | null
+  >(null);
+  const [isStickerPickerVisible, setIsStickerPickerVisible] = useState(false);
+  const [stickerPickerSnapIndex, setStickerPickerSnapIndex] = useState(1);
+  const [selectedStickerPickerAssetId, setSelectedStickerPickerAssetId] =
+    useState<string | null>(null);
   const [isTextTypographySheetVisible, setIsTextTypographySheetVisible] =
     useState(false);
   const [isTextColorSheetVisible, setIsTextColorSheetVisible] = useState(false);
@@ -171,6 +187,23 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       (element): element is RecapCanvasTextElement =>
         element.id === textSheetElementId && element.type === "text",
     ) ?? null;
+  const selectedStickerOrWidgetElement =
+    committedElements.find(
+      (element) =>
+        element.id === selectedElementId &&
+        (element.type === "sticker" || element.type === "widget"),
+    ) ?? null;
+  const selectedPolaroidWidgetElement =
+    committedElements.find(
+      (
+        element,
+      ): element is RecapCanvasWidgetElement & {
+        variant: "polaroidFrame";
+      } =>
+        element.id === selectedElementId &&
+        element.type === "widget" &&
+        element.variant === "polaroidFrame",
+    ) ?? null;
   const hasUnsavedDecoratingChanges =
     JSON.stringify({
       elements: committedElements,
@@ -204,6 +237,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       setCommittedLayoutOverride(undefined);
       setSelectedElementId(null);
       setEditingTextElementId(null);
+      setEditingWidgetElementId(null);
       setIsTextTypographySheetVisible(false);
       setIsTextColorSheetVisible(false);
       setTextSheetElementId(null);
@@ -249,6 +283,14 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     if (action.id === "text") {
       handleAddTextElement();
     }
+
+    if (action.id === "sticker") {
+      setIsStickerPickerVisible(true);
+      setStickerPickerSnapIndex(1);
+      setSelectedElementId(null);
+      setEditingTextElementId(null);
+      setEditingWidgetElementId(null);
+    }
   };
 
   const handleAddTextElement = () => {
@@ -266,6 +308,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     setCommittedElementsOverride(nextElements);
     setSelectedElementId(nextTextElement.id);
     setEditingTextElementId(null);
+    setEditingWidgetElementId(null);
     setIsTextTypographySheetVisible(false);
     setIsTextColorSheetVisible(false);
     setTextSheetElementId(null);
@@ -274,11 +317,21 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   const handleSelectElement = (elementId: string | null) => {
     setSelectedElementId(elementId);
     setEditingTextElementId(null);
+    setEditingWidgetElementId(null);
   };
 
   const handleStartTextEditing = (elementId: string) => {
     setSelectedElementId(elementId);
     setEditingTextElementId(elementId);
+    setEditingWidgetElementId(null);
+    setIsTextTypographySheetVisible(false);
+    setIsTextColorSheetVisible(false);
+  };
+
+  const handleStartWidgetEditing = (elementId: string) => {
+    setSelectedElementId(elementId);
+    setEditingTextElementId(null);
+    setEditingWidgetElementId(elementId);
     setIsTextTypographySheetVisible(false);
     setIsTextColorSheetVisible(false);
   };
@@ -295,6 +348,23 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     }
 
     handleUpdateTextElement(selectedTextElement.id, update);
+  };
+
+  const handleChangeCanvasElement = (
+    element: Exclude<RecapCanvasElement, { type: "text" | "photo" }>,
+  ) => {
+    setCommittedElementsOverride(
+      upsertRecapCanvasElement(committedElements, element),
+    );
+  };
+
+  const handleDeleteCanvasElement = (elementId: string) => {
+    setCommittedElementsOverride(
+      deleteRecapCanvasElement(committedElements, elementId),
+    );
+    setSelectedElementId(null);
+    setEditingTextElementId(null);
+    setEditingWidgetElementId(null);
   };
 
   const handleUpdateTextElement = (
@@ -320,6 +390,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     );
     setSelectedElementId(null);
     setEditingTextElementId(null);
+    setEditingWidgetElementId(null);
     setIsTextTypographySheetVisible(false);
     setIsTextColorSheetVisible(false);
     setTextSheetElementId(null);
@@ -347,6 +418,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     setEditedLayoutIds({});
     setSelectedElementId(null);
     setEditingTextElementId(null);
+    setEditingWidgetElementId(null);
     setIsTextTypographySheetVisible(false);
     setIsTextColorSheetVisible(false);
     setMode("default");
@@ -470,6 +542,90 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     }
   };
 
+  const handleSelectPolaroidPhoto = (photoId: string | null) => {
+    if (!selectedPolaroidWidgetElement) {
+      return;
+    }
+
+    handleChangeCanvasElement({
+      ...selectedPolaroidWidgetElement,
+      photoId: photoId ?? undefined,
+    });
+  };
+
+  const handleSelectStickerAsset = (asset: StickerAsset) => {
+    const nextElementId = `recap-${asset.source}-${Date.now()}`;
+    const elementPosition = {
+      x: Math.max(Math.round(windowDimensions.width / 2 - 66), 24),
+      y: Math.max(Math.round(windowDimensions.height / 2 - 66), 120),
+      zIndex: getNextRecapCanvasElementZIndex(committedElements),
+    };
+    const nextElement =
+      asset.source === "sticker"
+        ? createRecapStickerElement({
+            id: nextElementId,
+            stickerAssetId: asset.id,
+            ...elementPosition,
+          })
+        : createRecapWidgetElement({
+            id: nextElementId,
+            variant: asset.variant,
+            ...elementPosition,
+          });
+
+    setSelectedStickerPickerAssetId(asset.id);
+    setCommittedElementsOverride(
+      upsertRecapCanvasElement(committedElements, nextElement),
+    );
+    setSelectedElementId(nextElement.id);
+    setEditingTextElementId(null);
+    setEditingWidgetElementId(
+      nextElement.type === "widget" && nextElement.variant === "speechBubble"
+        ? nextElement.id
+        : null,
+    );
+  };
+
+  const handleRegisterStickerFromLibrary = async () => {
+    const result = await registerFromLibrary();
+
+    if (result === "failed") {
+      Alert.alert("등록 실패", "스티커 이미지를 저장하지 못했어요.");
+    }
+  };
+
+  const handleRegisterStickerFromClipboard = async () => {
+    const result = await registerFromClipboard();
+
+    if (result === "empty") {
+      Alert.alert(
+        "이미지 없음",
+        "기기 클립보드에서 붙여넣을 이미지를 찾지 못했어요.",
+      );
+      return;
+    }
+
+    if (result === "denied") {
+      Alert.alert(
+        "권한 필요",
+        "클립보드 이미지를 읽을 수 있도록 붙여넣기 권한을 허용해 주세요.",
+      );
+      return;
+    }
+
+    if (result === "nativeModuleUnavailable") {
+      Alert.alert(
+        "앱 재설치 필요",
+        "클립보드 붙여넣기를 사용하려면 expo-clipboard가 포함된 개발용 앱을 다시 빌드해서 설치해야 해요.",
+      );
+      return;
+    }
+
+    if (result === "failed") {
+      Alert.alert("등록 실패", "클립보드 이미지를 스티커로 저장하지 못했어요.");
+    }
+  };
+
   if (!recap) {
     return (
       <View style={styles.screen}>
@@ -504,15 +660,30 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
         ) : null}
       </RecapLayoutCanvas>
       {mode === "default" ? (
-        <RecapCanvasTextLayer
-          editingElementId={editingTextElementId}
-          elements={committedElements}
-          selectedElementId={selectedElementId}
-          onChangeTextElement={handleChangeTextElement}
-          onEndTextEditing={() => setEditingTextElementId(null)}
-          onSelectElement={handleSelectElement}
-          onStartTextEditing={handleStartTextEditing}
-        />
+        <>
+          <RecapCanvasTextLayer
+            editingElementId={editingTextElementId}
+            elements={committedElements}
+            selectedElementId={selectedElementId}
+            onChangeTextElement={handleChangeTextElement}
+            onEndTextEditing={() => setEditingTextElementId(null)}
+            onSelectElement={handleSelectElement}
+            onStartTextEditing={handleStartTextEditing}
+          />
+          <RecapCanvasStickerLayer
+            assets={stickers}
+            editingWidgetElementId={editingWidgetElementId}
+            elements={committedElements}
+            monthKey={monthKey}
+            photosById={photosById}
+            selectedElementId={selectedElementId}
+            onChangeElement={handleChangeCanvasElement}
+            onDeleteElement={handleDeleteCanvasElement}
+            onEndWidgetEditing={() => setEditingWidgetElementId(null)}
+            onSelectElement={handleSelectElement}
+            onStartWidgetEditing={handleStartWidgetEditing}
+          />
+        </>
       ) : null}
       <AppSafeAreaView
         edges={["top"]}
@@ -597,7 +768,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
             }}
             onUpdateTextStyle={handleUpdateSelectedTextStyle}
           />
-        ) : (
+        ) : selectedStickerOrWidgetElement ? null : (
           <RecapDecoratingToolbar onSelectAction={handleToolbarActionPress} />
         )}
       </View>
@@ -611,6 +782,28 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
         visible={mode === "layout" && Boolean(selectedLayoutSlotId)}
         onSelectPhoto={handleSelectLayoutPhoto}
       />
+      <RecapLayoutPhotoPicker
+        photos={recapPhotos}
+        selectedPhotoId={selectedPolaroidWidgetElement?.photoId ?? null}
+        visible={mode === "default" && Boolean(selectedPolaroidWidgetElement)}
+        onSelectPhoto={handleSelectPolaroidPhoto}
+      />
+      {isStickerPickerVisible ? (
+        <StickerPickerSheet
+          selectedAssetId={selectedStickerPickerAssetId}
+          snapIndex={stickerPickerSnapIndex}
+          stickers={stickers}
+          visible={isStickerPickerVisible}
+          onChangeSnapIndex={setStickerPickerSnapIndex}
+          onRegisterFromClipboard={() => {
+            void handleRegisterStickerFromClipboard();
+          }}
+          onRegisterFromLibrary={() => {
+            void handleRegisterStickerFromLibrary();
+          }}
+          onSelectSticker={handleSelectStickerAsset}
+        />
+      ) : null}
       <RecapTextTypographySheet
         fontFamily={
           textSheetElement?.fontFamily ?? selectedTextElement?.fontFamily
@@ -679,6 +872,19 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
             selectedSlotId={null}
             slotPhotoIds={committedSlotPhotoIds}
             onSelectSlot={() => {}}
+          />
+          <RecapCanvasStickerLayer
+            assets={stickers}
+            editingWidgetElementId={null}
+            elements={committedElements}
+            monthKey={monthKey}
+            photosById={photosById}
+            selectedElementId={null}
+            onChangeElement={() => {}}
+            onDeleteElement={() => {}}
+            onEndWidgetEditing={() => {}}
+            onSelectElement={() => {}}
+            onStartWidgetEditing={() => {}}
           />
           <RecapCanvasTextLayer
             editingElementId={null}

@@ -1,10 +1,31 @@
 import type {
   RecapCanvasElement,
+  RecapCanvasStickerElement,
   RecapCanvasTextElement,
+  RecapCanvasWidgetElement,
 } from "@/shared/recap/types";
+import type { WidgetVariant } from "@/application/services/stickers/types";
 
 export type CreateRecapTextElementOptions = {
   id: string;
+  x: number;
+  y: number;
+  zIndex: number;
+};
+
+export type CreateRecapStickerElementOptions = {
+  id: string;
+  stickerAssetId: string;
+  x: number;
+  y: number;
+  zIndex: number;
+};
+
+export type CreateRecapWidgetElementOptions = {
+  id: string;
+  photoId?: string;
+  text?: string;
+  variant: WidgetVariant;
   x: number;
   y: number;
   zIndex: number;
@@ -16,6 +37,7 @@ export type RecapCanvasTextElementUpdate = Partial<
 
 export const DEFAULT_RECAP_TEXT_CONTENT = "텍스트를 입력하려면 두 번 탭하세요.";
 export const DEFAULT_RECAP_TEXT_WIDTH = 340;
+export const DEFAULT_RECAP_WIDGET_SPEECH_BUBBLE_TEXT = "텍스트 입력";
 
 export function createRecapTextElement(
   options: CreateRecapTextElementOptions,
@@ -38,6 +60,59 @@ export function createRecapTextElement(
     x,
     y,
     zIndex,
+  };
+}
+
+export function createRecapStickerElement(
+  options: CreateRecapStickerElementOptions,
+): RecapCanvasStickerElement {
+  const { id, stickerAssetId, x, y, zIndex } = options;
+
+  return {
+    id,
+    rotation: 0,
+    scale: 1,
+    stickerAssetId,
+    type: "sticker",
+    x,
+    y,
+    zIndex,
+  };
+}
+
+export function createRecapWidgetElement(
+  options: CreateRecapWidgetElementOptions,
+): RecapCanvasWidgetElement {
+  const { id, photoId, text, variant, x, y, zIndex } = options;
+  const base = {
+    id,
+    rotation: 0,
+    scale: 1,
+    type: "widget" as const,
+    x,
+    y,
+    zIndex,
+  };
+
+  if (variant === "calendar") {
+    return {
+      ...base,
+      variant,
+    };
+  }
+
+  if (variant === "speechBubble") {
+    return {
+      ...base,
+      text: text ?? DEFAULT_RECAP_WIDGET_SPEECH_BUBBLE_TEXT,
+      variant,
+    };
+  }
+
+  return {
+    ...base,
+    photoId,
+    variant,
   };
 }
 

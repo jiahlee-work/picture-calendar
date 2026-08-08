@@ -34,14 +34,16 @@ import { appSpacing } from "@/presentation/theme/spacing";
 
 const STICKER_TAB_OPTIONS = [
   {
-    label: "All",
-    value: "all",
+    label: "Sticker",
+    value: "sticker",
   },
   {
-    label: "Recents",
-    value: "recents",
+    label: "Widget",
+    value: "widget",
   },
 ] as const;
+
+type StickerTabValue = (typeof STICKER_TAB_OPTIONS)[number]["value"];
 
 const ACTION_BAR_ENTERING = FadeInDown.duration(350)
   .easing(Easing.bezier(0.22, 1, 0.36, 1))
@@ -70,6 +72,8 @@ export function StickerLibraryScreen() {
   const [selectedStickerIdSet, setSelectedStickerIds] = useState<Set<string>>(
     () => new Set(),
   );
+  const [activeTabValue, setActiveTabValue] =
+    useState<StickerTabValue>("sticker");
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -87,6 +91,23 @@ export function StickerLibraryScreen() {
         .map((sticker) => sticker.id),
     [stickers],
   );
+  const userStickerAssets = useMemo(
+    () =>
+      stickers.filter(
+        (sticker): sticker is UserStickerAsset => sticker.source === "sticker",
+      ),
+    [stickers],
+  );
+  const widgetAssets = useMemo(
+    () => stickers.filter((sticker) => sticker.source === "widget"),
+    [stickers],
+  );
+  const visibleAssets =
+    activeTabValue === "widget" ? widgetAssets : userStickerAssets;
+  const emptyText =
+    activeTabValue === "widget"
+      ? "사용할 수 있는 위젯이 없습니다."
+      : "등록된 스티커가 없습니다.";
   const userStickerIdSet = useMemo(
     () => new Set(userStickerIds),
     [userStickerIds],
@@ -209,6 +230,14 @@ export function StickerLibraryScreen() {
     });
   };
 
+  const handleChangeTab = (value: StickerTabValue) => {
+    setActiveTabValue(value);
+
+    if (value === "widget") {
+      handleCancelSelection();
+    }
+  };
+
   const handleCancelSelection = () => {
     setIsSelectionMode(false);
     setSelectedStickerIds(new Set());
@@ -272,27 +301,31 @@ export function StickerLibraryScreen() {
   return (
     <AppSafeAreaView>
       <AppBar>
-        <AppBar.Title variant="large">Stickers</AppBar.Title>
-        <Menu
-          accessibilityLabel="스티커 등록 메뉴 열기"
-          disabled={isSelectionMode}
-          trigger={{ icon: "Add" }}
-        >
-          <Menu.Item
-            icon="Gallery"
-            label="갤러리에서 등록"
-            onPress={() => {
-              void handleRegisterFromLibrary();
-            }}
-          />
-          <Menu.Item
-            icon="Clipboard"
-            label="클립보드 붙여넣기"
-            onPress={() => {
-              void handleRegisterFromClipboard();
-            }}
-          />
-        </Menu>
+        <AppBar.Title variant="large">Library</AppBar.Title>
+        {activeTabValue === "sticker" ? (
+          <Menu
+            accessibilityLabel="스티커 등록 메뉴 열기"
+            disabled={isSelectionMode}
+            trigger={{ icon: "Add" }}
+          >
+            <Menu.Item
+              icon="Gallery"
+              label="갤러리에서 등록"
+              onPress={() => {
+                void handleRegisterFromLibrary();
+              }}
+            />
+            <Menu.Item
+              icon="Clipboard"
+              label="클립보드 붙여넣기"
+              onPress={() => {
+                void handleRegisterFromClipboard();
+              }}
+            />
+          </Menu>
+        ) : (
+          <View style={styles.appBarActionPlaceholder} />
+        )}
       </AppBar>
 
       <ScrollView
@@ -304,24 +337,27 @@ export function StickerLibraryScreen() {
       >
         <SegmentedTabs
           options={STICKER_TAB_OPTIONS}
-          value="all"
-          onValueChange={() => undefined}
+          value={activeTabValue}
+          onValueChange={handleChangeTab}
         />
 
         {isLoading ? (
           <View style={styles.emptyPanel}>
             <Text style={styles.emptyText}>스티커를 불러오는 중이에요.</Text>
           </View>
+        ) : visibleAssets.length === 0 ? (
+          <View style={styles.emptyPanel}>
+            <Text style={styles.emptyText}>{emptyText}</Text>
+          </View>
         ) : (
           <View style={[styles.grid, { gap: cardGap }]}>
-            {stickers.map((asset) => (
+            {visibleAssets.map((asset) => (
               <StickerTile
                 key={asset.id}
                 asset={asset}
                 isSelectable={asset.source === "sticker"}
                 isSelected={selectedStickerIds.has(asset.id)}
                 selectionMode={isSelectionMode}
-                showsSelectionControl
                 tileSize={cardWidth}
                 onOpenDetails={handleOpenStickerDetails}
                 onToggleSelection={handleToggleStickerSelection}
@@ -433,6 +469,10 @@ function SelectionActionButton(props: {
 }
 
 const styles = StyleSheet.create({
+  appBarActionPlaceholder: {
+    height: 40,
+    width: 40,
+  },
   content: {
     gap: 28,
     paddingBottom: appSpacing.screenContentBottomPadding,

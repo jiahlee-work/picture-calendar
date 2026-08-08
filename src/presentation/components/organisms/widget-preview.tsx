@@ -165,9 +165,8 @@ const styles = StyleSheet.create({
     width: 260,
   },
   detailSpeechBubblePreview: {
-    borderRadius: 28,
-    height: 112,
-    width: 200,
+    minHeight: 64,
+    minWidth: 200,
   },
   detailSpeechBubbleText: {
     fontSize: 24,

@@ -48,7 +48,7 @@ const meta = {
           "/": "Calendar",
           "/recap": "Recap",
           "/settings": "Settings",
-          "/stickers": "Stickers",
+          "/stickers": "Library",
         },
         type: "select",
       },

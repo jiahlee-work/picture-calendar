@@ -26,7 +26,7 @@ export const RECAP_DECORATING_TOOLBAR_ACTIONS: RecapDecoratingToolbarAction[] =
       id: "text",
     },
     {
-      accessibilityLabel: "스티커와 위젯 추가",
+      accessibilityLabel: "라이브러리 열기",
       icon: "StickerSmile",
       id: "sticker",
     },

@@ -97,7 +97,7 @@ export function StickerPickerSheet(props: StickerPickerSheetProps) {
       onChange={onChangeSnapIndex}
     >
       <View style={styles.header}>
-        <Text style={styles.title}>Stickers</Text>
+        <Text style={styles.title}>Library</Text>
         {assetTypeValue === "stickers" ? (
           <Menu
             accessibilityLabel="스티커 등록 메뉴 열기"

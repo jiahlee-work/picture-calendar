@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createRecapStickerElement,
   createRecapTextElement,
+  createRecapWidgetElement,
   deleteRecapCanvasElement,
   getNextRecapCanvasElementZIndex,
   updateRecapCanvasTextElement,
@@ -34,6 +36,71 @@ describe("recap canvas elements", () => {
       x: 120,
       y: 240,
       zIndex: 3,
+    });
+  });
+
+  it("creates a sticker element from a user sticker asset id", () => {
+    expect(
+      createRecapStickerElement({
+        id: "sticker-1",
+        stickerAssetId: "user-sticker-1",
+        x: 80,
+        y: 120,
+        zIndex: 4,
+      }),
+    ).toMatchObject({
+      id: "sticker-1",
+      rotation: 0,
+      scale: 1,
+      stickerAssetId: "user-sticker-1",
+      type: "sticker",
+      x: 80,
+      y: 120,
+      zIndex: 4,
+    });
+  });
+
+  it("creates dynamic widget elements", () => {
+    expect(
+      createRecapWidgetElement({
+        id: "widget-calendar-1",
+        variant: "calendar",
+        x: 80,
+        y: 120,
+        zIndex: 4,
+      }),
+    ).toMatchObject({
+      id: "widget-calendar-1",
+      type: "widget",
+      variant: "calendar",
+    });
+    expect(
+      createRecapWidgetElement({
+        id: "widget-polaroid-1",
+        photoId: "photo-1",
+        variant: "polaroidFrame",
+        x: 80,
+        y: 120,
+        zIndex: 5,
+      }),
+    ).toMatchObject({
+      photoId: "photo-1",
+      type: "widget",
+      variant: "polaroidFrame",
+    });
+    expect(
+      createRecapWidgetElement({
+        id: "widget-bubble-1",
+        text: "hello",
+        variant: "speechBubble",
+        x: 80,
+        y: 120,
+        zIndex: 6,
+      }),
+    ).toMatchObject({
+      text: "hello",
+      type: "widget",
+      variant: "speechBubble",
     });
   });
 
