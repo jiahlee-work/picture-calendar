@@ -1,9 +1,12 @@
 import { useLocalSearchParams } from "expo-router";
 
-import { RecapMonthDetailScreen } from "@/presentation/features/recap/recap-month-detail-screen";
+import { RecapDecoratingScreen } from "@/presentation/features/recap/recap-decorating-screen";
 
 export default function RecapMonthDetailRoute() {
-  const { month, year } = useLocalSearchParams<{ month: string; year: string }>();
+  const { month, year } = useLocalSearchParams<{
+    month: string;
+    year: string;
+  }>();
 
-  return <RecapMonthDetailScreen month={month} year={year} />;
+  return <RecapDecoratingScreen month={month} year={year} />;
 }

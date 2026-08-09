@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Platform } from "react-native";
-
 import { buildCalendarMonth } from "@/application/services/calendar/calendar-grid";
 import { createDailyPhotoFileStoreForRuntime } from "@/application/services/daily-photo/daily-photo-file-store-factory";
 import {
@@ -9,44 +7,64 @@ import {
 } from "@/application/services/daily-photo/daily-photo-policy";
 import { toPhotosByDate } from "@/application/services/daily-photo/daily-photo-records";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
+import { LOCAL_USER_ID } from "@/application/services/local-user";
 import { createDailyPhotoRepositoryForRuntime } from "@/application/services/daily-photo/daily-photo-repository-factory";
 import { syncMonthlyRecapNotificationScheduleForRuntime } from "@/application/services/notifications/recap-notification-service";
-import { waitForNextFrame } from "@/application/utils/frame";
+import { waitForNextFrame } from "@/shared/helpers/frame";
 import { pickImageFromLibrary } from "@/infrastructure/device/media/image-picker";
 import { logger } from "@/infrastructure/logging/logger";
+import { runtimePlatform } from "@/infrastructure/device/runtime-platform";
 import { toDateKey, toMonthKey } from "@/shared/date/date-key";
 import { dayjs } from "@/shared/date/dayjs";
 
-const LOCAL_USER_ID = "local-user";
-
 export type DailyPhotoPolicyDialogState =
-  | { type: "none" }
-  | { type: "info"; title: string; message: string };
+  { type: "none" } | { type: "info"; title: string; message: string };
 
 export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
-  const [photosByDate, setPhotosByDate] = useState<Record<string, DailyPhoto>>({});
-  const [policyDialog, setPolicyDialog] = useState<DailyPhotoPolicyDialogState>({ type: "none" });
-  const [selectedPhotoDateKey, setSelectedPhotoDateKey] = useState<string | null>(null);
-  const fileStore = useMemo(() => createDailyPhotoFileStoreForRuntime(Platform.OS), []);
-  const repository = useMemo(() => createDailyPhotoRepositoryForRuntime(Platform.OS), []);
+  const [photosByDate, setPhotosByDate] = useState<Record<string, DailyPhoto>>(
+    {},
+  );
+  const [policyDialog, setPolicyDialog] = useState<DailyPhotoPolicyDialogState>(
+    { type: "none" },
+  );
+  const [selectedPhotoDateKey, setSelectedPhotoDateKey] = useState<
+    string | null
+  >(null);
+  const fileStore = useMemo(
+    () => createDailyPhotoFileStoreForRuntime(runtimePlatform),
+    [],
+  );
+  const repository = useMemo(
+    () => createDailyPhotoRepositoryForRuntime(runtimePlatform),
+    [],
+  );
   const todayKey = useMemo(() => toDateKey(today), [today]);
-  const calendar = useMemo(() => buildCalendarMonth(activeMonth, today, photosByDate), [activeMonth, photosByDate, today]);
+  const calendar = useMemo(
+    () => buildCalendarMonth(activeMonth, today, photosByDate),
+    [activeMonth, photosByDate, today],
+  );
   const activeMonthKey = useMemo(() => toMonthKey(activeMonth), [activeMonth]);
-  const selectedPhoto = selectedPhotoDateKey ? photosByDate[selectedPhotoDateKey] ?? null : null;
-  const photoDetail = selectedPhotoDateKey && selectedPhoto
-    ? {
-      dateKey: selectedPhotoDateKey,
-      dateLabel: dayjs(selectedPhotoDateKey).format("YYYY.MM.DD"),
-      isToday: selectedPhotoDateKey === todayKey,
-      photo: selectedPhoto,
-    }
+  const selectedPhoto = selectedPhotoDateKey
+    ? (photosByDate[selectedPhotoDateKey] ?? null)
     : null;
+  const photoDetail =
+    selectedPhotoDateKey && selectedPhoto
+      ? {
+          dateKey: selectedPhotoDateKey,
+          dateLabel: dayjs(selectedPhotoDateKey).format("YYYY.MM.DD"),
+          isToday: selectedPhotoDateKey === todayKey,
+          photo: selectedPhoto,
+        }
+      : null;
 
   useEffect(() => {
     let isMounted = true;
 
     const loadMonthPhotos = async () => {
-      const monthPhotos = await repository.listByMonth(LOCAL_USER_ID, activeMonthKey);
+      const monthPhotos = await repository.listByMonth(
+        LOCAL_USER_ID,
+        activeMonthKey,
+      );
 
       if (!isMounted) {
         return;
@@ -67,7 +85,11 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
 
   const handleSelectDate = async (dateKey: string) => {
     const photo = photosByDate[dateKey] ?? null;
-    const selectionAction = getDailyPhotoSelectionAction(dateKey, todayKey, photo);
+    const selectionAction = getDailyPhotoSelectionAction(
+      dateKey,
+      todayKey,
+      photo,
+    );
 
     setSelectedPhotoDateKey(null);
 
@@ -109,9 +131,14 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
   };
 
   const syncRecapNotificationSchedule = () => {
-    void syncMonthlyRecapNotificationScheduleForRuntime(Platform.OS).catch((error: unknown) => {
-      logger.warn("Failed to sync recap notification schedule after photo change", { error });
-    });
+    void syncMonthlyRecapNotificationScheduleForRuntime(runtimePlatform).catch(
+      (error: unknown) => {
+        logger.warn(
+          "Failed to sync recap notification schedule after photo change",
+          { error },
+        );
+      },
+    );
   };
 
   const handleDeleteSelectedPhoto = async () => {
@@ -135,7 +162,10 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
     });
 
     if (deletedPhoto?.storageKey) {
-      await deleteStoredPhotoFile(deletedPhoto.storageKey, "Failed to delete daily photo file");
+      await deleteStoredPhotoFile(
+        deletedPhoto.storageKey,
+        "Failed to delete daily photo file",
+      );
     }
 
     syncRecapNotificationSchedule();
@@ -170,7 +200,8 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
     mimeType: string | null;
     sourceUri: string;
   }) => {
-    let nextStoredFile: Awaited<ReturnType<typeof fileStore.save>> | null = null;
+    let nextStoredFile: Awaited<ReturnType<typeof fileStore.save>> | null =
+      null;
 
     try {
       const previousPhoto = photosByDate[dateKey] ?? null;
@@ -188,7 +219,10 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
         ...nextStoredFile,
       });
 
-      const monthPhotos = await repository.listByMonth(LOCAL_USER_ID, activeMonthKey);
+      const monthPhotos = await repository.listByMonth(
+        LOCAL_USER_ID,
+        activeMonthKey,
+      );
       const nextPhotosByDate = toPhotosByDate(monthPhotos);
 
       setPhotosByDate((current) => ({
@@ -197,8 +231,14 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
         [savedPhoto.date]: savedPhoto,
       }));
 
-      if (previousPhoto?.storageKey && previousPhoto.storageKey !== savedPhoto.storageKey) {
-        await deleteStoredPhotoFile(previousPhoto.storageKey, "Failed to delete replaced daily photo file");
+      if (
+        previousPhoto?.storageKey &&
+        previousPhoto.storageKey !== savedPhoto.storageKey
+      ) {
+        await deleteStoredPhotoFile(
+          previousPhoto.storageKey,
+          "Failed to delete replaced daily photo file",
+        );
       }
 
       syncRecapNotificationSchedule();
@@ -206,7 +246,10 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
       return true;
     } catch (error) {
       if (nextStoredFile) {
-        await deleteStoredPhotoFile(nextStoredFile.storageKey, "Failed to delete unsaved daily photo file");
+        await deleteStoredPhotoFile(
+          nextStoredFile.storageKey,
+          "Failed to delete unsaved daily photo file",
+        );
       }
 
       logger.error("Failed to save today's photo", { dateKey, error });

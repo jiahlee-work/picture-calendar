@@ -53,6 +53,8 @@ repository's formatter, linter, or type checker.
 - Use functional state updates when the next state depends on the previous
   state, such as `setIsOpen((current) => !current)`.
 - Move complex JSX conditions into named boolean values before rendering.
+- Use `condition && <Element />` for JSX that renders `null` when the condition
+  is false instead of `condition ? <Element /> : null`.
 - Use stable domain IDs for list keys. Use array indexes only as a last resort
   for static lists that cannot reorder.
 - Use `useMemo` and `useCallback` only when calculation cost, memoized child

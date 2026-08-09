@@ -1,12 +1,8 @@
 export type {
-  MonthlyRecap,
-  MonthlyRecapMetadataStore,
-  MonthlyRecapRepository,
-  MonthlyRecapSelectionDraft,
-} from "@/shared/recap/types";
-export {
-  MonthlyRecapSelectionStatus,
-  MonthlyRecapTemplateId,
+  MonthlyRecapCanvas,
+  MonthlyRecapCanvasDraft,
+  MonthlyRecapCanvasMetadataStore,
+  MonthlyRecapCanvasRepository,
 } from "@/shared/recap/types";
 
 export type RecapExportRequest = {

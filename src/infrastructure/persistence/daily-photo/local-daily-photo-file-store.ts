@@ -1,12 +1,15 @@
 import { Directory, File, Paths } from "expo-file-system";
 
-import type { DailyPhotoFileStore, StoredDailyPhotoFile } from "@/shared/daily-photo/types";
+import type {
+  DailyPhotoFileStore,
+  StoredDailyPhotoFile,
+} from "@/shared/daily-photo/types";
 import {
   imageFileExtensionFromFileName,
   imageFileExtensionFromMimeType,
   sanitizeStoragePathSegment,
   toDailyPhotoStorageKey,
-} from "@/shared/daily-photo/storage-key";
+} from "@/infrastructure/persistence/daily-photo/daily-photo-storage-key";
 import { dayjs } from "@/shared/date/dayjs";
 
 const DAILY_PHOTOS_DIRECTORY_NAME = "daily-photos";
@@ -18,12 +21,21 @@ export function createLocalDailyPhotoFileStore(): DailyPhotoFileStore {
       const storageKey = toDailyPhotoStorageKey({
         userId,
         date,
-        extension: imageFileExtensionFromMimeType(mimeType) ?? imageFileExtensionFromFileName(fileName) ?? source.extension,
+        extension:
+          imageFileExtensionFromMimeType(mimeType) ??
+          imageFileExtensionFromFileName(fileName) ??
+          source.extension,
         revision: dayjs().valueOf().toString(36),
       });
       const destination = toDailyPhotoFile(storageKey);
 
-      ensureDirectory(new Directory(Paths.document, DAILY_PHOTOS_DIRECTORY_NAME, sanitizeStoragePathSegment(userId)));
+      ensureDirectory(
+        new Directory(
+          Paths.document,
+          DAILY_PHOTOS_DIRECTORY_NAME,
+          sanitizeStoragePathSegment(userId),
+        ),
+      );
 
       if (destination.exists) {
         destination.delete();
@@ -77,7 +89,10 @@ async function copyPickedImageToDestination({
   }
 }
 
-async function writeUriBytesToDestination(sourceUri: string, destination: File) {
+async function writeUriBytesToDestination(
+  sourceUri: string,
+  destination: File,
+) {
   const response = await fetch(sourceUri);
   const bytes = new Uint8Array(await response.arrayBuffer());
 
@@ -106,7 +121,12 @@ function ensureDestinationFile(destination: File) {
 function toDailyPhotoFile(storageKey: string): File {
   const [userDirectory, fileName] = storageKey.split("/");
 
-  return new File(Paths.document, DAILY_PHOTOS_DIRECTORY_NAME, userDirectory, fileName);
+  return new File(
+    Paths.document,
+    DAILY_PHOTOS_DIRECTORY_NAME,
+    userDirectory,
+    fileName,
+  );
 }
 
 function ensureDirectory(directory: Directory) {
@@ -116,7 +136,10 @@ function ensureDirectory(directory: Directory) {
   });
 }
 
-function toStoredDailyPhotoFile(storageKey: string, uri: string): StoredDailyPhotoFile {
+function toStoredDailyPhotoFile(
+  storageKey: string,
+  uri: string,
+): StoredDailyPhotoFile {
   return {
     imagePath: uri,
     localImagePath: uri,

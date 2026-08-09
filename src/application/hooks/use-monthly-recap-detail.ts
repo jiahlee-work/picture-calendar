@@ -1,36 +1,34 @@
 import { useEffect, useMemo, useState } from "react";
-import { Platform } from "react-native";
-
 import { createDailyPhotoRepositoryForRuntime } from "@/application/services/daily-photo/daily-photo-repository-factory";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
+import { LOCAL_USER_ID } from "@/application/services/local-user";
 import {
   loadMonthlyRecapDetail,
   MonthlyRecapDetailStatus as MonthlyRecapDetailStatusValue,
   type MonthlyRecapDetailStatus as MonthlyRecapDetailStatusType,
 } from "@/application/services/recap/monthly-recap-detail";
-import { createMonthlyRecapRepositoryForRuntime } from "@/application/services/recap/monthly-recap-repository-factory";
 import { RecapAvailabilityMode } from "@/application/services/recap/recap-month-list";
 import { logger } from "@/infrastructure/logging/logger";
-import type { MonthlyRecap } from "@/shared/recap/types";
-
-const LOCAL_USER_ID = "local-user";
+import { runtimePlatform } from "@/infrastructure/device/runtime-platform";
 
 export const MonthlyRecapDetailStatus = MonthlyRecapDetailStatusValue;
 export type MonthlyRecapDetailStatus = MonthlyRecapDetailStatusType;
 
 type MonthlyRecapDetailState = {
   photos: DailyPhoto[];
-  recap: MonthlyRecap | null;
   status: MonthlyRecapDetailStatusType;
 };
 
 export function useMonthlyRecapDetail(monthKey: string) {
-  const dailyPhotoRepository = useMemo(() => createDailyPhotoRepositoryForRuntime(Platform.OS), []);
-  const recapRepository = useMemo(() => createMonthlyRecapRepositoryForRuntime(Platform.OS), []);
-  const availabilityMode = __DEV__ ? RecapAvailabilityMode.development : RecapAvailabilityMode.production;
+  const dailyPhotoRepository = useMemo(
+    () => createDailyPhotoRepositoryForRuntime(runtimePlatform),
+    [],
+  );
+  const availabilityMode = __DEV__
+    ? RecapAvailabilityMode.development
+    : RecapAvailabilityMode.production;
   const [state, setState] = useState<MonthlyRecapDetailState>({
     photos: [],
-    recap: null,
     status: MonthlyRecapDetailStatus.loading,
   });
 
@@ -48,7 +46,6 @@ export function useMonthlyRecapDetail(monthKey: string) {
           availabilityMode,
           dailyPhotoRepository,
           month: monthKey,
-          recapRepository,
           userId: LOCAL_USER_ID,
         });
 
@@ -58,7 +55,10 @@ export function useMonthlyRecapDetail(monthKey: string) {
 
         setState(nextState);
       } catch (error) {
-        logger.error("Failed to load monthly recap detail", { monthKey, error });
+        logger.error("Failed to load monthly recap detail", {
+          monthKey,
+          error,
+        });
 
         if (!isMounted) {
           return;
@@ -66,7 +66,6 @@ export function useMonthlyRecapDetail(monthKey: string) {
 
         setState({
           photos: [],
-          recap: null,
           status: MonthlyRecapDetailStatus.error,
         });
       }
@@ -77,7 +76,7 @@ export function useMonthlyRecapDetail(monthKey: string) {
     return () => {
       isMounted = false;
     };
-  }, [availabilityMode, dailyPhotoRepository, monthKey, recapRepository]);
+  }, [availabilityMode, dailyPhotoRepository, monthKey]);
 
   return state;
 }

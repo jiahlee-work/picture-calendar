@@ -92,12 +92,13 @@ function toUserStickerAsset(value: unknown): UserStickerAsset | null {
 
   return {
     id,
-    source: "user",
+    source: "sticker",
     userId,
     imagePath,
     storageKey: stringValue(value.storageKey),
     name: stringValue(value.name) ?? undefined,
     tags: stringArrayValue(value.tags),
+    isFavorite: booleanValue(value.isFavorite) ?? undefined,
     createdAt,
   };
 }
@@ -159,4 +160,8 @@ function stringArrayValue(value: unknown): string[] | undefined {
   }
 
   return value.filter((item): item is string => typeof item === "string");
+}
+
+function booleanValue(value: unknown): boolean | null {
+  return typeof value === "boolean" ? value : null;
 }

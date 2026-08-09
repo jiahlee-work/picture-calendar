@@ -1,18 +1,18 @@
 appId: com.jiahleework.pical
 name: Capture Storybook preview screenshots
 ---
-- openLink: "exp://127.0.0.1:8081/--/?STORYBOOK_STORY_ID=templates-calendar-recap--default"
+- openLink: "picturecalender://storybook?STORYBOOK_STORY_ID=templates-calendar-recap--default"
 - waitForAnimationToEnd
 - takeScreenshot: ".maestro/screenshots/calendar-recap-default"
 
-- openLink: "exp://127.0.0.1:8081/--/?STORYBOOK_STORY_ID=templates-message-recap--default"
+- openLink: "picturecalender://storybook?STORYBOOK_STORY_ID=templates-message-recap--default"
 - waitForAnimationToEnd
 - takeScreenshot: ".maestro/screenshots/message-recap-default"
 
-- openLink: "exp://127.0.0.1:8081/--/?STORYBOOK_STORY_ID=components-molecules-monthly-recap-background-collage--six-photos"
+- openLink: "picturecalender://storybook?STORYBOOK_STORY_ID=components-molecules-calendar-recap-background-collage--default"
 - waitForAnimationToEnd
 - takeScreenshot: ".maestro/screenshots/background-collage-six-photos"
 
-- openLink: "exp://127.0.0.1:8081/--/?STORYBOOK_STORY_ID=components-molecules-monthly-recap-calendar-grid--july-2026"
+- openLink: "picturecalender://storybook?STORYBOOK_STORY_ID=components-organisms-monthly-recap-calendar-grid--july-2026"
 - waitForAnimationToEnd
 - takeScreenshot: ".maestro/screenshots/calendar-grid-july-2026"

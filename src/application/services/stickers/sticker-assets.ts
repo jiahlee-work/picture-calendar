@@ -1,0 +1,38 @@
+import type {
+  WidgetAsset,
+  StickerAsset,
+  StickerRepository,
+} from "@/application/services/stickers/types";
+
+export const WIDGET_ASSETS: WidgetAsset[] = [
+  {
+    id: "widget-calendar",
+    source: "widget",
+    name: "달력",
+    variant: "calendar",
+    tags: ["calendar"],
+  },
+  {
+    id: "widget-polaroid-frame",
+    source: "widget",
+    name: "폴라로이드 프레임",
+    variant: "polaroidFrame",
+    tags: ["polaroid", "photo"],
+  },
+  {
+    id: "widget-speech-bubble",
+    source: "widget",
+    name: "말풍선",
+    variant: "speechBubble",
+    tags: ["speech", "text"],
+  },
+];
+
+export async function listStickerAssets(
+  repository: StickerRepository,
+  userId: string,
+): Promise<StickerAsset[]> {
+  const userAssets = await repository.listUserAssets(userId);
+
+  return [...WIDGET_ASSETS, ...userAssets];
+}

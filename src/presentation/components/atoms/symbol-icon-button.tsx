@@ -8,29 +8,45 @@ import { appColors } from "@/presentation/theme/colors";
 
 type SymbolIconButtonProps = {
   accessibilityLabel: string;
+  disabled?: boolean;
   icon: ReiconName;
   isExpanded?: boolean;
+  isDimmed?: boolean;
   onPress: () => void;
 };
 
 export function SymbolIconButton(props: SymbolIconButtonProps) {
-  const { accessibilityLabel, icon, isExpanded, onPress } = props;
+  const {
+    accessibilityLabel,
+    disabled = false,
+    icon,
+    isDimmed = false,
+    isExpanded,
+    onPress,
+  } = props;
+  const accessibilityState = {
+    ...(isExpanded === undefined ? {} : { expanded: isExpanded }),
+    ...(disabled ? { disabled: true } : {}),
+  };
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityState={
-        isExpanded === undefined ? undefined : { expanded: isExpanded }
+        Object.keys(accessibilityState).length > 0
+          ? accessibilityState
+          : undefined
       }
-      style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+      disabled={disabled}
+      style={({ pressed }) => [
+        styles.button,
+        (disabled || isDimmed) && styles.buttonDisabled,
+        pressed && styles.buttonPressed,
+      ]}
       onPress={onPress}
     >
-      <ReiconIcon
-        color={appColors.white}
-        name={icon}
-        size={24}
-      />
+      <ReiconIcon color={appColors.white} name={icon} size={24} />
     </Pressable>
   );
 }
@@ -47,5 +63,8 @@ const styles = StyleSheet.create({
   },
   buttonPressed: {
     backgroundColor: appColors.blackOverlay34,
+  },
+  buttonDisabled: {
+    opacity: 0.38,
   },
 });

@@ -3,12 +3,12 @@ import type { StickerFileStore } from "@/application/services/stickers/types";
 import {
   imageFileExtensionFromFileName,
   imageFileExtensionFromMimeType,
-} from "@/shared/daily-photo/storage-key";
+} from "@/infrastructure/persistence/daily-photo/daily-photo-storage-key";
 import { dayjs } from "@/shared/date/dayjs";
-import { toStickerStorageKey } from "@/shared/stickers/storage-key";
+import { toStickerStorageKey } from "@/infrastructure/persistence/stickers/sticker-storage-key";
 
 export function createStickerFileStoreForRuntime(
-  platform = process.env.EXPO_OS,
+  platform: string,
 ): StickerFileStore {
   if (platform === "web") {
     return createWebStickerFileStore();

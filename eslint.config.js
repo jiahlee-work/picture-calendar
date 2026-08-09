@@ -8,4 +8,10 @@ module.exports = defineConfig([
   {
     ignores: ["dist/*", ".expo/*", "coverage/*"],
   },
+  {
+    files: ["**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-redeclare": "off",
+    },
+  },
 ]);

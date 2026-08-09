@@ -15,7 +15,12 @@ export function PhotoPreviewCard(props: PhotoPreviewCardProps) {
   return (
     <View style={[styles.photoCard, style]}>
       {photo ? (
-        <Image cachePolicy="none" contentFit="cover" source={{ uri: photo.imagePath }} style={styles.photoImage} />
+        <Image
+          cachePolicy="none"
+          contentFit="cover"
+          source={{ uri: photo.imagePath }}
+          style={styles.photoImage}
+        />
       ) : (
         <View style={styles.emptyPhoto} />
       )}

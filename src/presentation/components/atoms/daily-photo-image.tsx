@@ -8,7 +8,14 @@ type DailyPhotoImageProps = {
 export function DailyPhotoImage(props: DailyPhotoImageProps) {
   const { imagePath } = props;
 
-  return <Image cachePolicy="none" contentFit="cover" source={{ uri: imagePath }} style={styles.image} />;
+  return (
+    <Image
+      cachePolicy="none"
+      contentFit="cover"
+      source={{ uri: imagePath }}
+      style={styles.image}
+    />
+  );
 }
 
 const styles = StyleSheet.create({

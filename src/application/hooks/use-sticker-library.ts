@@ -1,16 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
-import { Platform } from "react-native";
-
 import { createStickerFileStoreForRuntime } from "@/application/services/stickers/sticker-file-store-factory";
 import { createStickerRepositoryForRuntime } from "@/application/services/stickers/sticker-repository-factory";
-import type { StickerAsset } from "@/application/services/stickers/types";
+import { listStickerAssets } from "@/application/services/stickers/sticker-assets";
+import { toDefaultStickerName } from "@/application/services/stickers/sticker-name";
+import type {
+  StickerAsset,
+  UserStickerAsset,
+} from "@/application/services/stickers/types";
 import { LOCAL_USER_ID } from "@/application/services/local-user";
-import { readImageFromClipboard } from "@/infrastructure/device/media/clipboard-image";
+import {
+  readImageFromClipboard,
+  toPickedImageFromClipboardData,
+} from "@/infrastructure/device/media/clipboard-image";
 import {
   pickImageFromLibrary,
   type PickedImage,
 } from "@/infrastructure/device/media/image-picker";
 import { logger } from "@/infrastructure/logging/logger";
+import { runtimePlatform } from "@/infrastructure/device/runtime-platform";
 
 type StickerRegistrationResult =
   | "saved"
@@ -25,11 +32,11 @@ export function useStickerLibrary() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const fileStore = useMemo(
-    () => createStickerFileStoreForRuntime(Platform.OS),
+    () => createStickerFileStoreForRuntime(runtimePlatform),
     [],
   );
   const repository = useMemo(
-    () => createStickerRepositoryForRuntime(Platform.OS),
+    () => createStickerRepositoryForRuntime(runtimePlatform),
     [],
   );
 
@@ -40,7 +47,10 @@ export function useStickerLibrary() {
       setIsLoading(true);
 
       try {
-        const loadedStickers = await repository.listAssets(LOCAL_USER_ID);
+        const loadedStickers = await listStickerAssets(
+          repository,
+          LOCAL_USER_ID,
+        );
 
         if (isMounted) {
           setStickers(loadedStickers);
@@ -92,6 +102,17 @@ export function useStickerLibrary() {
       }
     };
 
+  const registerPastedClipboardImage = async (
+    dataUri: string,
+  ): Promise<StickerRegistrationResult> => {
+    try {
+      return savePickedSticker(toPickedImageFromClipboardData(dataUri));
+    } catch (error) {
+      logger.error("Failed to save pasted sticker image", { error });
+      return "failed";
+    }
+  };
+
   const deleteUserSticker = async (assetId: string): Promise<boolean> => {
     try {
       const deletedSticker = await repository.deleteUserAsset(
@@ -111,6 +132,86 @@ export function useStickerLibrary() {
     } catch (error) {
       logger.error("Failed to delete sticker asset", { assetId, error });
       return false;
+    }
+  };
+
+  const deleteUserStickers = async (
+    assetIds: string[],
+  ): Promise<{
+    deletedIds: string[];
+    failedIds: string[];
+  }> => {
+    setIsSaving(true);
+
+    const deletedIds: string[] = [];
+    const failedIds: string[] = [];
+
+    try {
+      for (const assetId of assetIds) {
+        const deletedSticker = await repository.deleteUserAsset(
+          LOCAL_USER_ID,
+          assetId,
+        );
+
+        if (deletedSticker) {
+          deletedIds.push(assetId);
+        } else {
+          failedIds.push(assetId);
+        }
+      }
+
+      if (deletedIds.length > 0) {
+        setStickers((current) =>
+          current.filter((sticker) => !deletedIds.includes(sticker.id)),
+        );
+      }
+
+      return { deletedIds, failedIds };
+    } catch (error) {
+      logger.error("Failed to delete sticker assets", { assetIds, error });
+      return {
+        deletedIds,
+        failedIds: assetIds.filter((assetId) => !deletedIds.includes(assetId)),
+      };
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const updateUserStickerFavorite = async (
+    assetId: string,
+    isFavorite: boolean,
+  ): Promise<UserStickerAsset | null> => {
+    setIsSaving(true);
+
+    try {
+      const updatedSticker = await repository.updateUserAsset(
+        LOCAL_USER_ID,
+        assetId,
+        {
+          isFavorite,
+        },
+      );
+
+      if (!updatedSticker) {
+        return null;
+      }
+
+      setStickers((current) =>
+        current.map((sticker) =>
+          sticker.id === assetId ? updatedSticker : sticker,
+        ),
+      );
+
+      return updatedSticker;
+    } catch (error) {
+      logger.error("Failed to update sticker favorite", {
+        assetId,
+        error,
+      });
+      return null;
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -134,8 +235,9 @@ export function useStickerLibrary() {
         userId: LOCAL_USER_ID,
         imagePath: storedFile.imagePath,
         storageKey: storedFile.storageKey,
+        name: toDefaultStickerName(pickedImage.fileName),
       });
-      const loadedStickers = await repository.listAssets(LOCAL_USER_ID);
+      const loadedStickers = await listStickerAssets(repository, LOCAL_USER_ID);
 
       setStickers(loadedStickers);
 
@@ -168,7 +270,10 @@ export function useStickerLibrary() {
     isLoading,
     isSaving,
     deleteUserSticker,
+    deleteUserStickers,
     registerFromClipboard,
     registerFromLibrary,
+    registerPastedClipboardImage,
+    updateUserStickerFavorite,
   };
 }

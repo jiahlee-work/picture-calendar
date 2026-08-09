@@ -5,7 +5,7 @@ import {
 import type { RecapNotificationSettingsRepository } from "@/application/services/settings/recap-notification-settings";
 
 export function createRecapNotificationSettingsRepositoryForRuntime(
-  platform = process.env.EXPO_OS,
+  platform: string,
 ): RecapNotificationSettingsRepository {
   if (platform === "web") {
     return createBrowserRecapNotificationSettingsRepository();

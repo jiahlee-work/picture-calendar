@@ -4,8 +4,8 @@ import type {
   StickerRepository,
   UserStickerAsset,
   UserStickerAssetDraft,
+  UserStickerAssetUpdate,
 } from "@/shared/stickers/types";
-import { DEFAULT_BUILT_IN_STICKER_ASSETS } from "@/shared/stickers/types";
 import { dayjs } from "@/shared/date/dayjs";
 
 type LocalStickerRepositoryOptions = {
@@ -27,11 +27,6 @@ export function createLocalStickerRepository(
   const now = normalizedOptions.now ?? (() => dayjs().toDate());
 
   return {
-    async listAssets(userId) {
-      const userAssets = await listUserStickerAssets(metadataStore, userId);
-
-      return [...DEFAULT_BUILT_IN_STICKER_ASSETS, ...userAssets];
-    },
     async listUserAssets(userId) {
       return listUserStickerAssets(metadataStore, userId);
     },
@@ -48,6 +43,21 @@ export function createLocalStickerRepository(
       await metadataStore.save(Array.from(stickersById.values()));
 
       return saved;
+    },
+    async updateUserAsset(userId, assetId, updates) {
+      const stickersById = await loadStickersById(metadataStore);
+      const sticker = stickersById.get(assetId) ?? null;
+
+      if (!sticker || sticker.userId !== userId) {
+        return null;
+      }
+
+      const updated = applyUserStickerAssetUpdate(sticker, updates);
+
+      stickersById.set(assetId, updated);
+      await metadataStore.save(Array.from(stickersById.values()));
+
+      return updated;
     },
     async deleteUserAsset(userId, assetId) {
       const stickersById = await loadStickersById(metadataStore);
@@ -66,6 +76,20 @@ export function createLocalStickerRepository(
 
       return deletedSticker;
     },
+  };
+}
+
+function applyUserStickerAssetUpdate(
+  sticker: UserStickerAsset,
+  updates: UserStickerAssetUpdate,
+): UserStickerAsset {
+  return {
+    ...sticker,
+    name:
+      "name" in updates ? normalizeOptionalText(updates.name) : sticker.name,
+    tags: "tags" in updates ? normalizeTags(updates.tags) : sticker.tags,
+    isFavorite:
+      "isFavorite" in updates ? updates.isFavorite : sticker.isFavorite,
   };
 }
 
@@ -110,7 +134,7 @@ function createUserStickerAsset(
 ): UserStickerAsset {
   return {
     id: `local-sticker-${dayjs(now).valueOf().toString(36)}-${stickerCount.toString(36)}`,
-    source: "user",
+    source: "sticker",
     userId: sticker.userId,
     imagePath: sticker.imagePath,
     storageKey: sticker.storageKey ?? null,

@@ -1,4 +1,9 @@
-import type { DailyPhoto, DailyPhotoDraft, DailyPhotoMetadataStore, DailyPhotoRepository } from "@/shared/daily-photo/types";
+import type {
+  DailyPhoto,
+  DailyPhotoDraft,
+  DailyPhotoMetadataStore,
+  DailyPhotoRepository,
+} from "@/shared/daily-photo/types";
 import { dayjs } from "@/shared/date/dayjs";
 
 type LocalDailyPhotoRepositoryOptions = {
@@ -7,21 +12,31 @@ type LocalDailyPhotoRepositoryOptions = {
   now?: () => Date;
 };
 
-export function createLocalDailyPhotoRepository(options: LocalDailyPhotoRepositoryOptions | DailyPhoto[] = []): DailyPhotoRepository {
-  const normalizedOptions = Array.isArray(options) ? { initialPhotos: options } : options;
-  const metadataStore = normalizedOptions.metadataStore ?? createMemoryDailyPhotoMetadataStore(normalizedOptions.initialPhotos ?? []);
+export function createLocalDailyPhotoRepository(
+  options: LocalDailyPhotoRepositoryOptions | DailyPhoto[] = [],
+): DailyPhotoRepository {
+  const normalizedOptions = Array.isArray(options)
+    ? { initialPhotos: options }
+    : options;
+  const metadataStore =
+    normalizedOptions.metadataStore ??
+    createMemoryDailyPhotoMetadataStore(normalizedOptions.initialPhotos ?? []);
   const now = normalizedOptions.now ?? (() => dayjs().toDate());
 
   return {
     async listByMonth(userId, month) {
       const photosByUserDate = await loadPhotosByUserDate(metadataStore);
 
-      return Array.from(photosByUserDate.values()).filter((photo) => photo.userId === userId && photo.date.startsWith(month));
+      return Array.from(photosByUserDate.values()).filter(
+        (photo) => photo.userId === userId && photo.date.startsWith(month),
+      );
     },
     async hasAny(userId) {
       const photosByUserDate = await loadPhotosByUserDate(metadataStore);
 
-      return Array.from(photosByUserDate.values()).some((photo) => photo.userId === userId);
+      return Array.from(photosByUserDate.values()).some(
+        (photo) => photo.userId === userId,
+      );
     },
     async saveToday(photo) {
       const photosByUserDate = await loadPhotosByUserDate(metadataStore);
@@ -52,7 +67,9 @@ export function createLocalDailyPhotoRepository(options: LocalDailyPhotoReposito
   };
 }
 
-function createMemoryDailyPhotoMetadataStore(initialPhotos: DailyPhoto[]): DailyPhotoMetadataStore {
+function createMemoryDailyPhotoMetadataStore(
+  initialPhotos: DailyPhoto[],
+): DailyPhotoMetadataStore {
   let photos = [...initialPhotos];
 
   return {
@@ -65,17 +82,25 @@ function createMemoryDailyPhotoMetadataStore(initialPhotos: DailyPhoto[]): Daily
   };
 }
 
-async function loadPhotosByUserDate(metadataStore: DailyPhotoMetadataStore): Promise<Map<string, DailyPhoto>> {
+async function loadPhotosByUserDate(
+  metadataStore: DailyPhotoMetadataStore,
+): Promise<Map<string, DailyPhoto>> {
   const photos = await metadataStore.load();
 
-  return new Map(photos.map((photo) => [toDailyPhotoKey(photo.userId, photo.date), photo]));
+  return new Map(
+    photos.map((photo) => [toDailyPhotoKey(photo.userId, photo.date), photo]),
+  );
 }
 
 function toDailyPhotoKey(userId: string, date: string): string {
   return `${userId}:${date}`;
 }
 
-function createDailyPhoto(photo: DailyPhotoDraft, existing: DailyPhoto | undefined, now: string): DailyPhoto {
+function createDailyPhoto(
+  photo: DailyPhotoDraft,
+  existing: DailyPhoto | undefined,
+  now: string,
+): DailyPhoto {
   return {
     id: existing?.id ?? `local-${photo.date}`,
     userId: photo.userId,

@@ -6,8 +6,8 @@ import {
   StatusBar as NativeStatusBar,
   StyleSheet,
   Text,
-  View,
   useWindowDimensions,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -100,18 +100,14 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
               style={styles.iconButton}
               onPress={onDeletePhoto}
             >
-              <ReiconIcon
-                color="#ffffff"
-                name="Trash5"
-                size={20}
-              />
+              <ReiconIcon color="#ffffff" name="Trash5" size={20} />
             </Pressable>
           ) : (
             <View style={styles.topSpacer} />
           )}
         </View>
         {showActions && isToday && (
-          <View style={[styles.bottomOverlay, { bottom: insets.bottom + 22 }]}>
+          <View style={[styles.bottomOverlay, { bottom: insets.bottom + 16 }]}>
             <Pressable
               accessibilityLabel="사진 변경"
               style={styles.changePanel}
@@ -120,13 +116,7 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
               <Text style={styles.policyText}>
                 오늘 안에는 사진을 바꿀 수 있어요.
               </Text>
-              <View style={styles.galleryIcon}>
-                <ReiconIcon
-                  color="#ffffff"
-                  name="Gallery"
-                  size={24}
-                />
-              </View>
+              <ReiconIcon color="#ffffff" name="AngleRight" size={24} />
             </Pressable>
           </View>
         )}
@@ -204,8 +194,8 @@ const styles = StyleSheet.create({
   changePanel: {
     alignItems: "center",
     backgroundColor: appColors.blackOverlay34,
-    borderColor: "rgba(255,255,255,0.24)",
-    borderRadius: 24,
+    borderColor: "transparent",
+    borderRadius: 16,
     borderWidth: 1,
     flexDirection: "row",
     gap: 14,
@@ -218,14 +208,6 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     flex: 1,
     fontSize: 15,
-    fontWeight: "800",
-  },
-  galleryIcon: {
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderRadius: 20,
-    height: 40,
-    justifyContent: "center",
-    width: 40,
+    fontWeight: "600",
   },
 });

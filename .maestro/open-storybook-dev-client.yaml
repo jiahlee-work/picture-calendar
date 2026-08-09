@@ -1,0 +1,7 @@
+appId: com.jiahleework.pical
+name: Open Storybook development client
+---
+- openLink: "exp+pical://expo-development-client/?url=http%3A%2F%2F${DEV_SERVER_HOST}%3A8082"
+- extendedWaitUntil:
+    visible: "Open addons panel"
+    timeout: 120000

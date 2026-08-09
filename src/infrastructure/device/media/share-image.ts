@@ -1,4 +1,7 @@
-import { requestPermissionsAsync, saveToLibraryAsync } from "expo-media-library/legacy";
+import {
+  requestPermissionsAsync,
+  saveToLibraryAsync,
+} from "expo-media-library/legacy";
 import * as Sharing from "expo-sharing";
 import { File, Paths } from "expo-file-system";
 
@@ -14,14 +17,18 @@ export type MediaLibraryWritePermissionType =
 
 export type MediaLibraryWritePermissionResult =
   | { type: typeof MediaLibraryWritePermissionType.granted }
-  | { canAskAgain: boolean; type: typeof MediaLibraryWritePermissionType.denied };
+  | {
+      canAskAgain: boolean;
+      type: typeof MediaLibraryWritePermissionType.denied;
+    };
 
 export const ShareImageFileResult = {
   shared: "shared",
   unavailable: "unavailable",
 } as const;
 
-export type ShareImageFileResult = (typeof ShareImageFileResult)[keyof typeof ShareImageFileResult];
+export type ShareImageFileResult =
+  (typeof ShareImageFileResult)[keyof typeof ShareImageFileResult];
 
 export async function requestPhotoLibraryWritePermission(): Promise<MediaLibraryWritePermissionResult> {
   const permission = await requestPermissionsAsync(true, ["photo"]);
@@ -40,7 +47,10 @@ export async function saveImageToPhotoLibrary(fileUri: string): Promise<void> {
   await saveToLibraryAsync(fileUri);
 }
 
-export async function prepareImageFileForShare(fileUri: string, fileName: string): Promise<string> {
+export async function prepareImageFileForShare(
+  fileUri: string,
+  fileName: string,
+): Promise<string> {
   const source = new File(fileUri);
   const destination = new File(Paths.cache, toSharePngFileName(fileName));
 
@@ -53,7 +63,10 @@ export async function prepareImageFileForShare(fileUri: string, fileName: string
   return destination.uri;
 }
 
-export async function shareImageFile(fileUri: string, fileName: string): Promise<ShareImageFileResult> {
+export async function shareImageFile(
+  fileUri: string,
+  fileName: string,
+): Promise<ShareImageFileResult> {
   const isAvailable = await Sharing.isAvailableAsync();
 
   if (!isAvailable) {

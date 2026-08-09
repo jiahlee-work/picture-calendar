@@ -13,7 +13,8 @@ export async function pickImageFromLibrary(): Promise<PickedImage | null> {
     allowsEditing: false,
     base64: Platform.OS === "android",
     mediaTypes: ["images"],
-    preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+    preferredAssetRepresentationMode:
+      ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
     quality: 0.9,
     shouldDownloadFromNetwork: true,
   });

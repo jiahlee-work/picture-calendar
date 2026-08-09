@@ -1,4 +1,7 @@
-import { LocalNotificationPermissionStatus, type LocalNotificationAdapter } from "@/shared/notifications/types";
+import {
+  LocalNotificationPermissionStatus,
+  type LocalNotificationAdapter,
+} from "@/shared/notifications/types";
 
 export function createUnsupportedLocalNotificationAdapter(): LocalNotificationAdapter {
   return {

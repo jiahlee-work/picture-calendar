@@ -11,7 +11,9 @@ import {
 
 export const MONTHLY_RECAP_NOTIFICATION_CHANNEL_ID = "monthly-recap";
 
-export function createExpoLocalNotificationAdapter(platform: string = Platform.OS): LocalNotificationAdapter {
+export function createExpoLocalNotificationAdapter(
+  platform: string = Platform.OS,
+): LocalNotificationAdapter {
   const isSupported = platform !== "web";
 
   return {
@@ -25,23 +27,35 @@ export function createExpoLocalNotificationAdapter(platform: string = Platform.O
         };
       }
 
-      return Notifications.addNotificationResponseReceivedListener((response) => {
-        listener(toNotificationData(response.notification.request.content.data));
-      });
+      return Notifications.addNotificationResponseReceivedListener(
+        (response) => {
+          listener(
+            toNotificationData(response.notification.request.content.data),
+          );
+        },
+      );
     },
     async cancelScheduledNotifications(matcher) {
       if (!isSupported) {
         return;
       }
 
-      const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
-      const matchingNotifications = scheduledNotifications.filter((notification) =>
-        matchesNotification(notification.identifier, notification.content.data, matcher),
+      const scheduledNotifications =
+        await Notifications.getAllScheduledNotificationsAsync();
+      const matchingNotifications = scheduledNotifications.filter(
+        (notification) =>
+          matchesNotification(
+            notification.identifier,
+            notification.content.data,
+            matcher,
+          ),
       );
 
       await Promise.all(
         matchingNotifications.map((notification) =>
-          Notifications.cancelScheduledNotificationAsync(notification.identifier),
+          Notifications.cancelScheduledNotificationAsync(
+            notification.identifier,
+          ),
         ),
       );
     },
@@ -71,12 +85,15 @@ export function createExpoLocalNotificationAdapter(platform: string = Platform.O
       });
 
       if (platform === "android") {
-        await Notifications.setNotificationChannelAsync(MONTHLY_RECAP_NOTIFICATION_CHANNEL_ID, {
-          importance: Notifications.AndroidImportance.DEFAULT,
-          name: "월간 리캡",
-          showBadge: false,
-          sound: null,
-        });
+        await Notifications.setNotificationChannelAsync(
+          MONTHLY_RECAP_NOTIFICATION_CHANNEL_ID,
+          {
+            importance: Notifications.AndroidImportance.DEFAULT,
+            name: "월간 리캡",
+            showBadge: false,
+            sound: null,
+          },
+        );
       }
     },
     getLastResponseData() {
@@ -93,7 +110,9 @@ export function createExpoLocalNotificationAdapter(platform: string = Platform.O
         return null;
       }
 
-      return response ? toNotificationData(response.notification.request.content.data) : null;
+      return response
+        ? toNotificationData(response.notification.request.content.data)
+        : null;
     },
     async getPermissionStatus() {
       if (!isSupported) {
@@ -107,13 +126,15 @@ export function createExpoLocalNotificationAdapter(platform: string = Platform.O
         return LocalNotificationPermissionStatus.unsupported;
       }
 
-      return toLocalPermissionStatus(await Notifications.requestPermissionsAsync({
-        ios: {
-          allowAlert: true,
-          allowBadge: false,
-          allowSound: true,
-        },
-      }));
+      return toLocalPermissionStatus(
+        await Notifications.requestPermissionsAsync({
+          ios: {
+            allowAlert: true,
+            allowBadge: false,
+            allowSound: true,
+          },
+        }),
+      );
     },
     async scheduleNotification(request) {
       if (!isSupported) {
@@ -158,11 +179,15 @@ function matchesNotification(
   matcher: LocalNotificationMatcher,
 ): boolean {
   return (
-    Boolean(matcher.identifierPrefix && identifier.startsWith(matcher.identifierPrefix))
-    || Boolean(matcher.dataKind && data?.kind === matcher.dataKind)
+    Boolean(
+      matcher.identifierPrefix &&
+      identifier.startsWith(matcher.identifierPrefix),
+    ) || Boolean(matcher.dataKind && data?.kind === matcher.dataKind)
   );
 }
 
-function toNotificationData(data: Record<string, unknown> | undefined): Record<string, unknown> {
+function toNotificationData(
+  data: Record<string, unknown> | undefined,
+): Record<string, unknown> {
   return data ?? {};
 }

@@ -37,7 +37,11 @@ const MONTH_NAMES = [
 
 export type CalendarPhotoMap = Record<string, DailyPhoto>;
 
-export function buildCalendarMonth(activeMonth: Date, today = dayjs().toDate(), photosByDate: CalendarPhotoMap = {}): CalendarMonth {
+export function buildCalendarMonth(
+  activeMonth: Date,
+  today = dayjs().toDate(),
+  photosByDate: CalendarPhotoMap = {},
+): CalendarMonth {
   const month = dayjs(activeMonth).startOf("month");
   const year = month.year();
   const monthIndex = month.month();
@@ -59,7 +63,10 @@ export function buildCalendarMonth(activeMonth: Date, today = dayjs().toDate(), 
     };
   });
 
-  const cells = [...Array.from<null>({ length: leadingEmptyCells }).fill(null), ...monthDays];
+  const cells = [
+    ...Array.from<null>({ length: leadingEmptyCells }).fill(null),
+    ...monthDays,
+  ];
   const trailingEmptyCells = (7 - (cells.length % 7)) % 7;
 
   return {
@@ -67,7 +74,10 @@ export function buildCalendarMonth(activeMonth: Date, today = dayjs().toDate(), 
     monthIndex,
     title: `${MONTH_NAMES[monthIndex]} ${year}`,
     monthName: MONTH_NAMES[monthIndex],
-    days: [...cells, ...Array.from<null>({ length: trailingEmptyCells }).fill(null)],
+    days: [
+      ...cells,
+      ...Array.from<null>({ length: trailingEmptyCells }).fill(null),
+    ],
   };
 }
 

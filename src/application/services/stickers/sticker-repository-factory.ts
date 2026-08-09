@@ -4,7 +4,7 @@ import { createStickerFileStoreForRuntime } from "@/application/services/sticker
 import type { StickerRepository } from "@/application/services/stickers/types";
 
 export function createStickerRepositoryForRuntime(
-  platform = process.env.EXPO_OS,
+  platform: string,
 ): StickerRepository {
   if (platform === "web") {
     return createLocalStickerRepository();

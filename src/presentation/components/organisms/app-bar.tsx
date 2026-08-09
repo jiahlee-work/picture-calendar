@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { useRouter } from "expo-router";
+import { type Href, useRouter } from "expo-router";
+import { useCallback, type ReactNode } from "react";
 import {
   type GestureResponderEvent,
   Pressable,
@@ -16,11 +16,8 @@ import {
   type ReiconName,
 } from "@/presentation/components/atoms/reicon-icon";
 import { SymbolIconButton } from "@/presentation/components/atoms/symbol-icon-button";
-import { Menu } from "@/presentation/components/organisms/menu";
 import { appColors } from "@/presentation/theme/colors";
 import { appSpacing } from "@/presentation/theme/spacing";
-
-type AppRoute = "/" | "/recap" | "/stickers" | "/settings";
 
 type AppBarProps = {
   children: ReactNode;
@@ -38,31 +35,35 @@ type AppBarTitleProps = {
 
 type TextAppBarActionProps = {
   accessibilityLabel: string;
+  disabled?: boolean;
   label: string;
   onPress: () => void;
 };
 
 type IconAppBarActionProps = {
   accessibilityLabel: string;
+  disabled?: boolean;
   icon: ReiconName;
   onPress: () => void;
 };
 
 type AppBarActionProps = IconAppBarActionProps | TextAppBarActionProps;
 
+type AppBarBackActionProps = {
+  accessibilityLabel?: string;
+  disabled?: boolean;
+  fallbackHref?: Href;
+  onBeforeBack?: () => boolean | void | Promise<boolean | void>;
+  onPress?: () => void;
+};
+
 type AppBarComponent = {
   (props: AppBarProps): ReactNode;
   Action: (props: AppBarActionProps) => ReactNode;
-  Menu: () => ReactNode;
+  BackAction: (props: AppBarBackActionProps) => ReactNode;
   Spacer: () => ReactNode;
   Title: (props: AppBarTitleProps) => ReactNode;
 };
-
-const MENU_ICON: ReiconName = "Menu";
-const CALENDAR_ICON: ReiconName = "Calendar";
-const RECAP_ICON: ReiconName = "ChartBar";
-const STICKER_ICON: ReiconName = "Tag";
-const SETTINGS_ICON: ReiconName = "Gear";
 
 function AppBarRoot(props: AppBarProps) {
   const { children, pointerEvents, variant = "default" } = props;
@@ -109,23 +110,20 @@ function AppBarTitle(props: AppBarTitleProps) {
     >
       <View style={styles.titleRow}>
         {title}
-        <ReiconIcon
-          color={appColors.black}
-          name="ChevronDown"
-          size={18}
-        />
+        <ReiconIcon color={appColors.black} name="ChevronDown" size={18} />
       </View>
     </Pressable>
   );
 }
 
 function AppBarAction(props: AppBarActionProps) {
-  const { accessibilityLabel, onPress } = props;
+  const { accessibilityLabel, disabled = false, onPress } = props;
 
   if ("icon" in props) {
     return (
       <SymbolIconButton
         accessibilityLabel={accessibilityLabel}
+        disabled={disabled}
         icon={props.icon}
         onPress={onPress}
       />
@@ -136,8 +134,11 @@ function AppBarAction(props: AppBarActionProps) {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityState={disabled ? { disabled: true } : undefined}
+      disabled={disabled}
       style={({ pressed }) => [
         styles.actionButton,
+        disabled && styles.actionButtonDisabled,
         pressed && styles.actionButtonPressed,
       ]}
       onPress={onPress}
@@ -147,36 +148,48 @@ function AppBarAction(props: AppBarActionProps) {
   );
 }
 
-function AppBarMenu() {
+function AppBarBackAction(props: AppBarBackActionProps) {
   const router = useRouter();
+  const {
+    accessibilityLabel = "뒤로가기",
+    disabled = false,
+    fallbackHref = "/",
+    onBeforeBack,
+    onPress,
+  } = props;
+  const navigateBack = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
 
-  const handleNavigate = (route: AppRoute) => {
-    router.replace(route);
-  };
+    router.replace(fallbackHref);
+  }, [fallbackHref, router]);
+  const handlePress = useCallback(async () => {
+    if (disabled) {
+      return;
+    }
+
+    onPress?.();
+
+    if (onBeforeBack) {
+      const shouldProceed = await onBeforeBack();
+
+      if (shouldProceed === false) {
+        return;
+      }
+    }
+
+    navigateBack();
+  }, [disabled, navigateBack, onBeforeBack, onPress]);
 
   return (
-    <Menu accessibilityLabel="앱 탐색 열기" trigger={{ icon: MENU_ICON }}>
-      <Menu.Item
-        icon={CALENDAR_ICON}
-        label="캘린더"
-        onPress={() => handleNavigate("/")}
-      />
-      <Menu.Item
-        icon={RECAP_ICON}
-        label="리캡"
-        onPress={() => handleNavigate("/recap")}
-      />
-      <Menu.Item
-        icon={STICKER_ICON}
-        label="스티커"
-        onPress={() => handleNavigate("/stickers")}
-      />
-      <Menu.Item
-        icon={SETTINGS_ICON}
-        label="설정"
-        onPress={() => handleNavigate("/settings")}
-      />
-    </Menu>
+    <SymbolIconButton
+      accessibilityLabel={accessibilityLabel}
+      disabled={disabled}
+      icon="ChevronLeft"
+      onPress={handlePress}
+    />
   );
 }
 
@@ -186,7 +199,7 @@ function AppBarSpacer() {
 
 export const AppBar = Object.assign(AppBarRoot, {
   Action: AppBarAction,
-  Menu: AppBarMenu,
+  BackAction: AppBarBackAction,
   Spacer: AppBarSpacer,
   Title: AppBarTitle,
 }) as AppBarComponent;
@@ -253,6 +266,9 @@ const styles = StyleSheet.create({
   },
   actionButtonPressed: {
     backgroundColor: appColors.blackOverlay34,
+  },
+  actionButtonDisabled: {
+    opacity: 0.38,
   },
   actionText: {
     color: appColors.white,

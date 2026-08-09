@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "packageManager": "pnpm@11.5.2",
   "dependencies": {
+    "@expo/ui": "~56.0.25",
     "@gorhom/bottom-sheet": "^5.2.14",
     "@quidone/react-native-wheel-picker": "^1.7.0",
     "@react-native-async-storage/async-storage": "^3.1.1",
@@ -81,7 +82,11 @@
     "storybook:generate": "sb-rn-get-stories --config-path ./.rnstorybook",
     "storybook:ios": "cross-env STORYBOOK_ENABLED=true scripts/run-ios-dev-client.sh",
     "storybook:android": "cross-env STORYBOOK_ENABLED=true scripts/run-android-dev-client.sh",
-    "storybook:visual": "maestro test .maestro/storybook-screenshots.yaml"
+    "storybook:visual": "maestro test .maestro/storybook-screenshots.yaml",
+    "verify:logic": "pnpm run test && pnpm run typecheck",
+    "verify:component": "pnpm run verify:logic && scripts/verify-storybook-ui.sh",
+    "verify:e2e": "scripts/verify-e2e.sh",
+    "verify:intent": "pnpm run verify:component && pnpm run verify:e2e"
   },
   "private": true
 }
