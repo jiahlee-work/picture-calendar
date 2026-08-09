@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Alert, type LayoutChangeEvent, StyleSheet, View } from "react-native";
 
-import { useStickerLibrary } from "@/application/hooks/use-sticker-library";
 import { useTodayPhotoFlow } from "@/application/hooks/use-today-photo-flow";
-import type { StickerAsset } from "@/application/services/stickers/types";
 import {
   addNavigableCalendarMonths,
   clampCalendarMonth,
@@ -15,7 +13,6 @@ import { CalendarWheelPickerSheet } from "@/presentation/components/organisms/ca
 import { DailyPhotoDetailSheet } from "@/presentation/components/organisms/daily-photo-detail-sheet";
 import { MonthlyCalendar } from "@/presentation/components/organisms/monthly-calendar";
 import { ShareCaptureMenu } from "@/presentation/components/organisms/share-capture-menu";
-import { StickerPickerSheet } from "@/presentation/components/organisms/sticker-picker-sheet";
 import { appColors } from "@/presentation/theme/colors";
 import { appSpacing } from "@/presentation/theme/spacing";
 import { dayjs } from "@/shared/date/dayjs";
@@ -27,22 +24,13 @@ type ShareContentLayout = {
 
 export function MonthlyCalendarScreen() {
   const shareCaptureRef = useRef<View>(null);
-  const stickerPickerMountFrameRef = useRef<number | null>(null);
-  const hasRequestedStickerPickerMountRef = useRef(false);
   const [activeMonth, setActiveMonth] = useState(() =>
     clampCalendarMonth(dayjs().startOf("month").toDate()),
   );
   const [isYearMonthPickerVisible, setIsYearMonthPickerVisible] =
     useState(false);
-  const [isStickerPickerMounted, setIsStickerPickerMounted] = useState(false);
-  const [stickerPickerMountKey, setStickerPickerMountKey] = useState(0);
-  const [stickerPickerSnapIndex, setStickerPickerSnapIndex] = useState(1);
-  const [selectedStickerPickerAssetId, setSelectedStickerPickerAssetId] =
-    useState<string | null>(null);
   const [shareContentLayout, setShareContentLayout] =
     useState<ShareContentLayout | null>(null);
-  const { registerFromClipboard, registerFromLibrary, stickers } =
-    useStickerLibrary();
   const {
     calendar,
     photoDetail,
@@ -55,14 +43,6 @@ export function MonthlyCalendarScreen() {
   } = useTodayPhotoFlow(activeMonth);
   const isShareReady = calendar.days.length > 0;
   const shareFileName = dayjs(activeMonth).format("YYYY-MM");
-
-  useEffect(() => {
-    return () => {
-      if (stickerPickerMountFrameRef.current !== null) {
-        cancelAnimationFrame(stickerPickerMountFrameRef.current);
-      }
-    };
-  }, []);
 
   const handlePreviousMonth = () => {
     setActiveMonth((current) => addNavigableCalendarMonths(current, -1));
@@ -101,15 +81,6 @@ export function MonthlyCalendarScreen() {
 
       return nextLayout;
     });
-
-    if (!hasRequestedStickerPickerMountRef.current) {
-      hasRequestedStickerPickerMountRef.current = true;
-      setIsStickerPickerMounted(false);
-      stickerPickerMountFrameRef.current = requestAnimationFrame(() => {
-        setStickerPickerMountKey((currentKey) => currentKey + 1);
-        setIsStickerPickerMounted(true);
-      });
-    }
   };
 
   const handleRequestDeletePhoto = () => {
@@ -130,48 +101,6 @@ export function MonthlyCalendarScreen() {
         },
       ],
     );
-  };
-  const handleSelectSticker = (asset: StickerAsset) => {
-    setSelectedStickerPickerAssetId(asset.id);
-    Alert.alert("선택한 항목", asset.name ?? "스티커");
-  };
-  const handleRegisterStickerFromLibrary = async () => {
-    const result = await registerFromLibrary();
-
-    if (result === "failed") {
-      Alert.alert("등록 실패", "스티커 이미지를 저장하지 못했어요.");
-    }
-  };
-  const handleRegisterStickerFromClipboard = async () => {
-    const result = await registerFromClipboard();
-
-    if (result === "empty") {
-      Alert.alert(
-        "이미지 없음",
-        "기기 클립보드에서 붙여넣을 이미지를 찾지 못했어요.",
-      );
-      return;
-    }
-
-    if (result === "denied") {
-      Alert.alert(
-        "권한 필요",
-        "클립보드 이미지를 읽을 수 있도록 붙여넣기 권한을 허용해 주세요.",
-      );
-      return;
-    }
-
-    if (result === "nativeModuleUnavailable") {
-      Alert.alert(
-        "앱 재설치 필요",
-        "클립보드 붙여넣기를 사용하려면 expo-clipboard가 포함된 개발용 앱을 다시 빌드해서 설치해야 해요.",
-      );
-      return;
-    }
-
-    if (result === "failed") {
-      Alert.alert("등록 실패", "클립보드 이미지를 스티커로 저장하지 못했어요.");
-    }
   };
 
   return (
@@ -249,23 +178,6 @@ export function MonthlyCalendarScreen() {
           visible={isYearMonthPickerVisible}
           onClose={handleCloseYearMonthPicker}
           onConfirm={handleConfirmYearMonth}
-        />
-      )}
-      {isStickerPickerMounted && (
-        <StickerPickerSheet
-          key={stickerPickerMountKey}
-          selectedAssetId={selectedStickerPickerAssetId}
-          snapIndex={stickerPickerSnapIndex}
-          stickers={stickers}
-          visible
-          onChangeSnapIndex={setStickerPickerSnapIndex}
-          onRegisterFromClipboard={() => {
-            void handleRegisterStickerFromClipboard();
-          }}
-          onRegisterFromLibrary={() => {
-            void handleRegisterStickerFromLibrary();
-          }}
-          onSelectSticker={handleSelectSticker}
         />
       )}
     </AppSafeAreaView>
