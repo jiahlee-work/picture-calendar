@@ -1,0 +1,26 @@
+appId: com.jiahleework.pical
+name: E2E core app navigation
+---
+- extendedWaitUntil:
+    visible: "캘린더 공유 버튼"
+    timeout: 30000
+- tapOn: "리캡으로 이동"
+- extendedWaitUntil:
+    visible: "Recap"
+    timeout: 30000
+- tapOn: "라이브러리로 이동"
+- extendedWaitUntil:
+    visible: "Library"
+    timeout: 30000
+- tapOn:
+    point: "78%,94%"
+- extendedWaitUntil:
+    visible: "리캡 알림"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: "업데이트"
+    timeout: 30000
+- tapOn: "캘린더로 이동"
+- extendedWaitUntil:
+    visible: "캘린더 공유 버튼"
+    timeout: 30000

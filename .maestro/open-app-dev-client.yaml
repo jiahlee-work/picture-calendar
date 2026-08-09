@@ -1,0 +1,7 @@
+appId: com.jiahleework.pical
+name: Open app development client
+---
+- openLink: "exp+pical://expo-development-client/?url=http%3A%2F%2F${DEV_SERVER_HOST}%3A8081"
+- extendedWaitUntil:
+    visible: "캘린더 공유 버튼"
+    timeout: 120000

@@ -1,6 +1,6 @@
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { NavigationBar } from "expo-navigation-bar";
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -16,11 +16,14 @@ import { AppRuntimeEffects } from "@/presentation/providers/app-runtime-effects"
 export { ErrorBoundary } from "expo-router";
 
 export default function RootLayout() {
+  const pathname = usePathname();
+  const isStorybookRoute = pathname.startsWith("/storybook");
+
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <BottomSheetModalProvider>
-          <AppRuntimeEffects />
+          {!isStorybookRoute ? <AppRuntimeEffects /> : null}
           <AppBottomNavigationVisibilityProvider>
             <View style={styles.content}>
               <Stack screenOptions={{ headerShown: false }}>
@@ -33,8 +36,12 @@ export default function RootLayout() {
                 <Stack.Screen name="recap/[year]/[month]" />
                 <Stack.Screen name="stickers" />
                 <Stack.Screen name="settings" />
+                <Stack.Screen
+                  name="storybook"
+                  options={{ gestureEnabled: false }}
+                />
               </Stack>
-              <AppBottomNavigationController />
+              {!isStorybookRoute ? <AppBottomNavigationController /> : null}
             </View>
           </AppBottomNavigationVisibilityProvider>
           <NavigationBar hidden={false} style="light" />

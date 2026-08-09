@@ -17,4 +17,6 @@ const StorybookUIRoot = view.getStorybookUI({
   },
 });
 
+export default StorybookUIRoot;
+
 registerRootComponent(StorybookUIRoot);
