@@ -32,7 +32,6 @@ export default function RootLayout() {
                   options={{ gestureEnabled: false }}
                 />
                 <Stack.Screen name="recap" />
-                <Stack.Screen name="recap/select" />
                 <Stack.Screen name="recap/[year]/[month]" />
                 <Stack.Screen name="stickers" />
                 <Stack.Screen name="settings" />

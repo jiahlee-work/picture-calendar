@@ -74,8 +74,7 @@ export function AppBottomNavigationController() {
   const visibility = useContext(AppBottomNavigationVisibilityContext);
   const pathname = usePathname();
   const router = useRouter();
-  const shouldShowNavigation =
-    !visibility?.isHidden && !pathname.startsWith("/recap/select");
+  const shouldShowNavigation = !visibility?.isHidden;
 
   const handleNavigate = (route: AppBottomNavigationRoute) => {
     if (isAppBottomNavigationRouteActive(pathname, route)) {

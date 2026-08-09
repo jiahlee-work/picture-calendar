@@ -2,7 +2,6 @@ import {
   canCreateRecapForMonth,
   RecapAvailabilityMode,
 } from "@/application/services/recap/recap-month-list";
-import { MONTHLY_RECAP_SELECTION_LIMIT } from "@/application/services/recap/recap-selection";
 import { dayjs } from "@/shared/date/dayjs";
 
 export const MONTHLY_RECAP_NOTIFICATION_KIND = "monthly-recap";
@@ -12,7 +11,6 @@ const MONTHLY_RECAP_NOTIFICATION_HOUR = 9;
 const MONTHLY_RECAP_NOTIFICATION_MINUTE = 0;
 export const MonthlyRecapNotificationDestination = {
   detail: "detail",
-  select: "select",
 } as const;
 
 export type MonthlyRecapNotificationDestination =
@@ -42,7 +40,6 @@ export type MonthlyRecapNotificationPayload = {
 
 export type MonthlyRecapNotificationRoute =
   | { pathname: "/recap" }
-  | { params: { month: string }; pathname: "/recap/select" }
   | {
       params: { month: string; year: string };
       pathname: "/recap/[year]/[month]";
@@ -50,7 +47,6 @@ export type MonthlyRecapNotificationRoute =
 
 type CreateMonthlyRecapNotificationPlanOptions = {
   availabilityMode?: RecapAvailabilityMode;
-  hasSelectedRecap: boolean;
   month: string;
   photoCount: number;
   triggerDate: Date;
@@ -77,7 +73,6 @@ export function getNextMonthlyRecapNotificationWindow(
 
 export function createMonthlyRecapNotificationPlan({
   availabilityMode = RecapAvailabilityMode.production,
-  hasSelectedRecap,
   month,
   photoCount,
   triggerDate,
@@ -96,15 +91,9 @@ export function createMonthlyRecapNotificationPlan({
     return null;
   }
 
-  const destination =
-    hasSelectedRecap || photoCount < MONTHLY_RECAP_SELECTION_LIMIT
-      ? MonthlyRecapNotificationDestination.detail
-      : MonthlyRecapNotificationDestination.select;
+  const destination = MonthlyRecapNotificationDestination.detail;
   const monthLabel = toKoreanMonthLabel(month);
-  const body =
-    destination === MonthlyRecapNotificationDestination.select
-      ? `${monthLabel}의 대표 사진 10장을 골라볼까요?`
-      : `${monthLabel} 리캡이 준비됐어요.`;
+  const body = `${monthLabel} 리캡이 준비됐어요.`;
 
   return {
     body,
@@ -145,15 +134,6 @@ export function parseMonthlyRecapNotificationPayload(
 export function toMonthlyRecapNotificationRoute(
   plan: Pick<MonthlyRecapNotificationPlan, "destination" | "month">,
 ): MonthlyRecapNotificationRoute {
-  if (plan.destination === MonthlyRecapNotificationDestination.select) {
-    return {
-      params: {
-        month: plan.month,
-      },
-      pathname: "/recap/select",
-    };
-  }
-
   const [year, month] = plan.month.split("-");
 
   return {
@@ -172,10 +152,7 @@ function createMonthlyRecapNotificationIdentifier(month: string): string {
 function isMonthlyRecapNotificationDestination(
   value: unknown,
 ): value is MonthlyRecapNotificationDestination {
-  return (
-    value === MonthlyRecapNotificationDestination.detail ||
-    value === MonthlyRecapNotificationDestination.select
-  );
+  return value === MonthlyRecapNotificationDestination.detail;
 }
 
 function isMonthKey(value: unknown): value is string {

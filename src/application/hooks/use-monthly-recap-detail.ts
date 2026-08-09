@@ -7,18 +7,15 @@ import {
   MonthlyRecapDetailStatus as MonthlyRecapDetailStatusValue,
   type MonthlyRecapDetailStatus as MonthlyRecapDetailStatusType,
 } from "@/application/services/recap/monthly-recap-detail";
-import { createMonthlyRecapRepositoryForRuntime } from "@/application/services/recap/monthly-recap-repository-factory";
 import { RecapAvailabilityMode } from "@/application/services/recap/recap-month-list";
 import { logger } from "@/infrastructure/logging/logger";
 import { runtimePlatform } from "@/infrastructure/device/runtime-platform";
-import type { MonthlyRecap } from "@/shared/recap/types";
 
 export const MonthlyRecapDetailStatus = MonthlyRecapDetailStatusValue;
 export type MonthlyRecapDetailStatus = MonthlyRecapDetailStatusType;
 
 type MonthlyRecapDetailState = {
   photos: DailyPhoto[];
-  recap: MonthlyRecap | null;
   status: MonthlyRecapDetailStatusType;
 };
 
@@ -27,16 +24,11 @@ export function useMonthlyRecapDetail(monthKey: string) {
     () => createDailyPhotoRepositoryForRuntime(runtimePlatform),
     [],
   );
-  const recapRepository = useMemo(
-    () => createMonthlyRecapRepositoryForRuntime(runtimePlatform),
-    [],
-  );
   const availabilityMode = __DEV__
     ? RecapAvailabilityMode.development
     : RecapAvailabilityMode.production;
   const [state, setState] = useState<MonthlyRecapDetailState>({
     photos: [],
-    recap: null,
     status: MonthlyRecapDetailStatus.loading,
   });
 
@@ -54,7 +46,6 @@ export function useMonthlyRecapDetail(monthKey: string) {
           availabilityMode,
           dailyPhotoRepository,
           month: monthKey,
-          recapRepository,
           userId: LOCAL_USER_ID,
         });
 
@@ -75,7 +66,6 @@ export function useMonthlyRecapDetail(monthKey: string) {
 
         setState({
           photos: [],
-          recap: null,
           status: MonthlyRecapDetailStatus.error,
         });
       }
@@ -86,7 +76,7 @@ export function useMonthlyRecapDetail(monthKey: string) {
     return () => {
       isMounted = false;
     };
-  }, [availabilityMode, dailyPhotoRepository, monthKey, recapRepository]);
+  }, [availabilityMode, dailyPhotoRepository, monthKey]);
 
   return state;
 }

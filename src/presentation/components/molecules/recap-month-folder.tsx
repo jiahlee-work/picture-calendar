@@ -127,12 +127,7 @@ export function RecapMonthFolder(props: RecapMonthFolderProps) {
     month.status === RecapMonthStatus.disabledCollecting;
   const isDisabledEmpty = month.status === RecapMonthStatus.disabledEmpty;
   const isLocked = month.status === RecapMonthStatus.disabledCollecting;
-  const isSelectionNeeded = month.status === RecapMonthStatus.needsSelection;
-  const displayedPhotoCount =
-    month.status === RecapMonthStatus.selected
-      ? month.selectedPhotoIds.length
-      : month.photoCount;
-  const countLabel = isSelectionNeeded ? "Select photos" : displayedPhotoCount;
+  const countLabel = month.photoCount;
   const visiblePreviewPhotos = month.previewPhotos.slice(
     0,
     MAX_FOLDER_PREVIEW_PHOTOS,
@@ -222,7 +217,6 @@ export function RecapMonthFolder(props: RecapMonthFolderProps) {
           <View
             style={[
               styles.countChip,
-              isSelectionNeeded && styles.needsSelectionText,
               isDisabledEmpty && styles.disabledChip,
               isLocked && styles.lockedChip,
             ]}
@@ -549,8 +543,5 @@ const styles = StyleSheet.create({
   },
   disabledText: {
     color: "rgba(138, 138, 138, 0.86)",
-  },
-  needsSelectionText: {
-    opacity: 0.82,
   },
 });

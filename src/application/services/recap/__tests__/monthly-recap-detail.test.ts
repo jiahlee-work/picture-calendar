@@ -1,291 +1,77 @@
 import { describe, expect, it } from "vitest";
 
-import type {
-  DailyPhoto,
-  DailyPhotoRepository,
-} from "@/application/services/daily-photo/types";
-import { loadMonthlyRecapDetail } from "@/application/services/recap/monthly-recap-detail";
-import { createLocalMonthlyRecapRepository } from "@/infrastructure/persistence/recap/local-monthly-recap-repository";
-import { toMonthKey } from "@/shared/date/date-key";
-import { dayjs } from "@/shared/date/dayjs";
+import {
+  loadMonthlyRecapDetail,
+  MonthlyRecapDetailStatus,
+} from "@/application/services/recap/monthly-recap-detail";
+import { RecapAvailabilityMode } from "@/application/services/recap/recap-month-list";
+import type { DailyPhotoRepository } from "@/application/services/daily-photo/types";
+import type { DailyPhoto } from "@/shared/daily-photo/types";
 
-const recapTimeline = createRecapTimeline();
-const LOCAL_USER_ID = "user-1";
-
-describe("loadMonthlyRecapDetail", () => {
-  it("keeps the first generated automatic layout when the same month is opened again", async () => {
-    const dailyPhotoRepository = createFakeDailyPhotoRepository(
-      createPhotos(recapTimeline.previousMonth, 6),
-    );
-    const recapRepository = createLocalMonthlyRecapRepository();
-    const firstResult = await loadMonthlyRecapDetail({
-      currentDate: recapTimeline.currentDate,
-      dailyPhotoRepository,
-      month: recapTimeline.previousMonth,
-      random: () => 0,
-      recapRepository,
-      userId: LOCAL_USER_ID,
-    });
-
-    const secondResult = await loadMonthlyRecapDetail({
-      currentDate: recapTimeline.currentDate,
-      dailyPhotoRepository,
-      month: recapTimeline.previousMonth,
-      random: () => 0.999,
-      recapRepository,
-      userId: LOCAL_USER_ID,
-    });
-
-    expect(firstResult.status).toBe("ready");
-    expect(secondResult.status).toBe("ready");
-    expect(secondResult.recap?.backgroundPhotoIds).toEqual(
-      firstResult.recap?.backgroundPhotoIds,
-    );
-    expect(secondResult.recap?.calendarPhotoIds).toEqual(
-      firstResult.recap?.calendarPhotoIds,
-    );
-    expect(secondResult.recap?.updatedAt).toEqual(firstResult.recap?.updatedAt);
-  });
-
-  it("does not create a recap for the current month in production", async () => {
-    const dailyPhotoRepository = createFakeDailyPhotoRepository(
-      createPhotos(recapTimeline.currentMonth, 6),
-    );
-    const recapRepository = createLocalMonthlyRecapRepository();
-
-    const result = await loadMonthlyRecapDetail({
-      currentDate: recapTimeline.currentDate,
-      dailyPhotoRepository,
-      month: recapTimeline.currentMonth,
-      random: () => 0,
-      recapRepository,
-      userId: LOCAL_USER_ID,
-    });
-
-    expect(result.status).toBe("collecting");
-    await expect(
-      recapRepository.getByMonth(LOCAL_USER_ID, recapTimeline.currentMonth),
-    ).resolves.toBeNull();
-  });
-
-  it("creates a recap for the current month in development", async () => {
-    const dailyPhotoRepository = createFakeDailyPhotoRepository(
-      createPhotos(recapTimeline.currentMonth, 6),
-    );
-    const recapRepository = createLocalMonthlyRecapRepository();
-
-    const result = await loadMonthlyRecapDetail({
-      availabilityMode: "development",
-      currentDate: recapTimeline.currentDate,
-      dailyPhotoRepository,
-      month: recapTimeline.currentMonth,
-      random: () => 0,
-      recapRepository,
-      userId: LOCAL_USER_ID,
-    });
-
-    expect(result.status).toBe("ready");
-    await expect(
-      recapRepository.getByMonth(LOCAL_USER_ID, recapTimeline.currentMonth),
-    ).resolves.toMatchObject({
-      month: recapTimeline.currentMonth,
-      selectionStatus: "selected",
-    });
-  });
-
-  it("does not create a recap for a future month even in development", async () => {
-    const dailyPhotoRepository = createFakeDailyPhotoRepository(
-      createPhotos(recapTimeline.futureMonth, 6),
-    );
-    const recapRepository = createLocalMonthlyRecapRepository();
-
-    const result = await loadMonthlyRecapDetail({
-      availabilityMode: "development",
-      currentDate: recapTimeline.currentDate,
-      dailyPhotoRepository,
-      month: recapTimeline.futureMonth,
-      random: () => 0,
-      recapRepository,
-      userId: LOCAL_USER_ID,
-    });
-
-    expect(result.status).toBe("collecting");
-    await expect(
-      recapRepository.getByMonth(LOCAL_USER_ID, recapTimeline.futureMonth),
-    ).resolves.toBeNull();
-  });
-
-  it("refreshes an automatic layout only when the monthly photos change", async () => {
-    const dailyPhotoRepository = createMutableDailyPhotoRepository(
-      createPhotos(recapTimeline.previousMonth, 4),
-    );
-    const recapRepository = createLocalMonthlyRecapRepository();
-    const firstResult = await loadMonthlyRecapDetail({
-      currentDate: recapTimeline.currentDate,
-      dailyPhotoRepository,
-      month: recapTimeline.previousMonth,
-      random: () => 0,
-      recapRepository,
-      userId: LOCAL_USER_ID,
-    });
-
-    dailyPhotoRepository.setPhotos(
-      createPhotos(recapTimeline.previousMonth, 5),
-    );
-
-    const secondResult = await loadMonthlyRecapDetail({
-      currentDate: recapTimeline.currentDate,
-      dailyPhotoRepository,
-      month: recapTimeline.previousMonth,
-      random: () => 0.999,
-      recapRepository,
-      userId: LOCAL_USER_ID,
-    });
-
-    expect(firstResult.status).toBe("ready");
-    expect(secondResult.status).toBe("ready");
-    expect(secondResult.recap?.selectedPhotoIds).toEqual([
-      "photo-1",
-      "photo-2",
-      "photo-3",
-      "photo-4",
-      "photo-5",
-    ]);
-    expect(secondResult.recap?.backgroundPhotoIds).not.toEqual(
-      firstResult.recap?.backgroundPhotoIds,
-    );
-  });
-
-  it("refreshes a manual layout when a selected representative photo is deleted", async () => {
-    const dailyPhotoRepository = createMutableDailyPhotoRepository(
-      createPhotos(recapTimeline.previousMonth, 11),
-    );
-    const recapRepository = createLocalMonthlyRecapRepository();
-    const firstResult = await loadMonthlyRecapDetail({
-      currentDate: recapTimeline.currentDate,
-      dailyPhotoRepository,
-      month: recapTimeline.previousMonth,
-      random: () => 0,
-      recapRepository,
-      userId: LOCAL_USER_ID,
-    });
-
-    expect(firstResult.status).toBe("needs_selection");
-
-    await recapRepository.saveSelection({
-      userId: LOCAL_USER_ID,
-      month: recapTimeline.previousMonth,
-      selectedPhotoIds: createPhotoIds(10),
-      calendarPhotoIds: ["photo-1", "photo-2", "photo-3", "photo-4"],
-      backgroundPhotoIds: [
-        "photo-5",
-        "photo-6",
-        "photo-7",
-        "photo-8",
-        "photo-9",
-        "photo-10",
-      ],
-    });
-    dailyPhotoRepository.setPhotos(
-      createPhotos(recapTimeline.previousMonth, 11).filter(
-        (photo) => photo.id !== "photo-10",
-      ),
-    );
-
-    const secondResult = await loadMonthlyRecapDetail({
-      currentDate: recapTimeline.currentDate,
-      dailyPhotoRepository,
-      month: recapTimeline.previousMonth,
-      random: () => 0.999,
-      recapRepository,
-      userId: LOCAL_USER_ID,
-    });
-
-    expect(secondResult.status).toBe("ready");
-    expect(secondResult.recap?.selectedPhotoIds).toEqual(createPhotoIds(9));
-    expect(secondResult.recap?.backgroundPhotoIds).not.toContain("photo-10");
-    expect(secondResult.recap?.calendarPhotoIds).not.toContain("photo-10");
-  });
+const photos: DailyPhoto[] = [
+  createPhoto("photo-2", "2026-06-02"),
+  createPhoto("photo-1", "2026-06-01"),
+];
+const createRepository = (
+  monthPhotos: typeof photos,
+): DailyPhotoRepository => ({
+  deleteByDate: async () => null,
+  hasAny: async () => monthPhotos.length > 0,
+  listByMonth: async () => monthPhotos,
+  saveToday: async () => monthPhotos[0] ?? null,
 });
 
-function createFakeDailyPhotoRepository(
-  photos: DailyPhoto[],
-): DailyPhotoRepository {
-  return createMutableDailyPhotoRepository(photos);
-}
-
-function createMutableDailyPhotoRepository(initialPhotos: DailyPhoto[]) {
-  let photos = [...initialPhotos];
-
+function createPhoto(id: string, date: string): DailyPhoto {
   return {
-    async deleteByDate() {
-      return null;
-    },
-    async hasAny() {
-      return photos.length > 0;
-    },
-    async listByMonth() {
-      return photos;
-    },
-    async saveToday(photo) {
-      const savedPhoto: DailyPhoto = {
-        id: `photo-${photos.length + 1}`,
-        userId: photo.userId,
-        date: photo.date,
-        imagePath: photo.imagePath,
-        localImagePath: photo.localImagePath ?? photo.imagePath,
-        remoteImageUrl: photo.remoteImageUrl ?? null,
-        storageKey: photo.storageKey ?? null,
-        syncStatus: photo.syncStatus ?? "local",
-        createdAt: "2026-06-01T00:00:00.000Z",
-        updatedAt: "2026-06-01T00:00:00.000Z",
-        lockedAt: null,
-      };
-
-      photos = [...photos, savedPhoto];
-
-      return savedPhoto;
-    },
-    setPhotos(nextPhotos: DailyPhoto[]) {
-      photos = [...nextPhotos];
-    },
-  } satisfies DailyPhotoRepository & {
-    setPhotos: (nextPhotos: DailyPhoto[]) => void;
+    createdAt: `${date}T09:00:00.000Z`,
+    date,
+    id,
+    imagePath: `file://${id}`,
+    localImagePath: `file://${id}`,
+    lockedAt: null,
+    remoteImageUrl: null,
+    storageKey: id,
+    syncStatus: "local",
+    updatedAt: `${date}T09:00:00.000Z`,
+    userId: "user-1",
   };
 }
 
-function createPhotos(month: string, count: number): DailyPhoto[] {
-  return Array.from({ length: count }, (_, index) => {
-    const photoNumber = index + 1;
+describe("loadMonthlyRecapDetail", () => {
+  it("returns all month photos when the recap is available", async () => {
+    const result = await loadMonthlyRecapDetail({
+      currentDate: new Date("2026-07-01T12:00:00Z"),
+      dailyPhotoRepository: createRepository(photos),
+      month: "2026-06",
+      userId: "user-1",
+    });
 
-    return {
-      id: `photo-${photoNumber}`,
-      userId: LOCAL_USER_ID,
-      date: `${month}-${String(photoNumber).padStart(2, "0")}`,
-      imagePath: `file://photo-${photoNumber}.jpg`,
-      localImagePath: `file://photo-${photoNumber}.jpg`,
-      remoteImageUrl: null,
-      storageKey: null,
-      syncStatus: "local",
-      createdAt: "2026-06-01T00:00:00.000Z",
-      updatedAt: "2026-06-01T00:00:00.000Z",
-      lockedAt: null,
-    };
+    expect(result.status).toBe(MonthlyRecapDetailStatus.ready);
+    expect(result.photos.map((photo) => photo.id)).toEqual([
+      "photo-1",
+      "photo-2",
+    ]);
   });
-}
 
-function createPhotoIds(count: number): string[] {
-  return Array.from({ length: count }, (_, index) => `photo-${index + 1}`);
-}
+  it("reports an empty month", async () => {
+    const result = await loadMonthlyRecapDetail({
+      dailyPhotoRepository: createRepository([]),
+      month: "2026-06",
+      userId: "user-1",
+    });
 
-function createRecapTimeline() {
-  const currentDate = dayjs("2026-07-28").toDate();
-  const currentMonthDate = dayjs(currentDate).startOf("month");
+    expect(result.status).toBe(MonthlyRecapDetailStatus.empty);
+  });
 
-  return {
-    currentDate,
-    currentMonth: toMonthKey(currentMonthDate.toDate()),
-    futureMonth: toMonthKey(currentMonthDate.add(1, "month").toDate()),
-    previousMonth: toMonthKey(currentMonthDate.subtract(1, "month").toDate()),
-  };
-}
+  it("reports the current month as collecting in production", async () => {
+    const result = await loadMonthlyRecapDetail({
+      availabilityMode: RecapAvailabilityMode.production,
+      currentDate: new Date("2026-06-15T12:00:00Z"),
+      dailyPhotoRepository: createRepository(photos),
+      month: "2026-06",
+      userId: "user-1",
+    });
+
+    expect(result.status).toBe(MonthlyRecapDetailStatus.collecting);
+  });
+});

@@ -29,17 +29,10 @@ export function RecapMonthListScreen() {
   );
 
   const handlePressMonth = (month: RecapMonthSummary) => {
-    if (month.status === RecapMonthStatus.needsSelection) {
-      router.push({
-        params: {
-          month: month.month,
-        },
-        pathname: "/recap/select",
-      });
-      return;
-    }
-
-    if (month.status !== RecapMonthStatus.selected) {
+    if (
+      month.status === RecapMonthStatus.disabledEmpty ||
+      month.status === RecapMonthStatus.disabledCollecting
+    ) {
       return;
     }
 

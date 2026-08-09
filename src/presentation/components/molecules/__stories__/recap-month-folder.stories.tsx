@@ -8,9 +8,7 @@ import { recapMonthFixtures } from "@/presentation/storybook/fixtures/recap-fixt
 const RECAP_MONTH_FOLDER_STATUSES = {
   disabled: RecapMonthStatus.disabledEmpty,
   locked: RecapMonthStatus.disabledCollecting,
-  needsSelection: RecapMonthStatus.needsSelection,
-  readyAuto: RecapMonthStatus.readyAuto,
-  selected: RecapMonthStatus.selected,
+  ready: RecapMonthStatus.ready,
 } as const;
 
 type RecapMonthFolderStoryStatus = keyof typeof RECAP_MONTH_FOLDER_STATUSES;
@@ -36,9 +34,7 @@ const meta = {
         labels: {
           disabled: "Disabled",
           locked: "Locked",
-          needsSelection: "Needs Selection",
-          readyAuto: "Ready Auto",
-          selected: "Selected",
+          ready: "Ready",
         },
         type: "select",
       },
@@ -62,7 +58,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    status: "needsSelection",
+    status: "ready",
   },
 };
 

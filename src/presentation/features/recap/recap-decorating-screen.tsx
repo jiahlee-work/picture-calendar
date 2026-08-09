@@ -77,7 +77,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   const windowDimensions = useWindowDimensions();
   const shareCaptureRef = useRef<View>(null);
   const monthKey = `${year}-${month}`;
-  const { photos, recap } = useMonthlyRecapDetail(monthKey);
+  const { photos, status } = useMonthlyRecapDetail(monthKey);
   const { stickers, registerFromClipboard, registerFromLibrary } =
     useStickerLibrary();
   const {
@@ -129,18 +129,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
   useAppBottomNavigationHidden(true);
 
-  const selectedPhotoIds = useMemo(
-    () => recap?.selectedPhotoIds ?? [],
-    [recap?.selectedPhotoIds],
-  );
-  const selectedPhotoIdSet = useMemo(
-    () => new Set(selectedPhotoIds),
-    [selectedPhotoIds],
-  );
-  const recapPhotos = useMemo(
-    () => photos.filter((photo) => selectedPhotoIdSet.has(photo.id)),
-    [photos, selectedPhotoIdSet],
-  );
+  const recapPhotos = useMemo(() => photos, [photos]);
   const photosById = useMemo(
     () => Object.fromEntries(recapPhotos.map((photo) => [photo.id, photo])),
     [recapPhotos],
@@ -626,7 +615,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     }
   };
 
-  if (!recap) {
+  if (status !== "ready") {
     return (
       <View style={styles.screen}>
         <AppSafeAreaView edges={["top"]} variant="inset">

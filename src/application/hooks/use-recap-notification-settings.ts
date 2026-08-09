@@ -7,7 +7,6 @@ import {
   cancelMonthlyRecapNotifications,
   syncMonthlyRecapNotificationSchedule,
 } from "@/application/services/notifications/recap-notification-service";
-import { createMonthlyRecapRepositoryForRuntime } from "@/application/services/recap/monthly-recap-repository-factory";
 import { createRecapNotificationSettingsRepositoryForRuntime } from "@/application/services/settings/recap-notification-settings-repository-factory";
 import { subscribeToAppActive } from "@/infrastructure/device/app-lifecycle";
 import { runtimePlatform } from "@/infrastructure/device/runtime-platform";
@@ -42,10 +41,6 @@ export function useRecapNotificationSettings() {
     () => createLocalNotificationAdapterForRuntime(runtimePlatform),
     [],
   );
-  const recapRepository = useMemo(
-    () => createMonthlyRecapRepositoryForRuntime(runtimePlatform),
-    [],
-  );
   const settingsRepository = useMemo(
     () => createRecapNotificationSettingsRepositoryForRuntime(runtimePlatform),
     [],
@@ -64,7 +59,6 @@ export function useRecapNotificationSettings() {
         await syncMonthlyRecapNotificationSchedule({
           dailyPhotoRepository,
           notificationAdapter,
-          recapRepository,
           settingsRepository,
           userId: LOCAL_USER_ID,
         });
@@ -85,12 +79,7 @@ export function useRecapNotificationSettings() {
         isLoading: false,
       }));
     }
-  }, [
-    dailyPhotoRepository,
-    notificationAdapter,
-    recapRepository,
-    settingsRepository,
-  ]);
+  }, [dailyPhotoRepository, notificationAdapter, settingsRepository]);
 
   const setEnabled = useCallback(
     async (isEnabled: boolean) => {
@@ -141,7 +130,6 @@ export function useRecapNotificationSettings() {
         await syncMonthlyRecapNotificationSchedule({
           dailyPhotoRepository,
           notificationAdapter,
-          recapRepository,
           settingsRepository,
           userId: LOCAL_USER_ID,
         });
@@ -165,12 +153,7 @@ export function useRecapNotificationSettings() {
         }));
       }
     },
-    [
-      dailyPhotoRepository,
-      notificationAdapter,
-      recapRepository,
-      settingsRepository,
-    ],
+    [dailyPhotoRepository, notificationAdapter, settingsRepository],
   );
 
   useEffect(() => {

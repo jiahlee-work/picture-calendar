@@ -5,7 +5,6 @@ import { createDailyPhotoRepositoryForRuntime } from "@/application/services/dai
 import { LOCAL_USER_ID } from "@/application/services/local-user";
 import { createLocalNotificationAdapterForRuntime } from "@/application/services/notifications/local-notification-adapter-factory";
 import { handleMonthlyRecapNotificationResponse } from "@/application/services/notifications/recap-notification-service";
-import { createMonthlyRecapRepositoryForRuntime } from "@/application/services/recap/monthly-recap-repository-factory";
 import { createRecapNotificationSettingsRepositoryForRuntime } from "@/application/services/settings/recap-notification-settings-repository-factory";
 import { runtimePlatform } from "@/infrastructure/device/runtime-platform";
 import { logger } from "@/infrastructure/logging/logger";
@@ -18,10 +17,6 @@ export function useRecapNotificationDeepLinking() {
   );
   const notificationAdapter = useMemo(
     () => createLocalNotificationAdapterForRuntime(runtimePlatform),
-    [],
-  );
-  const recapRepository = useMemo(
-    () => createMonthlyRecapRepositoryForRuntime(runtimePlatform),
     [],
   );
   const settingsRepository = useMemo(
@@ -43,7 +38,6 @@ export function useRecapNotificationDeepLinking() {
           dailyPhotoRepository,
           data,
           notificationAdapter,
-          recapRepository,
           settingsRepository,
           userId: LOCAL_USER_ID,
         });
@@ -57,13 +51,7 @@ export function useRecapNotificationDeepLinking() {
         isHandlingResponseRef.current = false;
       }
     },
-    [
-      dailyPhotoRepository,
-      notificationAdapter,
-      recapRepository,
-      router,
-      settingsRepository,
-    ],
+    [dailyPhotoRepository, notificationAdapter, router, settingsRepository],
   );
 
   useEffect(() => {
