@@ -117,9 +117,12 @@ function widgetStateValue(value: unknown): WidgetPlacementState | undefined {
     };
   }
 
-  if (value.variant === "polaroidFrame") {
+  if (
+    value.variant === "polaroidFrame" ||
+    value.variant === "polaroidFramePortrait"
+  ) {
     return {
-      variant: "polaroidFrame",
+      variant: value.variant,
       selectedImageId: stringValue(value.selectedImageId) ?? undefined,
     };
   }

@@ -64,6 +64,11 @@ export type RecapCanvasWidgetElement =
       photoId?: string;
       type: "widget";
       variant: "polaroidFrame";
+    })
+  | (RecapCanvasBaseElement & {
+      photoId?: string;
+      type: "widget";
+      variant: "polaroidFramePortrait";
     });
 
 export type RecapCanvasElement =

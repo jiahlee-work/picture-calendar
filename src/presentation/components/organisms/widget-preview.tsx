@@ -1,9 +1,9 @@
+import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { buildCalendarMonth } from "@/application/services/calendar/calendar-grid";
 import type { WidgetAsset } from "@/application/services/stickers/types";
-import { widgetPolaroidPreviewImageUri } from "@/presentation/assets/widget-polaroid-preview";
-import { PolaroidPhotoFrame } from "@/presentation/components/atoms/polaroid-photo-frame";
+import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import { MessageRecapBubble } from "@/presentation/components/molecules/message-recap-bubble";
 import { toCalendarWeeks } from "@/presentation/helpers/calendar/calendar-weeks";
 import { appColors } from "@/presentation/theme/colors";
@@ -32,7 +32,7 @@ export function WidgetPreview(props: WidgetPreviewProps) {
           size === "detail" && styles.detailCalendarPreview,
         ]}
       >
-        <MiniCalendarPreview size={size} />
+        <MiniCalendarPreview />
       </View>
     );
   }
@@ -40,7 +40,7 @@ export function WidgetPreview(props: WidgetPreviewProps) {
   if (asset.variant === "speechBubble") {
     return (
       <MessageRecapBubble
-        text="안녕!"
+        text="안녕하세요"
         style={[
           styles.speechBubblePreview,
           size === "detail" && styles.detailSpeechBubblePreview,
@@ -53,90 +53,98 @@ export function WidgetPreview(props: WidgetPreviewProps) {
     );
   }
 
+  const isPortrait = asset.variant === "polaroidFramePortrait";
+
   return (
-    <PolaroidPhotoFrame
-      imagePath={widgetPolaroidPreviewImageUri}
-      orientation="landscape"
+    <View
       style={[
         styles.polaroidPreview,
+        isPortrait && styles.polaroidPreviewPortrait,
         size === "detail" && styles.detailPolaroidPreview,
+        size === "detail" && isPortrait && styles.detailPolaroidPreviewPortrait,
       ]}
-    />
+    >
+      <View style={styles.polaroidPreviewPhoto}>
+        <ReiconIcon
+          color={appColors.blackOverlay34}
+          name="GalleryAdd"
+          size={24}
+        />
+      </View>
+    </View>
   );
 }
 
-function MiniCalendarPreview(props: { size: "detail" | "tile" }) {
-  const { size } = props;
+function MiniCalendarPreview() {
   const weeks = toCalendarWeeks(PREVIEW_CALENDAR.days);
+  const [viewportSize, setViewportSize] = useState({ height: 0, width: 0 });
+  const [calendarSize, setCalendarSize] = useState({ height: 0, width: 0 });
+  const scale =
+    viewportSize.width > 0 && calendarSize.width > 0
+      ? Math.min(
+          viewportSize.width / calendarSize.width,
+          viewportSize.height / calendarSize.height,
+        )
+      : 1;
 
   return (
-    <View style={styles.miniCalendar}>
-      <View style={styles.miniCalendarHeader}>
-        <Text
-          style={[
-            styles.miniCalendarMonthText,
-            size === "detail" && styles.detailMiniCalendarMonthText,
-          ]}
-        >
-          {PREVIEW_CALENDAR_MONTH_DATE.format("MMM")}
-        </Text>
-        <Text
-          style={[
-            styles.miniCalendarYearText,
-            size === "detail" && styles.detailMiniCalendarYearText,
-          ]}
-        >
-          {PREVIEW_CALENDAR_MONTH_DATE.format("YYYY")}
-        </Text>
-      </View>
-      <View style={styles.miniWeekdayRow}>
-        {WEEKDAYS.map((weekday, index) => (
-          <Text
-            key={`${weekday}-${index}`}
-            style={[
-              styles.miniWeekdayText,
-              size === "detail" && styles.detailMiniWeekdayText,
-            ]}
-          >
-            {weekday}
+    <View
+      style={styles.miniCalendarViewport}
+      onLayout={(event) => {
+        setViewportSize({
+          height: event.nativeEvent.layout.height,
+          width: event.nativeEvent.layout.width,
+        });
+      }}
+    >
+      <View
+        style={[styles.miniCalendar, { transform: [{ scale }] }]}
+        onLayout={(event) => {
+          setCalendarSize({
+            height: event.nativeEvent.layout.height,
+            width: event.nativeEvent.layout.width,
+          });
+        }}
+      >
+        <View style={styles.miniCalendarHeader}>
+          <Text style={styles.miniCalendarMonthText}>
+            {PREVIEW_CALENDAR_MONTH_DATE.format("MMMM")}
           </Text>
-        ))}
-      </View>
-      <View style={styles.miniCalendarGrid}>
-        {weeks.map((week, weekIndex) => (
-          <View key={`week-${weekIndex}`} style={styles.miniCalendarWeek}>
-            {week.map((cell, dayIndex) => {
-              const isHighlighted = cell?.isToday;
-
-              return (
+          <Text style={styles.miniCalendarYearText}>
+            {PREVIEW_CALENDAR_MONTH_DATE.format("YYYY")}
+          </Text>
+        </View>
+        <View style={styles.miniWeekdayRow}>
+          {WEEKDAYS.map((weekday, index) => (
+            <Text key={`${weekday}-${index}`} style={styles.miniWeekdayText}>
+              {weekday}
+            </Text>
+          ))}
+        </View>
+        <View style={styles.miniCalendarGrid}>
+          {weeks.map((week, weekIndex) => (
+            <View
+              key={`week-${weekIndex}`}
+              style={[
+                styles.miniCalendarWeek,
+                weekIndex < weeks.length - 1 && styles.miniCalendarWeekDivider,
+              ]}
+            >
+              {week.map((cell, dayIndex) => (
                 <View
                   key={cell?.key ?? `empty-${weekIndex}-${dayIndex}`}
                   style={styles.miniCalendarDay}
                 >
                   {cell && (
-                    <View
-                      style={[
-                        styles.miniCalendarDayBadge,
-                        isHighlighted && styles.miniCalendarDayBadgeActive,
-                        size === "detail" && styles.detailMiniCalendarDayBadge,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.miniCalendarDayText,
-                          isHighlighted && styles.miniCalendarDayTextActive,
-                          size === "detail" && styles.detailMiniCalendarDayText,
-                        ]}
-                      >
-                        {cell.dayOfMonth}
-                      </Text>
-                    </View>
+                    <Text style={styles.miniCalendarDayText}>
+                      {cell.dayOfMonth}
+                    </Text>
                   )}
                 </View>
-              );
-            })}
-          </View>
-        ))}
+              ))}
+            </View>
+          ))}
+        </View>
       </View>
     </View>
   );
@@ -145,32 +153,35 @@ function MiniCalendarPreview(props: { size: "detail" | "tile" }) {
 const styles = StyleSheet.create({
   calendarPreview: {
     alignItems: "center",
-    backgroundColor: appColors.white,
-    borderCurve: "continuous",
-    borderRadius: 10,
-    boxShadow: "0 10px 20px rgba(18, 18, 18, 0.08)",
+    backgroundColor: "transparent",
+    boxShadow: "none",
     height: "86%",
     justifyContent: "center",
     overflow: "hidden",
-    padding: 8,
+    paddingVertical: 8,
     width: "86%",
   },
   detailCalendarPreview: {
     height: 240,
-    padding: 18,
+    paddingVertical: 18,
     width: 240,
   },
   detailPolaroidPreview: {
     height: 190,
     width: 260,
   },
+  detailPolaroidPreviewPortrait: {
+    height: 260,
+    width: 190,
+  },
   detailSpeechBubblePreview: {
-    minHeight: 64,
-    minWidth: 200,
+    minHeight: 46,
+    minWidth: 72,
+    transform: [{ scale: 1 }],
   },
   detailSpeechBubbleText: {
-    fontSize: 24,
-    lineHeight: 30,
+    fontSize: 16,
+    lineHeight: 22,
   },
   detailMiniCalendarDayBadge: {
     minHeight: 24,
@@ -179,10 +190,11 @@ const styles = StyleSheet.create({
   detailMiniCalendarDayText: {
     fontSize: 12,
     lineHeight: 16,
+    transform: [{ translateY: -4 }],
   },
   detailMiniCalendarMonthText: {
-    fontSize: 32,
-    lineHeight: 38,
+    fontSize: 24,
+    lineHeight: 30,
   },
   detailMiniCalendarYearText: {
     fontSize: 16,
@@ -192,15 +204,36 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 14,
   },
+  detailMiniCalendarDay: {
+    minHeight: 28,
+  },
+  detailMiniCalendarWeek: {
+    minHeight: 28,
+  },
   miniCalendar: {
+    backgroundColor: appColors.white,
+    borderCurve: "continuous",
+    borderRadius: 12,
+    boxShadow: "none",
+    flexGrow: 0,
+    justifyContent: "flex-start",
+    paddingBottom: 0,
+    paddingHorizontal: 18,
+    paddingTop: 10,
+    width: 240,
+  },
+  miniCalendarViewport: {
+    alignItems: "center",
     flex: 1,
     justifyContent: "center",
+    overflow: "hidden",
     width: "100%",
   },
   miniCalendarDay: {
     alignItems: "center",
     flex: 1,
     justifyContent: "center",
+    minHeight: 64,
   },
   miniCalendarDayBadge: {
     alignItems: "center",
@@ -214,64 +247,85 @@ const styles = StyleSheet.create({
   },
   miniCalendarDayText: {
     color: appColors.black,
-    fontSize: 5,
-    fontWeight: "800",
-    lineHeight: 7,
-  },
-  miniCalendarDayTextActive: {
-    color: appColors.white,
+    fontSize: 16,
+    fontWeight: "500",
+    lineHeight: 22,
+    transform: [{ translateY: -8 }],
   },
   miniCalendarGrid: {
-    gap: 1,
+    width: "100%",
   },
   miniCalendarHeader: {
     alignItems: "flex-end",
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 5,
+    marginBottom: 18,
   },
   miniCalendarMonthText: {
     color: appColors.black,
-    fontSize: 13,
+    fontSize: 28,
     fontWeight: "900",
-    lineHeight: 16,
+    lineHeight: 34,
   },
   miniCalendarWeek: {
     flexDirection: "row",
+    minHeight: 64,
+  },
+  miniCalendarWeekDivider: {
+    borderBottomColor: "#D1D1D1",
+    borderBottomWidth: 1,
   },
   miniCalendarYearText: {
     color: appColors.blackOverlay34,
-    fontSize: 7,
+    fontSize: 16,
     fontWeight: "800",
-    lineHeight: 9,
+    lineHeight: 20,
   },
   miniWeekdayRow: {
-    borderBottomColor: "rgba(18,18,18,0.08)",
+    borderBottomColor: "#D1D1D1",
     borderBottomWidth: 1,
     flexDirection: "row",
-    marginBottom: 3,
-    paddingBottom: 3,
+    marginBottom: 0,
+    paddingBottom: 6,
   },
   miniWeekdayText: {
     color: appColors.blackOverlay34,
     flex: 1,
-    fontSize: 4,
-    fontWeight: "800",
-    lineHeight: 6,
+    fontSize: 11,
+    fontWeight: "500",
+    lineHeight: 16,
     textAlign: "center",
   },
   polaroidPreview: {
+    backgroundColor: "#fffdfa",
+    boxShadow: "none",
     height: "72%",
+    paddingBottom: 14,
+    paddingHorizontal: 7,
+    paddingTop: 7,
     position: "relative",
     width: "88%",
   },
+  polaroidPreviewPhoto: {
+    alignItems: "center",
+    backgroundColor: "#e9e9e4",
+    flex: 1,
+    justifyContent: "center",
+  },
+  polaroidPreviewPortrait: {
+    height: "88%",
+    width: "72%",
+  },
   speechBubblePreview: {
-    minHeight: 36,
-    paddingHorizontal: 13,
-    paddingVertical: 8,
+    maxWidth: 280,
+    minHeight: 46,
+    minWidth: 72,
+    paddingHorizontal: 18,
+    paddingVertical: 11,
+    transform: [{ scale: 0.55 }],
   },
   speechBubbleText: {
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: 16,
+    lineHeight: 22,
   },
 });

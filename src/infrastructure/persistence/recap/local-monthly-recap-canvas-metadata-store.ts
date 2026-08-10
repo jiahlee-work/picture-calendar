@@ -180,12 +180,15 @@ function toRecapCanvasElement(value: unknown): RecapCanvasElement | null {
       };
     }
 
-    if (value.variant === "polaroidFrame") {
+    if (
+      value.variant === "polaroidFrame" ||
+      value.variant === "polaroidFramePortrait"
+    ) {
       return {
         ...base,
         photoId: stringValue(value.photoId) ?? undefined,
         type: "widget",
-        variant: "polaroidFrame",
+        variant: value.variant,
       };
     }
   }

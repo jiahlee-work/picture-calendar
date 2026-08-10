@@ -90,12 +90,26 @@ describe("recap canvas elements", () => {
     });
     expect(
       createRecapWidgetElement({
+        id: "widget-polaroid-portrait-1",
+        photoId: "photo-1",
+        variant: "polaroidFramePortrait",
+        x: 80,
+        y: 120,
+        zIndex: 6,
+      }),
+    ).toMatchObject({
+      photoId: "photo-1",
+      type: "widget",
+      variant: "polaroidFramePortrait",
+    });
+    expect(
+      createRecapWidgetElement({
         id: "widget-bubble-1",
         text: "hello",
         variant: "speechBubble",
         x: 80,
         y: 120,
-        zIndex: 6,
+        zIndex: 7,
       }),
     ).toMatchObject({
       text: "hello",

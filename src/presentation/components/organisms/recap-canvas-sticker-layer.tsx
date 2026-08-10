@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Pressable,
   StyleSheet,
@@ -102,7 +102,9 @@ export function RecapCanvasStickerLayer(props: RecapCanvasStickerLayerProps) {
             ? (assetsById.get(element.stickerAssetId) ?? null)
             : null;
         const photo =
-          element.type === "widget" && element.variant === "polaroidFrame"
+          element.type === "widget" &&
+          (element.variant === "polaroidFrame" ||
+            element.variant === "polaroidFramePortrait")
             ? (photosById[element.photoId ?? ""] ?? null)
             : null;
 
@@ -142,6 +144,7 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
     photo,
   } = props;
   const lastTapAtRef = useRef(0);
+  const wasLongPressedRef = useRef(false);
   const elementX = useSharedValue(element.x);
   const elementY = useSharedValue(element.y);
   const elementScale = useSharedValue(element.scale);
@@ -152,6 +155,10 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
   const gestureStartRotation = useSharedValue(element.rotation);
   const isEditing =
     element.type === "widget" && element.id === editingWidgetElementId;
+  const [isDeleteButtonVisible, setIsDeleteButtonVisible] = useState(false);
+  const [inputLineCount, setInputLineCount] = useState(
+    getExplicitTextLineCount(element),
+  );
 
   useEffect(() => {
     elementX.value = element.x;
@@ -308,8 +315,21 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
             accessibilityLabel="스티커 선택"
             accessibilityState={{ selected: isSelected }}
             style={[styles.frame, isSelected && styles.selectedFrame]}
+            onPressIn={() => {
+              wasLongPressedRef.current = false;
+              setIsDeleteButtonVisible(false);
+            }}
+            onLongPress={() => {
+              wasLongPressedRef.current = true;
+              onSelectElement(element.id);
+              setIsDeleteButtonVisible(true);
+            }}
             onPress={(event) => {
               event.stopPropagation();
+              if (!wasLongPressedRef.current) {
+                setIsDeleteButtonVisible(false);
+              }
+              wasLongPressedRef.current = false;
               handlePress();
             }}
           >
@@ -321,11 +341,14 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
               photo={photo}
               onChangeElement={onChangeElement}
               onEndWidgetEditing={onEndWidgetEditing}
+              onSelectElement={onSelectElement}
+              inputLineCount={inputLineCount}
+              onChangeInputLineCount={setInputLineCount}
             />
           </Pressable>
         </Animated.View>
       </GestureDetector>
-      {isSelected ? (
+      {isSelected && isDeleteButtonVisible ? (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="스티커 삭제"
@@ -348,6 +371,9 @@ function RecapCanvasStickerContent(props: {
   photo: DailyPhoto | null;
   onChangeElement: RecapCanvasStickerLayerProps["onChangeElement"];
   onEndWidgetEditing: () => void;
+  onSelectElement: (elementId: string) => void;
+  inputLineCount: number;
+  onChangeInputLineCount: (lineCount: number) => void;
 }) {
   const {
     asset,
@@ -355,7 +381,10 @@ function RecapCanvasStickerContent(props: {
     isEditing,
     monthKey,
     onChangeElement,
+    onChangeInputLineCount,
     onEndWidgetEditing,
+    onSelectElement,
+    inputLineCount,
     photo,
   } = props;
 
@@ -385,11 +414,21 @@ function RecapCanvasStickerContent(props: {
         isEditing={isEditing}
         onChangeElement={onChangeElement}
         onEndWidgetEditing={onEndWidgetEditing}
+        inputLineCount={inputLineCount}
+        onChangeInputLineCount={onChangeInputLineCount}
       />
     );
   }
 
-  return <RecapPolaroidWidget photo={photo} />;
+  return (
+    <RecapPolaroidWidget
+      orientation={
+        element.variant === "polaroidFramePortrait" ? "portrait" : "landscape"
+      }
+      photo={photo}
+      onRequestPhotoSelection={() => onSelectElement(element.id)}
+    />
+  );
 }
 
 function RecapCalendarWidget(props: { monthKey: string }) {
@@ -400,7 +439,7 @@ function RecapCalendarWidget(props: { monthKey: string }) {
   return (
     <View style={styles.calendarWidget}>
       <View style={styles.calendarHeader}>
-        <Text style={styles.calendarMonthText}>{monthDate.format("MMM")}</Text>
+        <Text style={styles.calendarMonthText}>{monthDate.format("MMMM")}</Text>
         <Text style={styles.calendarYearText}>{monthDate.format("YYYY")}</Text>
       </View>
       <View style={styles.weekdayRow}>
@@ -412,7 +451,13 @@ function RecapCalendarWidget(props: { monthKey: string }) {
       </View>
       <View style={styles.calendarGrid}>
         {weeks.map((week, weekIndex) => (
-          <View key={`week-${weekIndex}`} style={styles.calendarWeek}>
+          <View
+            key={`week-${weekIndex}`}
+            style={[
+              styles.calendarWeek,
+              weekIndex < weeks.length - 1 && styles.calendarWeekDivider,
+            ]}
+          >
             {week.map((cell, dayIndex) => (
               <View
                 key={cell?.key ?? `empty-${weekIndex}-${dayIndex}`}
@@ -435,8 +480,17 @@ function RecapSpeechBubbleWidget(props: {
   isEditing: boolean;
   onChangeElement: RecapCanvasStickerLayerProps["onChangeElement"];
   onEndWidgetEditing: () => void;
+  inputLineCount: number;
+  onChangeInputLineCount: (lineCount: number) => void;
 }) {
-  const { element, isEditing, onChangeElement, onEndWidgetEditing } = props;
+  const {
+    element,
+    inputLineCount,
+    isEditing,
+    onChangeElement,
+    onChangeInputLineCount,
+    onEndWidgetEditing,
+  } = props;
   const textStyle = styles.speechBubbleText as StyleProp<TextStyle>;
 
   if (!isEditing) {
@@ -444,13 +498,18 @@ function RecapSpeechBubbleWidget(props: {
       <MessageRecapBubble
         text={element.text}
         style={styles.speechBubble}
+        lineCount={inputLineCount}
         textStyle={textStyle}
       />
     );
   }
 
   return (
-    <MessageRecapBubble text={element.text} style={styles.speechBubble}>
+    <MessageRecapBubble
+      lineCount={inputLineCount}
+      text={element.text}
+      style={styles.speechBubble}
+    >
       <TextInput
         autoFocus
         multiline
@@ -459,34 +518,80 @@ function RecapSpeechBubbleWidget(props: {
         value={element.text}
         onBlur={onEndWidgetEditing}
         onChangeText={(text) => {
+          onChangeInputLineCount(getExplicitTextLineCount(text));
           onChangeElement({
             ...element,
             text,
           });
+        }}
+        onContentSizeChange={(event) => {
+          onChangeInputLineCount(
+            Math.max(
+              getExplicitTextLineCount(element.text),
+              Math.ceil(event.nativeEvent.contentSize.height / 22),
+            ),
+          );
         }}
       />
     </MessageRecapBubble>
   );
 }
 
-function RecapPolaroidWidget(props: { photo: DailyPhoto | null }) {
-  const { photo } = props;
+function RecapPolaroidWidget(props: {
+  onRequestPhotoSelection: () => void;
+  orientation: "landscape" | "portrait";
+  photo: DailyPhoto | null;
+}) {
+  const { onRequestPhotoSelection, orientation, photo } = props;
 
   if (photo) {
     return (
       <PolaroidPhotoFrame
         imagePath={photo.imagePath}
-        orientation="landscape"
-        style={styles.polaroid}
+        orientation={orientation}
+        style={[
+          styles.polaroid,
+          orientation === "portrait" && styles.polaroidPortrait,
+        ]}
       />
     );
   }
 
   return (
-    <View style={styles.emptyPolaroid}>
-      <View style={styles.emptyPolaroidPhoto} />
+    <View
+      style={[
+        styles.emptyPolaroid,
+        orientation === "portrait" && styles.emptyPolaroidPortrait,
+      ]}
+    >
+      <Pressable
+        accessibilityLabel="폴라로이드 사진 선택"
+        accessibilityRole="button"
+        style={styles.emptyPolaroidPhoto}
+        onPress={onRequestPhotoSelection}
+      >
+        <ReiconIcon
+          color={appColors.blackOverlay34}
+          name="GalleryAdd"
+          size={28}
+        />
+      </Pressable>
     </View>
   );
+}
+
+function getExplicitTextLineCount(
+  element: RecapCanvasElement | string,
+): number {
+  if (typeof element === "string") {
+    return Math.max(element.split("\n").length, 1);
+  }
+
+  if (element.type !== "widget" || element.variant !== "speechBubble") {
+    return 1;
+  }
+
+  return Math.max(element.text.split("\n").length, 1);
 }
 
 function toCommittedElement<
@@ -510,47 +615,54 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
     justifyContent: "center",
-    minHeight: 13,
+    minHeight: 64,
   },
   calendarDayText: {
     color: appColors.black,
-    fontSize: 7,
-    fontWeight: "800",
-    lineHeight: 9,
+    fontSize: 16,
+    fontWeight: "500",
+    lineHeight: 22,
+    transform: [{ translateY: -8 }],
   },
   calendarGrid: {
-    gap: 1,
+    width: "100%",
   },
   calendarHeader: {
     alignItems: "flex-end",
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 6,
+    marginBottom: 18,
   },
   calendarMonthText: {
     color: appColors.black,
-    fontSize: 18,
+    fontSize: 28,
     fontWeight: "900",
-    lineHeight: 22,
+    lineHeight: 34,
   },
   calendarWeek: {
     flexDirection: "row",
+    minHeight: 64,
+  },
+  calendarWeekDivider: {
+    borderBottomColor: "#D1D1D1",
+    borderBottomWidth: 1,
   },
   calendarWidget: {
     backgroundColor: appColors.white,
     borderCurve: "continuous",
     borderRadius: 12,
-    boxShadow: "0 10px 20px rgba(18, 18, 18, 0.08)",
-    height: DEFAULT_ITEM_SIZE,
-    justifyContent: "center",
-    padding: 12,
-    width: DEFAULT_ITEM_SIZE,
+    boxShadow: "none",
+    justifyContent: "flex-start",
+    paddingBottom: 0,
+    paddingHorizontal: 18,
+    paddingTop: 10,
+    width: 240,
   },
   calendarYearText: {
     color: appColors.blackOverlay34,
-    fontSize: 8,
+    fontSize: 16,
     fontWeight: "800",
-    lineHeight: 11,
+    lineHeight: 20,
   },
   deleteButton: {
     alignItems: "center",
@@ -565,16 +677,20 @@ const styles = StyleSheet.create({
   },
   emptyPolaroid: {
     backgroundColor: "#fffdfa",
-    boxShadow: "0 7px 16px rgba(0, 0, 0, 0.18)",
+    boxShadow: "none",
+    elevation: 0,
     height: 118,
     paddingBottom: 16,
     paddingHorizontal: 7,
     paddingTop: 7,
+    shadowOpacity: 0,
     width: 164,
   },
   emptyPolaroidPhoto: {
+    alignItems: "center",
     backgroundColor: "#e9e9e4",
     flex: 1,
+    justifyContent: "center",
   },
   frame: {
     borderColor: "transparent",
@@ -596,9 +712,20 @@ const styles = StyleSheet.create({
     zIndex: appLayers.canvasElement + 1,
   },
   polaroid: {
+    boxShadow: "none",
+    elevation: 0,
     height: 118,
     position: "relative",
+    shadowOpacity: 0,
     width: 164,
+  },
+  polaroidPortrait: {
+    height: 164,
+    width: 118,
+  },
+  emptyPolaroidPortrait: {
+    height: 164,
+    width: 118,
   },
   selectedFrame: {
     borderColor: "#2F80FF",
@@ -630,18 +757,18 @@ const styles = StyleSheet.create({
     width: DEFAULT_ITEM_SIZE,
   },
   weekdayRow: {
-    borderBottomColor: "rgba(18,18,18,0.08)",
+    borderBottomColor: "#D1D1D1",
     borderBottomWidth: 1,
     flexDirection: "row",
-    marginBottom: 4,
-    paddingBottom: 4,
+    marginBottom: 0,
+    paddingBottom: 6,
   },
   weekdayText: {
     color: appColors.blackOverlay34,
     flex: 1,
-    fontSize: 6,
-    fontWeight: "800",
-    lineHeight: 8,
+    fontSize: 11,
+    fontWeight: "500",
+    lineHeight: 16,
     textAlign: "center",
   },
 });

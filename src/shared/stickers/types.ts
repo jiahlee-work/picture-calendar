@@ -1,4 +1,5 @@
-export type WidgetVariant = "calendar" | "polaroidFrame" | "speechBubble";
+export type WidgetVariant =
+  "calendar" | "polaroidFrame" | "polaroidFramePortrait" | "speechBubble";
 
 export type StickerPlacementPageType = "calendar" | "calendarRecap";
 
@@ -45,6 +46,10 @@ export type WidgetPlacementState =
     }
   | {
       variant: "polaroidFrame";
+      selectedImageId?: string;
+    }
+  | {
+      variant: "polaroidFramePortrait";
       selectedImageId?: string;
     }
   | {

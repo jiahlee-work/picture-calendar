@@ -195,11 +195,12 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       (
         element,
       ): element is RecapCanvasWidgetElement & {
-        variant: "polaroidFrame";
+        variant: "polaroidFrame" | "polaroidFramePortrait";
       } =>
         element.id === selectedElementId &&
         element.type === "widget" &&
-        element.variant === "polaroidFrame",
+        (element.variant === "polaroidFrame" ||
+          element.variant === "polaroidFramePortrait"),
     ) ?? null;
   const hasUnsavedDecoratingChanges =
     JSON.stringify({
@@ -558,10 +559,15 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       return;
     }
 
-    handleChangeCanvasElement({
+    const nextElement = {
       ...selectedPolaroidWidgetElement,
       photoId: photoId ?? undefined,
-    });
+    };
+
+    setCommittedElementsOverride(
+      upsertRecapCanvasElement(committedElements, nextElement),
+    );
+    setSelectedElementId(nextElement.id);
   };
 
   const handleSelectStickerAsset = (asset: StickerAsset) => {
@@ -794,8 +800,10 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
         onSelectPhoto={handleSelectLayoutPhoto}
       />
       <RecapLayoutPhotoPicker
+        accessibilityLabel="폴라로이드 사진 선택"
         photos={recapPhotos}
         selectedPhotoId={selectedPolaroidWidgetElement?.photoId ?? null}
+        toggleSelection={false}
         visible={mode === "default" && Boolean(selectedPolaroidWidgetElement)}
         onSelectPhoto={handleSelectPolaroidPhoto}
       />

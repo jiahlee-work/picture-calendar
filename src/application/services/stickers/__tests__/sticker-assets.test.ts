@@ -17,6 +17,11 @@ describe("listStickerAssets", () => {
         variant: "polaroidFrame",
       },
       {
+        id: "widget-polaroid-frame-portrait",
+        source: "widget",
+        variant: "polaroidFramePortrait",
+      },
+      {
         id: "widget-speech-bubble",
         source: "widget",
         variant: "speechBubble",

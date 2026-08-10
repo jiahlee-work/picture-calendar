@@ -21,6 +21,7 @@ import DownloadIcon from "reicon-react-native/icons/Download";
 import FolderIcon from "reicon-react-native/icons/Folder";
 import GalleryIcon from "reicon-react-native/icons/Gallery";
 import GearIcon from "reicon-react-native/icons/Gear";
+import GalleryAddIcon from "reicon-react-native/icons/GalleryAdd";
 import Grid10Icon from "reicon-react-native/icons/Grid10";
 import Grid3Icon from "reicon-react-native/icons/Grid3";
 import ImageIcon from "reicon-react-native/icons/Image";
@@ -59,6 +60,7 @@ const REICON_COMPONENTS = {
   Folder: FolderIcon,
   Gallery: GalleryIcon,
   Gear: GearIcon,
+  GalleryAdd: GalleryAddIcon,
   Grid10: Grid10Icon,
   Grid3: Grid3Icon,
   Image: ImageIcon,

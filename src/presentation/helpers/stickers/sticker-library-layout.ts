@@ -1,4 +1,4 @@
-const STICKER_LIBRARY_CARD_GAP = 22;
+const STICKER_LIBRARY_CARD_GAP = 12;
 
 export type StickerLibraryGridLayout = {
   cardGap: number;

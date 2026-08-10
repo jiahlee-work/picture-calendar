@@ -12,11 +12,11 @@ import Svg, { Path } from "react-native-svg";
 
 import { appColors } from "@/presentation/theme/colors";
 
-const MESSAGE_RECAP_BUBBLE_COLOR = "#1688ff";
-const SINGLE_LINE_RADIUS = 999;
-const MULTI_LINE_RADIUS = 34;
-const TAIL_HEIGHT = 31;
-const TAIL_WIDTH = 38;
+const MESSAGE_RECAP_BUBBLE_COLOR = "#48B7FB";
+const SINGLE_LINE_RADIUS = 40;
+const MULTI_LINE_RADIUS = 30;
+const TAIL_HEIGHT = 23;
+const TAIL_WIDTH = 28;
 
 type MessageRecapBubbleProps = {
   bubbleColor?: string;
@@ -25,6 +25,7 @@ type MessageRecapBubbleProps = {
   text: string;
   textColor?: string;
   textStyle?: StyleProp<TextStyle>;
+  lineCount?: number;
 };
 
 export function MessageRecapBubble(props: MessageRecapBubbleProps) {
@@ -35,11 +36,16 @@ export function MessageRecapBubble(props: MessageRecapBubbleProps) {
     text,
     textColor = appColors.white,
     textStyle,
+    lineCount: lineCountOverride,
   } = props;
   const [measuredLineCount, setMeasuredLineCount] = useState(
     getExplicitTextLineCount(text),
   );
-  const lineCount = Math.max(measuredLineCount, getExplicitTextLineCount(text));
+  const lineCount = Math.max(
+    measuredLineCount,
+    getExplicitTextLineCount(text),
+    lineCountOverride ?? 1,
+  );
   const isMultiline = lineCount > 1;
 
   return (
@@ -80,7 +86,7 @@ function MessageRecapBubbleTail(props: { color: string }) {
       width={TAIL_WIDTH}
     >
       <Path
-        d="M0 0 C7 0 13 4 18 9 C21.5 12.5 23.5 17 22.5 21 C22 23.5 24.5 25.5 31 27.5 C35 28.8 35 31 30.5 30.5 C20 29.5 11 23 6 14.5 C3.8 10.8 1.8 5 0 0 Z"
+        d="M21.5 21.0241C18.914 20.0159 8.04788 12.9668 0 6.49302C9.56785 4.14988 16.9322 2.34315 26.5 0C26.5 0 26.2327 -0.0105371 24.5 7.5C22.7673 15.0105 22.586 16 26 20C29.414 24 24.086 22.0322 21.5 21.0241Z"
         fill={color}
       />
     </Svg>
@@ -102,7 +108,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   tail: {
-    bottom: -18,
+    bottom: -7,
     position: "absolute",
     right: 9,
   },

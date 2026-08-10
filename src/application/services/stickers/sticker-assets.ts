@@ -20,6 +20,13 @@ export const WIDGET_ASSETS: WidgetAsset[] = [
     tags: ["polaroid", "photo"],
   },
   {
+    id: "widget-polaroid-frame-portrait",
+    source: "widget",
+    name: "세로형 폴라로이드 프레임",
+    variant: "polaroidFramePortrait",
+    tags: ["polaroid", "photo", "portrait"],
+  },
+  {
     id: "widget-speech-bubble",
     source: "widget",
     name: "말풍선",

@@ -42,7 +42,12 @@ type StickerPickerSheetProps = {
   onSelectSticker: (asset: StickerAsset) => void;
 };
 
-const WIDGET_VARIANTS = ["calendar", "polaroidFrame", "speechBubble"] as const;
+const WIDGET_VARIANTS = [
+  "calendar",
+  "polaroidFrame",
+  "polaroidFramePortrait",
+  "speechBubble",
+] as const;
 
 export function StickerPickerSheet(props: StickerPickerSheetProps) {
   const {
