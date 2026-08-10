@@ -8,6 +8,17 @@ import {
 import { RecapCanvasLayoutId } from "@/shared/recap/types";
 
 describe("recap canvas layout", () => {
+  it("defines a full-canvas layout with one photo slot and no guide lines", () => {
+    const layout = getRecapCanvasLayoutDefinition(RecapCanvasLayoutId.onePhoto);
+
+    expect(layout).toEqual({
+      id: RecapCanvasLayoutId.onePhoto,
+      lines: [],
+      slotCount: 1,
+      slots: [{ height: 1, id: "photo", width: 1, x: 0, y: 0 }],
+    });
+  });
+
   it("creates an empty photo map for every layout slot", () => {
     const layout = getRecapCanvasLayoutDefinition(
       RecapCanvasLayoutId.threeRows,

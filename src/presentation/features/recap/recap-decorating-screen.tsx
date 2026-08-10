@@ -39,7 +39,7 @@ import {
 import { RecapLayoutCanvas } from "@/presentation/components/organisms/recap-layout-canvas";
 import { RecapLayoutPhotoPicker } from "@/presentation/components/organisms/recap-layout-photo-picker";
 import { RecapLayoutToolbar } from "@/presentation/components/organisms/recap-layout-toolbar";
-import { RecapTextColorSheet } from "@/presentation/components/organisms/recap-text-color-sheet";
+import { RecapColorSheet } from "@/presentation/components/organisms/recap-color-sheet";
 import {
   RecapTextToolbar,
   type RecapTextStyleUpdate,
@@ -90,6 +90,10 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   const [committedLayoutOverride, setCommittedLayoutOverride] = useState<
     RecapCanvasLayoutState | null | undefined
   >(undefined);
+  const [
+    committedBackgroundColorOverride,
+    setCommittedBackgroundColorOverride,
+  ] = useState<string | undefined>(undefined);
   const [committedElementsOverride, setCommittedElementsOverride] = useState<
     RecapCanvasElement[] | undefined
   >(undefined);
@@ -109,6 +113,8 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   const [isTextTypographySheetVisible, setIsTextTypographySheetVisible] =
     useState(false);
   const [isTextColorSheetVisible, setIsTextColorSheetVisible] = useState(false);
+  const [isBackgroundColorSheetVisible, setIsBackgroundColorSheetVisible] =
+    useState(false);
   const [textSheetElementId, setTextSheetElementId] = useState<string | null>(
     null,
   );
@@ -151,6 +157,10 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       ? (savedCanvas?.elements ?? [])
       : committedElementsOverride;
   const committedLayoutId = committedLayout?.layoutId ?? null;
+  const committedBackgroundColor =
+    committedBackgroundColorOverride ??
+    savedCanvas?.backgroundColor ??
+    appColors.white;
   const committedSlotPhotoIds = committedLayout?.slotPhotoIds ?? {};
   const visibleLayoutId = mode === "layout" ? draftLayoutId : committedLayoutId;
   const visibleLayout = visibleLayoutId
@@ -195,15 +205,19 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     ) ?? null;
   const hasUnsavedDecoratingChanges =
     JSON.stringify({
+      backgroundColor: committedBackgroundColor,
       elements: committedElements,
       layout: committedLayout,
     }) !==
     JSON.stringify({
+      backgroundColor: savedCanvas?.backgroundColor ?? appColors.white,
       elements: savedCanvas?.elements ?? [],
       layout: savedCanvas?.layout ?? null,
     });
   const hasCanvasContent =
-    Boolean(committedLayout) || committedElements.length > 0;
+    Boolean(committedLayout) ||
+    committedElements.length > 0 ||
+    committedBackgroundColor !== appColors.white;
   const isShareVisible = mode === "default" && hasCanvasContent;
   const emptyCanvasMessage =
     mode === "layout" && !visibleLayout
@@ -219,16 +233,19 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
     try {
       await saveCanvas({
+        backgroundColor: committedBackgroundColor,
         elements: committedElements,
         layout: committedLayout,
       });
       setCommittedElementsOverride(undefined);
       setCommittedLayoutOverride(undefined);
+      setCommittedBackgroundColorOverride(undefined);
       setSelectedElementId(null);
       setEditingTextElementId(null);
       setEditingWidgetElementId(null);
       setIsTextTypographySheetVisible(false);
       setIsTextColorSheetVisible(false);
+      setIsBackgroundColorSheetVisible(false);
       setTextSheetElementId(null);
     } catch {
       Alert.alert("저장 실패", "꾸민 내용을 저장하지 못했습니다.");
@@ -271,6 +288,13 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
     if (action.id === "text") {
       handleAddTextElement();
+    }
+
+    if (action.id === "background") {
+      setIsBackgroundColorSheetVisible(true);
+      setSelectedElementId(null);
+      setEditingTextElementId(null);
+      setEditingWidgetElementId(null);
     }
 
     if (action.id === "sticker") {
@@ -637,6 +661,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   return (
     <View style={styles.screen}>
       <RecapLayoutCanvas
+        backgroundColor={committedBackgroundColor}
         isEditing={mode === "layout"}
         layout={visibleLayout}
         photosById={photosById}
@@ -820,7 +845,8 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
           setTextSheetElementId(null);
         }}
       />
-      <RecapTextColorSheet
+      <RecapColorSheet
+        title="텍스트 색상"
         value={
           textSheetElement?.color ?? selectedTextElement?.color ?? "#121212"
         }
@@ -836,6 +862,13 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
           setIsTextColorSheetVisible(false);
           setTextSheetElementId(null);
         }}
+      />
+      <RecapColorSheet
+        title="배경색"
+        value={committedBackgroundColor}
+        visible={isBackgroundColorSheetVisible}
+        onChangeColor={setCommittedBackgroundColorOverride}
+        onClose={() => setIsBackgroundColorSheetVisible(false)}
       />
       {hasCanvasContent ? (
         <View
@@ -855,6 +888,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
           ]}
         >
           <RecapLayoutCanvas
+            backgroundColor={committedBackgroundColor}
             isEditing={false}
             layout={committedLayoutDefinition}
             photosById={photosById}

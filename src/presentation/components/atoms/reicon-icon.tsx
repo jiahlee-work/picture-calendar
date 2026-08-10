@@ -16,6 +16,7 @@ import ChevronLeftIcon from "reicon-react-native/icons/ChevronLeft";
 import ChevronUpIcon from "reicon-react-native/icons/ChevronUp";
 import ClipboardIcon from "reicon-react-native/icons/Clipboard";
 import CloseCircleIcon from "reicon-react-native/icons/CloseCircle";
+import ColorsSquareIcon from "reicon-react-native/icons/ColorsSquare";
 import DownloadIcon from "reicon-react-native/icons/Download";
 import FolderIcon from "reicon-react-native/icons/Folder";
 import GalleryIcon from "reicon-react-native/icons/Gallery";
@@ -52,6 +53,7 @@ const REICON_COMPONENTS = {
   ChevronUp: ChevronUpIcon,
   Clipboard: ClipboardIcon,
   CloseCircle: CloseCircleIcon,
+  ColorsSquare: ColorsSquareIcon,
   Download: DownloadIcon,
   Folder: FolderIcon,
   Gallery: GalleryIcon,

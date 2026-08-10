@@ -114,6 +114,12 @@ export const RECAP_CANVAS_LAYOUTS: RecapCanvasLayoutDefinition[] = [
       { height: 0.5, id: "bottom-right", width: 0.5, x: 0.5, y: 0.5 },
     ],
   },
+  {
+    id: RecapCanvasLayoutId.onePhoto,
+    lines: [],
+    slotCount: 1,
+    slots: [{ height: 1, id: "photo", width: 1, x: 0, y: 0 }],
+  },
 ];
 
 export function getRecapCanvasLayoutDefinition(

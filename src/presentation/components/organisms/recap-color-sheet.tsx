@@ -21,7 +21,8 @@ import { AppBottomSheetBackdrop } from "@/presentation/components/atoms/app-bott
 import { appColors } from "@/presentation/theme/colors";
 import { appLayers } from "@/presentation/theme/layers";
 
-type RecapTextColorSheetProps = {
+type RecapColorSheetProps = {
+  title: string;
   value: string;
   visible: boolean;
   onChangeColor: (color: string) => void;
@@ -46,8 +47,8 @@ const BASIC_TEXT_COLOR_OPTIONS = [
 const CUSTOM_PICKER_MAX_SIZE = 330;
 const HUE_BAR_HEIGHT = 34;
 
-export function RecapTextColorSheet(props: RecapTextColorSheetProps) {
-  const { onChangeColor, onClose, value, visible } = props;
+export function RecapColorSheet(props: RecapColorSheetProps) {
+  const { onChangeColor, onClose, title, value, visible } = props;
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const isPresentedRef = useRef(false);
   const insets = useSafeAreaInsets();
@@ -106,7 +107,7 @@ export function RecapTextColorSheet(props: RecapTextColorSheetProps) {
           },
         ]}
       >
-        <Text style={styles.title}>색상</Text>
+        <Text style={styles.title}>{title}</Text>
         {isCustomPickerVisible ? (
           <CustomColorPicker value={value} onChangeColor={onChangeColor} />
         ) : (
@@ -128,9 +129,7 @@ export function RecapTextColorSheet(props: RecapTextColorSheetProps) {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={
-            isCustomPickerVisible
-              ? "기본 텍스트 색상만 보기"
-              : "텍스트 색상 더 보기"
+            isCustomPickerVisible ? "기본 색상만 보기" : "색상 더 보기"
           }
           style={({ pressed }) => [
             styles.moreButton,
@@ -144,7 +143,7 @@ export function RecapTextColorSheet(props: RecapTextColorSheetProps) {
             <View style={[styles.moreButtonDot, styles.blueDot]} />
           </View>
           <Text style={styles.moreButtonText}>
-            {isCustomPickerVisible ? "기본 색상만 보기" : "텍스트 색상 더 보기"}
+            {isCustomPickerVisible ? "기본 색상만 보기" : "색상 더 보기"}
           </Text>
         </Pressable>
       </BottomSheetView>

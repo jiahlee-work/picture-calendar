@@ -14,6 +14,7 @@ describe("createLocalMonthlyRecapCanvasRepository", () => {
     );
 
     const savedCanvas = await repository.save({
+      backgroundColor: "#FACC15",
       userId: "user-1",
       month: "2026-07",
       elements: [],
@@ -27,6 +28,7 @@ describe("createLocalMonthlyRecapCanvasRepository", () => {
     });
 
     expect(savedCanvas).toMatchObject({
+      backgroundColor: "#FACC15",
       id: "local-recap-canvas-2026-07",
       userId: "user-1",
       month: "2026-07",

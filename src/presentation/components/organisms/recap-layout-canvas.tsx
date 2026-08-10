@@ -22,6 +22,7 @@ const LAYOUT_GUIDE_LINE_WIDTH = 1;
 
 type RecapLayoutCanvasProps = {
   children?: ReactNode;
+  backgroundColor?: string;
   isEditing: boolean;
   layout: RecapCanvasLayoutDefinition | null;
   onSelectSlot: (slotId: string) => void;
@@ -33,6 +34,7 @@ type RecapLayoutCanvasProps = {
 export function RecapLayoutCanvas(props: RecapLayoutCanvasProps) {
   const {
     children,
+    backgroundColor = appColors.white,
     isEditing,
     layout,
     onSelectSlot,
@@ -42,11 +44,11 @@ export function RecapLayoutCanvas(props: RecapLayoutCanvasProps) {
   } = props;
 
   if (!layout) {
-    return <View style={styles.canvas}>{children}</View>;
+    return <View style={[styles.canvas, { backgroundColor }]}>{children}</View>;
   }
 
   return (
-    <View style={styles.canvas}>
+    <View style={[styles.canvas, { backgroundColor }]}>
       {layout.slots.map((slot, index) => {
         const photoId = slotPhotoIds[slot.id];
         const photo = photoId ? photosById[photoId] : undefined;

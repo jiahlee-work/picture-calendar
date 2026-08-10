@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import { RecapCanvasLayoutId } from "@/shared/recap/types";
 import { NoLayoutIcon } from "@/presentation/components/atoms/no-layout-icon";
+import { OnePhotoLayoutIcon } from "@/presentation/components/atoms/one-photo-layout-icon";
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import { ThreeRowLayoutIcon } from "@/presentation/components/atoms/three-row-layout-icon";
 import { TwoRowLayoutIcon } from "@/presentation/components/atoms/two-row-layout-icon";
@@ -32,6 +33,11 @@ const RECAP_LAYOUT_TOOLBAR_ACTIONS: RecapLayoutToolbarAction[] = [
     accessibilityLabel: "레이아웃 없음 선택",
     id: null,
     renderIcon: (props) => <NoLayoutIcon {...props} />,
+  },
+  {
+    accessibilityLabel: "한 장 레이아웃 선택",
+    id: RecapCanvasLayoutId.onePhoto,
+    renderIcon: (props) => <OnePhotoLayoutIcon {...props} />,
   },
   {
     accessibilityLabel: "2열 레이아웃 선택",

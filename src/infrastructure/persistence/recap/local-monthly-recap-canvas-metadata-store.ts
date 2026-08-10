@@ -78,6 +78,7 @@ function toMonthlyRecapCanvas(value: unknown): MonthlyRecapCanvas | null {
   }
 
   return {
+    backgroundColor: stringValue(value.backgroundColor) ?? undefined,
     id,
     userId,
     month,
@@ -230,7 +231,8 @@ function layoutIdValue(value: unknown): RecapCanvasLayoutId | null {
     value === RecapCanvasLayoutIdValue.twoColumns ||
     value === RecapCanvasLayoutIdValue.twoRows ||
     value === RecapCanvasLayoutIdValue.threeRows ||
-    value === RecapCanvasLayoutIdValue.fourGrid
+    value === RecapCanvasLayoutIdValue.fourGrid ||
+    value === RecapCanvasLayoutIdValue.onePhoto
   ) {
     return value;
   }

@@ -1,5 +1,6 @@
 export const RecapCanvasLayoutId = {
   fourGrid: "four_grid",
+  onePhoto: "one_photo",
   threeRows: "three_rows",
   twoColumns: "two_columns",
   twoRows: "two_rows",
@@ -72,6 +73,7 @@ export type RecapCanvasElement =
   | RecapCanvasWidgetElement;
 
 export type MonthlyRecapCanvas = {
+  backgroundColor?: string;
   createdAt: string;
   elements: RecapCanvasElement[];
   id: string;
@@ -82,6 +84,7 @@ export type MonthlyRecapCanvas = {
 };
 
 export type MonthlyRecapCanvasDraft = {
+  backgroundColor?: string;
   elements: RecapCanvasElement[];
   layout: RecapCanvasLayoutState | null;
   month: string;

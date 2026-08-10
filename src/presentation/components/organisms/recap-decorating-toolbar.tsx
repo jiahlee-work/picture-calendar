@@ -10,7 +10,7 @@ import { appColors } from "@/presentation/theme/colors";
 export type RecapDecoratingToolbarAction = {
   accessibilityLabel: string;
   icon: ReiconName;
-  id: "gallery" | "layout" | "sticker" | "text";
+  id: "background" | "gallery" | "layout" | "sticker" | "text";
 };
 
 export const RECAP_DECORATING_TOOLBAR_ACTIONS: RecapDecoratingToolbarAction[] =
@@ -19,6 +19,11 @@ export const RECAP_DECORATING_TOOLBAR_ACTIONS: RecapDecoratingToolbarAction[] =
       accessibilityLabel: "레이아웃 선택",
       icon: "Grid10",
       id: "layout",
+    },
+    {
+      accessibilityLabel: "배경색 선택",
+      icon: "ColorsSquare",
+      id: "background",
     },
     {
       accessibilityLabel: "텍스트 추가",
@@ -86,7 +91,7 @@ const styles = StyleSheet.create({
     gap: 4,
     height: 52,
     justifyContent: "space-between",
-    maxWidth: 220,
+    maxWidth: 268,
     paddingHorizontal: 6,
     shadowColor: appColors.black,
     shadowOffset: { height: 10, width: 0 },

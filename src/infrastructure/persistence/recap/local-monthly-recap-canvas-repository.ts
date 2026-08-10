@@ -82,6 +82,7 @@ function createMonthlyRecapCanvas(
   now: string,
 ): MonthlyRecapCanvas {
   return {
+    backgroundColor: draft.backgroundColor,
     id: existing?.id ?? `local-recap-canvas-${draft.month}`,
     userId: draft.userId,
     month: draft.month,
