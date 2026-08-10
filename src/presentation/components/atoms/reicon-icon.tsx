@@ -34,6 +34,7 @@ import Trash5Icon from "reicon-react-native/icons/Trash5";
 import ItalicIcon from "reicon-react-native/icons/Italic";
 import UnderlineIcon from "reicon-react-native/icons/Underline";
 import Wand3Icon from "reicon-react-native/icons/Wand3";
+import Widget6Icon from "reicon-react-native/icons/Widget6";
 import XIcon from "reicon-react-native/icons/X";
 
 const REICON_COMPONENTS = {
@@ -71,6 +72,7 @@ const REICON_COMPONENTS = {
   Trash5: Trash5Icon,
   Underline: UnderlineIcon,
   Wand3: Wand3Icon,
+  Widget6: Widget6Icon,
   X: XIcon,
 } satisfies Record<string, IconComponent>;
 

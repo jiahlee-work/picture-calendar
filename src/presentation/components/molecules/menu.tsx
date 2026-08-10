@@ -22,12 +22,14 @@ type MenuProps = {
   accessibilityLabel: string;
   children: ReactNode;
   disabled?: boolean;
+  onOpenChange?: (isOpen: boolean) => void;
   trigger: MenuTriggerConfig | ((props: MenuTriggerRenderProps) => ReactNode);
 };
 
 type MenuTriggerConfig = {
   icon?: ReiconName;
   label?: string;
+  size?: number;
 };
 
 type MenuTriggerRenderProps = {
@@ -53,7 +55,13 @@ const MENU_BUTTON_SIZE = 40;
 const MENU_PANEL_GAP = 8;
 
 function MenuRoot(props: MenuProps) {
-  const { accessibilityLabel, children, disabled = false, trigger } = props;
+  const {
+    accessibilityLabel,
+    children,
+    disabled = false,
+    onOpenChange,
+    trigger,
+  } = props;
   const [isOpen, setIsOpen] = useState(false);
   const [triggerHeight, setTriggerHeight] = useState(MENU_BUTTON_SIZE);
   const panelTop = triggerHeight + MENU_PANEL_GAP;
@@ -63,10 +71,15 @@ function MenuRoot(props: MenuProps) {
       return;
     }
 
-    setIsOpen((current) => !current);
+    setIsOpen((current) => {
+      const nextIsOpen = !current;
+      onOpenChange?.(nextIsOpen);
+      return nextIsOpen;
+    });
   };
   const handleClose = () => {
     setIsOpen(false);
+    onOpenChange?.(false);
   };
   const handleTriggerLayout = (event: LayoutChangeEvent) => {
     const nextHeight = Math.round(event.nativeEvent.layout.height);
@@ -130,6 +143,7 @@ function MenuTrigger({
 }) {
   const hasIcon = Boolean(trigger.icon);
   const hasLabel = Boolean(trigger.label);
+  const size = trigger.size ?? MENU_BUTTON_SIZE;
 
   return (
     <Pressable
@@ -139,7 +153,9 @@ function MenuTrigger({
       disabled={disabled}
       style={({ pressed }) => [
         styles.trigger,
+        { borderRadius: size / 2, height: size, minWidth: size },
         hasIcon && !hasLabel && styles.iconOnlyTrigger,
+        hasIcon && !hasLabel && { width: size },
         disabled && styles.triggerDisabled,
         pressed && styles.triggerPressed,
       ]}

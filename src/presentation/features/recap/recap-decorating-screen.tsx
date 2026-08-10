@@ -107,9 +107,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     string | null
   >(null);
   const [isStickerPickerVisible, setIsStickerPickerVisible] = useState(false);
-  const [stickerPickerSnapIndex, setStickerPickerSnapIndex] = useState(1);
-  const [selectedStickerPickerAssetId, setSelectedStickerPickerAssetId] =
-    useState<string | null>(null);
+  const [stickerPickerSnapIndex, setStickerPickerSnapIndex] = useState(0);
   const [isTextTypographySheetVisible, setIsTextTypographySheetVisible] =
     useState(false);
   const [isTextColorSheetVisible, setIsTextColorSheetVisible] = useState(false);
@@ -299,7 +297,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
     if (action.id === "sticker") {
       setIsStickerPickerVisible(true);
-      setStickerPickerSnapIndex(1);
+      setStickerPickerSnapIndex(0);
       setSelectedElementId(null);
       setEditingTextElementId(null);
       setEditingWidgetElementId(null);
@@ -586,7 +584,6 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
             ...elementPosition,
           });
 
-    setSelectedStickerPickerAssetId(asset.id);
     setCommittedElementsOverride(
       upsertRecapCanvasElement(committedElements, nextElement),
     );
@@ -804,11 +801,14 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       />
       {isStickerPickerVisible ? (
         <StickerPickerSheet
-          selectedAssetId={selectedStickerPickerAssetId}
           snapIndex={stickerPickerSnapIndex}
           stickers={stickers}
           visible={isStickerPickerVisible}
           onChangeSnapIndex={setStickerPickerSnapIndex}
+          onClose={() => {
+            setIsStickerPickerVisible(false);
+            setStickerPickerSnapIndex(0);
+          }}
           onRegisterFromClipboard={() => {
             void handleRegisterStickerFromClipboard();
           }}
