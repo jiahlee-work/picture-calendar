@@ -51,3 +51,4 @@ fi
 wait_for_app_server
 maestro test -e "DEV_SERVER_HOST=${APP_HOST}" .maestro/open-app-dev-client.yaml
 maestro test -e "DEV_SERVER_HOST=${APP_HOST}" .maestro/e2e-core-navigation.yaml
+maestro test -e "DEV_SERVER_HOST=${APP_HOST}" .maestro/e2e-recap-layer-controls.yaml

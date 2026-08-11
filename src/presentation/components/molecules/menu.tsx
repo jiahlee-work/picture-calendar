@@ -23,6 +23,8 @@ type MenuProps = {
   children: ReactNode;
   disabled?: boolean;
   onOpenChange?: (isOpen: boolean) => void;
+  panelMinWidth?: number;
+  placement?: "bottom" | "top";
   trigger: MenuTriggerConfig | ((props: MenuTriggerRenderProps) => ReactNode);
 };
 
@@ -60,11 +62,14 @@ function MenuRoot(props: MenuProps) {
     children,
     disabled = false,
     onOpenChange,
+    panelMinWidth = 148,
+    placement = "bottom",
     trigger,
   } = props;
   const [isOpen, setIsOpen] = useState(false);
   const [triggerHeight, setTriggerHeight] = useState(MENU_BUTTON_SIZE);
   const panelTop = triggerHeight + MENU_PANEL_GAP;
+  const panelBottom = triggerHeight + MENU_PANEL_GAP;
 
   const handleToggle = () => {
     if (disabled) {
@@ -118,7 +123,14 @@ function MenuRoot(props: MenuProps) {
               Easing.out(Easing.cubic),
             )}
             exiting={FadeOut.duration(120).easing(Easing.out(Easing.quad))}
-            style={[styles.panel, { top: panelTop }]}
+            style={[
+              styles.panel,
+              {
+                bottom: placement === "top" ? panelBottom : undefined,
+                minWidth: panelMinWidth,
+                top: placement === "bottom" ? panelTop : undefined,
+              },
+            ]}
           >
             <MenuCloseContext value={handleClose}>{children}</MenuCloseContext>
           </Animated.View>

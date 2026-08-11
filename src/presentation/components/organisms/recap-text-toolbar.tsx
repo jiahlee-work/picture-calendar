@@ -13,6 +13,7 @@ import {
 import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
 
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
+import { Menu } from "@/presentation/components/molecules/menu";
 import { TextFormatIcon } from "@/presentation/components/atoms/text-format-icon";
 import { TextStyleIcon } from "@/presentation/components/atoms/text-style-icon";
 import { appColors } from "@/presentation/theme/colors";
@@ -23,6 +24,8 @@ type RecapTextToolbarProps = {
   onDelete: () => void;
   onOpenColorPicker: () => void;
   onOpenTypographyPicker: () => void;
+  onMoveBackward: () => void;
+  onMoveForward: () => void;
   onUpdateTextStyle: (update: RecapTextStyleUpdate) => void;
 };
 
@@ -121,6 +124,8 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
     onDelete,
     onOpenColorPicker,
     onOpenTypographyPicker,
+    onMoveBackward,
+    onMoveForward,
     onUpdateTextStyle,
     textElement,
   } = props;
@@ -157,7 +162,6 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
 
     onUpdateTextStyle(selectedAction.resolveUpdate());
   };
-
   return (
     <Animated.View
       entering={FadeInDown.duration(180)}
@@ -196,6 +200,30 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
             size={TEXT_TOOLBAR_ICON_SIZE}
           />
         </ToolbarMenuButton>
+        <Menu
+          accessibilityLabel="텍스트 레이어 순서 선택"
+          panelMinWidth={0}
+          placement="top"
+          trigger={({ toggle }) => (
+            <ToolbarButton
+              accessibilityLabel="텍스트 레이어 순서 선택"
+              onPress={() => toggle()}
+            >
+              <ReiconIcon name="Layers" size={TEXT_TOOLBAR_ICON_SIZE} />
+            </ToolbarButton>
+          )}
+        >
+          <Menu.Item
+            icon="LayersArrowUp"
+            label="앞으로"
+            onPress={onMoveForward}
+          />
+          <Menu.Item
+            icon="LayersArrowDown"
+            label="뒤로"
+            onPress={onMoveBackward}
+          />
+        </Menu>
         <ToolbarButton
           accessibilityLabel="텍스트 색상 선택"
           onPress={onOpenColorPicker}

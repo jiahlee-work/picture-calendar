@@ -6,6 +6,7 @@ import {
   Text,
   TextInput,
   View,
+  type LayoutChangeEvent,
   type StyleProp,
   type TextStyle,
 } from "react-native";
@@ -17,7 +18,10 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { buildCalendarMonth } from "@/application/services/calendar/calendar-grid";
-import { sortRecapCanvasElements } from "@/application/services/recap/recap-canvas-elements";
+import {
+  getRecapPhotoElementSize,
+  sortRecapCanvasElements,
+} from "@/application/services/recap/recap-canvas-elements";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import type { StickerAsset } from "@/application/services/stickers/types";
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
@@ -29,6 +33,7 @@ import { appLayers } from "@/presentation/theme/layers";
 import { dayjs } from "@/shared/date/dayjs";
 import type {
   RecapCanvasElement,
+  RecapCanvasPhotoElement,
   RecapCanvasStickerElement,
   RecapCanvasWidgetElement,
 } from "@/shared/recap/types";
@@ -41,10 +46,15 @@ type RecapCanvasStickerLayerProps = {
   photosById: Record<string, DailyPhoto>;
   selectedElementId: string | null;
   onChangeElement: (
-    element: RecapCanvasStickerElement | RecapCanvasWidgetElement,
+    element:
+      | RecapCanvasPhotoElement
+      | RecapCanvasStickerElement
+      | RecapCanvasWidgetElement,
   ) => void;
   onDeleteElement: (elementId: string) => void;
+  onMoveElement: (elementId: string, direction: "backward" | "forward") => void;
   onEndWidgetEditing: () => void;
+  onRequestPhotoSelection: (elementId: string) => void;
   onSelectElement: (elementId: string | null) => void;
   onStartWidgetEditing: (elementId: string) => void;
 };
@@ -52,13 +62,18 @@ type RecapCanvasStickerLayerProps = {
 type RecapCanvasStickerItemProps = {
   asset: StickerAsset | null;
   editingWidgetElementId: string | null;
-  element: RecapCanvasStickerElement | RecapCanvasWidgetElement;
+  element:
+    | RecapCanvasPhotoElement
+    | RecapCanvasStickerElement
+    | RecapCanvasWidgetElement;
   isSelected: boolean;
   monthKey: string;
   photo: DailyPhoto | null;
   onChangeElement: RecapCanvasStickerLayerProps["onChangeElement"];
   onDeleteElement: (elementId: string) => void;
+  onMoveElement: (elementId: string, direction: "backward" | "forward") => void;
   onEndWidgetEditing: () => void;
+  onRequestPhotoSelection: (elementId: string) => void;
   onSelectElement: (elementId: string) => void;
   onStartWidgetEditing: (elementId: string) => void;
 };
@@ -67,6 +82,12 @@ const DEFAULT_ITEM_SIZE = 132;
 const MIN_ELEMENT_SCALE = 0.25;
 const MAX_ELEMENT_SCALE = 4;
 const DOUBLE_TAP_DELAY_MS = 280;
+const ACTION_BUTTON_SIZE = 44;
+const ACTION_BUTTON_GAP = 8;
+const ACTION_BUTTON_COUNT = 3;
+const ACTION_BUTTONS_WIDTH =
+  ACTION_BUTTON_SIZE * ACTION_BUTTON_COUNT +
+  ACTION_BUTTON_GAP * (ACTION_BUTTON_COUNT - 1);
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
 export function RecapCanvasStickerLayer(props: RecapCanvasStickerLayerProps) {
@@ -77,7 +98,9 @@ export function RecapCanvasStickerLayer(props: RecapCanvasStickerLayerProps) {
     monthKey,
     onChangeElement,
     onDeleteElement,
+    onMoveElement,
     onEndWidgetEditing,
+    onRequestPhotoSelection,
     onSelectElement,
     onStartWidgetEditing,
     photosById,
@@ -90,8 +113,13 @@ export function RecapCanvasStickerLayer(props: RecapCanvasStickerLayerProps) {
   const stickerElements = sortRecapCanvasElements(elements).filter(
     (
       element,
-    ): element is RecapCanvasStickerElement | RecapCanvasWidgetElement =>
-      element.type === "sticker" || element.type === "widget",
+    ): element is
+      | RecapCanvasPhotoElement
+      | RecapCanvasStickerElement
+      | RecapCanvasWidgetElement =>
+      element.type === "photo" ||
+      element.type === "sticker" ||
+      element.type === "widget",
   );
 
   return (
@@ -102,9 +130,10 @@ export function RecapCanvasStickerLayer(props: RecapCanvasStickerLayerProps) {
             ? (assetsById.get(element.stickerAssetId) ?? null)
             : null;
         const photo =
-          element.type === "widget" &&
-          (element.variant === "polaroidFrame" ||
-            element.variant === "polaroidFramePortrait")
+          element.type === "photo" ||
+          (element.type === "widget" &&
+            (element.variant === "polaroidFrame" ||
+              element.variant === "polaroidFramePortrait"))
             ? (photosById[element.photoId ?? ""] ?? null)
             : null;
 
@@ -119,7 +148,9 @@ export function RecapCanvasStickerLayer(props: RecapCanvasStickerLayerProps) {
             photo={photo}
             onChangeElement={onChangeElement}
             onDeleteElement={onDeleteElement}
+            onMoveElement={onMoveElement}
             onEndWidgetEditing={onEndWidgetEditing}
+            onRequestPhotoSelection={onRequestPhotoSelection}
             onSelectElement={onSelectElement}
             onStartWidgetEditing={onStartWidgetEditing}
           />
@@ -138,13 +169,14 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
     monthKey,
     onChangeElement,
     onDeleteElement,
+    onMoveElement,
     onEndWidgetEditing,
+    onRequestPhotoSelection,
     onSelectElement,
     onStartWidgetEditing,
     photo,
   } = props;
   const lastTapAtRef = useRef(0);
-  const wasLongPressedRef = useRef(false);
   const elementX = useSharedValue(element.x);
   const elementY = useSharedValue(element.y);
   const elementScale = useSharedValue(element.scale);
@@ -155,7 +187,9 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
   const gestureStartRotation = useSharedValue(element.rotation);
   const isEditing =
     element.type === "widget" && element.id === editingWidgetElementId;
-  const [isDeleteButtonVisible, setIsDeleteButtonVisible] = useState(false);
+  const [areActionButtonsVisible, setAreActionButtonsVisible] = useState(false);
+  const [elementLayout, setElementLayout] = useState({ height: 0, width: 0 });
+  const [photoAspectRatio, setPhotoAspectRatio] = useState(1);
   const [inputLineCount, setInputLineCount] = useState(
     getExplicitTextLineCount(element),
   );
@@ -179,6 +213,19 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
   const handleGestureStart = useCallback(() => {
     onSelectElement(element.id);
   }, [element.id, onSelectElement]);
+  const handleLongPress = useCallback(() => {
+    onSelectElement(element.id);
+    setAreActionButtonsVisible(true);
+  }, [element.id, onSelectElement]);
+  const handleElementLayout = useCallback((event: LayoutChangeEvent) => {
+    const { height, width } = event.nativeEvent.layout;
+
+    setElementLayout((current) =>
+      current.width === width && current.height === height
+        ? current
+        : { height, width },
+    );
+  }, []);
   const handleGestureEnd = useCallback(
     (x: number, y: number, scale: number, rotation: number) => {
       onChangeElement(
@@ -254,8 +301,20 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
           elementRotation.value,
         );
       });
+    const longPressGesture = Gesture.LongPress()
+      .enabled(!isEditing)
+      .minDuration(400)
+      .maxDistance(20)
+      .onStart(() => {
+        runOnJS(handleLongPress)();
+      });
 
-    return Gesture.Simultaneous(panGesture, pinchGesture, rotationGesture);
+    return Gesture.Simultaneous(
+      panGesture,
+      pinchGesture,
+      rotationGesture,
+      longPressGesture,
+    );
   }, [
     elementRotation,
     elementScale,
@@ -267,6 +326,7 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
     gestureStartY,
     handleGestureEnd,
     handleGestureStart,
+    handleLongPress,
     isEditing,
   ]);
   /* eslint-enable react-hooks/immutability */
@@ -280,6 +340,27 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
       { rotate: `${elementRotation.value}deg` },
     ],
   }));
+  const animatedActionButtonsStyle = useAnimatedStyle(() => {
+    const radians = (elementRotation.value * Math.PI) / 180;
+    const cosine = Math.cos(radians);
+    const sine = Math.sin(radians);
+    const halfWidth = elementLayout.width / 2;
+    const halfHeight = elementLayout.height / 2;
+    const cornerX =
+      halfWidth + elementScale.value * (halfWidth * cosine + halfHeight * sine);
+    const cornerY =
+      halfHeight +
+      elementScale.value * (halfWidth * sine - halfHeight * cosine);
+
+    return {
+      transform: [
+        {
+          translateX: cornerX - ACTION_BUTTONS_WIDTH + ACTION_BUTTON_SIZE / 2,
+        },
+        { translateY: cornerY - ACTION_BUTTON_SIZE / 2 },
+      ],
+    };
+  });
 
   const handlePress = () => {
     const now = Date.now();
@@ -303,7 +384,10 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
       style={[
         styles.item,
         {
-          zIndex: element.zIndex,
+          zIndex:
+            isSelected && areActionButtonsVisible
+              ? appLayers.canvasElement + 2
+              : element.zIndex,
         },
         animatedPositionStyle,
       ]}
@@ -312,24 +396,31 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
         <Animated.View style={animatedElementTransformStyle}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="스티커 선택"
+            accessibilityLabel={getElementAccessibilityLabel(element)}
             accessibilityState={{ selected: isSelected }}
-            style={[styles.frame, isSelected && styles.selectedFrame]}
+            style={[
+              styles.frame,
+              element.type === "photo" && [
+                styles.photoElementFrame,
+                {
+                  height: element.height ?? 164 / photoAspectRatio,
+                  width: element.width ?? 164,
+                },
+              ],
+              isSelected && styles.selectedFrame,
+            ]}
+            onLayout={handleElementLayout}
             onPressIn={() => {
-              wasLongPressedRef.current = false;
-              setIsDeleteButtonVisible(false);
+              setAreActionButtonsVisible(false);
             }}
             onLongPress={() => {
-              wasLongPressedRef.current = true;
-              onSelectElement(element.id);
-              setIsDeleteButtonVisible(true);
+              handleLongPress();
             }}
             onPress={(event) => {
               event.stopPropagation();
-              if (!wasLongPressedRef.current) {
-                setIsDeleteButtonVisible(false);
+              if (!areActionButtonsVisible) {
+                setAreActionButtonsVisible(false);
               }
-              wasLongPressedRef.current = false;
               handlePress();
             }}
           >
@@ -341,37 +432,104 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
               photo={photo}
               onChangeElement={onChangeElement}
               onEndWidgetEditing={onEndWidgetEditing}
-              onSelectElement={onSelectElement}
+              onRequestPhotoSelection={onRequestPhotoSelection}
+              onPhotoLoad={(width, height) => {
+                if (width > 0 && height > 0) {
+                  const nextSize = getRecapPhotoElementSize(width, height);
+
+                  setPhotoAspectRatio(nextSize.width / nextSize.height);
+
+                  if (
+                    element.type === "photo" &&
+                    (element.width !== nextSize.width ||
+                      element.height !== nextSize.height)
+                  ) {
+                    onChangeElement({
+                      ...element,
+                      ...nextSize,
+                    });
+                  }
+                }
+              }}
               inputLineCount={inputLineCount}
               onChangeInputLineCount={setInputLineCount}
             />
           </Pressable>
         </Animated.View>
       </GestureDetector>
-      {isSelected && isDeleteButtonVisible ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="스티커 삭제"
-          hitSlop={8}
-          style={styles.deleteButton}
-          onPress={() => onDeleteElement(element.id)}
+      {isSelected && areActionButtonsVisible ? (
+        <Animated.View
+          pointerEvents="box-none"
+          style={[styles.actionButtons, animatedActionButtonsStyle]}
         >
-          <ReiconIcon color={appColors.white} name="Trash5" size={16} />
-        </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="요소 뒤로 이동"
+            hitSlop={8}
+            style={styles.layerButton}
+            onPress={(event) => {
+              event.stopPropagation();
+              onMoveElement(element.id, "backward");
+            }}
+          >
+            <ReiconIcon name="LayersArrowDown" size={20} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="요소 앞으로 이동"
+            hitSlop={8}
+            style={styles.layerButton}
+            onPress={(event) => {
+              event.stopPropagation();
+              onMoveElement(element.id, "forward");
+            }}
+          >
+            <ReiconIcon name="LayersArrowUp" size={20} />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="요소 삭제"
+            hitSlop={8}
+            style={styles.deleteButton}
+            onPress={(event) => {
+              event.stopPropagation();
+              onDeleteElement(element.id);
+            }}
+          >
+            <ReiconIcon color={appColors.white} name="Trash5" size={20} />
+          </Pressable>
+        </Animated.View>
       ) : null}
     </Animated.View>
   );
 }
 
+function getElementAccessibilityLabel(
+  element:
+    | RecapCanvasPhotoElement
+    | RecapCanvasStickerElement
+    | RecapCanvasWidgetElement,
+): string {
+  if (element.type === "widget") {
+    return "위젯 선택";
+  }
+
+  return element.type === "photo" ? "사진 선택" : "스티커 선택";
+}
+
 function RecapCanvasStickerContent(props: {
   asset: StickerAsset | null;
-  element: RecapCanvasStickerElement | RecapCanvasWidgetElement;
+  element:
+    | RecapCanvasPhotoElement
+    | RecapCanvasStickerElement
+    | RecapCanvasWidgetElement;
   isEditing: boolean;
   monthKey: string;
   photo: DailyPhoto | null;
   onChangeElement: RecapCanvasStickerLayerProps["onChangeElement"];
   onEndWidgetEditing: () => void;
-  onSelectElement: (elementId: string) => void;
+  onRequestPhotoSelection: (elementId: string) => void;
+  onPhotoLoad: (width: number, height: number) => void;
   inputLineCount: number;
   onChangeInputLineCount: (lineCount: number) => void;
 }) {
@@ -383,10 +541,26 @@ function RecapCanvasStickerContent(props: {
     onChangeElement,
     onChangeInputLineCount,
     onEndWidgetEditing,
-    onSelectElement,
+    onPhotoLoad,
+    onRequestPhotoSelection,
     inputLineCount,
     photo,
   } = props;
+
+  if (element.type === "photo") {
+    return photo ? (
+      <Image
+        allowDownscaling={false}
+        cachePolicy="none"
+        contentFit="contain"
+        source={{ uri: photo.imagePath }}
+        style={styles.photoElementImage}
+        onLoad={(event) => {
+          onPhotoLoad(event.source.width, event.source.height);
+        }}
+      />
+    ) : null;
+  }
 
   if (element.type === "sticker") {
     if (!asset || asset.source !== "sticker") {
@@ -426,7 +600,7 @@ function RecapCanvasStickerContent(props: {
         element.variant === "polaroidFramePortrait" ? "portrait" : "landscape"
       }
       photo={photo}
-      onRequestPhotoSelection={() => onSelectElement(element.id)}
+      onRequestPhotoSelection={() => onRequestPhotoSelection(element.id)}
     />
   );
 }
@@ -548,6 +722,7 @@ function RecapPolaroidWidget(props: {
     return (
       <PolaroidPhotoFrame
         imagePath={photo.imagePath}
+        onPress={onRequestPhotoSelection}
         orientation={orientation}
         style={[
           styles.polaroid,
@@ -595,7 +770,10 @@ function getExplicitTextLineCount(
 }
 
 function toCommittedElement<
-  Element extends RecapCanvasStickerElement | RecapCanvasWidgetElement,
+  Element extends
+    | RecapCanvasPhotoElement
+    | RecapCanvasStickerElement
+    | RecapCanvasWidgetElement,
 >(element: Element): Element {
   return {
     ...element,
@@ -667,13 +845,30 @@ const styles = StyleSheet.create({
   deleteButton: {
     alignItems: "center",
     backgroundColor: "#D92D20",
-    borderRadius: 16,
-    height: 32,
+    borderRadius: 22,
+    height: 44,
     justifyContent: "center",
+    width: 44,
+  },
+  actionButtons: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+    left: 0,
     position: "absolute",
-    right: -14,
-    top: -14,
-    width: 32,
+    top: 0,
+  },
+  layerButton: {
+    alignItems: "center",
+    backgroundColor: appColors.white,
+    borderRadius: 22,
+    elevation: 3,
+    height: 44,
+    justifyContent: "center",
+    shadowColor: appColors.black,
+    shadowOpacity: 0.16,
+    shadowRadius: 4,
+    width: 44,
   },
   emptyPolaroid: {
     backgroundColor: "#fffdfa",
@@ -755,6 +950,13 @@ const styles = StyleSheet.create({
   userStickerImage: {
     height: DEFAULT_ITEM_SIZE,
     width: DEFAULT_ITEM_SIZE,
+  },
+  photoElementImage: {
+    height: "100%",
+    width: "100%",
+  },
+  photoElementFrame: {
+    overflow: "hidden",
   },
   weekdayRow: {
     borderBottomColor: "#D1D1D1",

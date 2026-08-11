@@ -25,6 +25,7 @@ import GalleryAddIcon from "reicon-react-native/icons/GalleryAdd";
 import Grid10Icon from "reicon-react-native/icons/Grid10";
 import Grid3Icon from "reicon-react-native/icons/Grid3";
 import ImageIcon from "reicon-react-native/icons/Image";
+import LayersIcon from "reicon-react-native/icons/Layers";
 import MenuIcon from "reicon-react-native/icons/Menu";
 import ShareIcon from "reicon-react-native/icons/Share";
 import StarIcon from "reicon-react-native/icons/Star";
@@ -33,6 +34,8 @@ import TagIcon from "reicon-react-native/icons/Tag";
 import TextIcon from "reicon-react-native/icons/Text";
 import Trash5Icon from "reicon-react-native/icons/Trash5";
 import ItalicIcon from "reicon-react-native/icons/Italic";
+import LayersArrowDownIcon from "./reicon-icons/layers-arrow-down";
+import LayersArrowUpIcon from "./reicon-icons/layers-arrow-up";
 import UnderlineIcon from "reicon-react-native/icons/Underline";
 import Wand3Icon from "reicon-react-native/icons/Wand3";
 import Widget6Icon from "reicon-react-native/icons/Widget6";
@@ -65,6 +68,9 @@ const REICON_COMPONENTS = {
   Grid3: Grid3Icon,
   Image: ImageIcon,
   Italic: ItalicIcon,
+  Layers: LayersIcon,
+  LayersArrowDown: LayersArrowDownIcon,
+  LayersArrowUp: LayersArrowUpIcon,
   Menu: MenuIcon,
   Share: ShareIcon,
   Star: StarIcon,
@@ -81,7 +87,7 @@ const REICON_COMPONENTS = {
 export type ReiconName = keyof typeof REICON_COMPONENTS;
 
 type ReiconIconProps = {
-  color: string;
+  color?: string;
   name: ReiconName;
   size: number;
   style?: StyleProp<ViewStyle>;
@@ -89,7 +95,7 @@ type ReiconIconProps = {
 };
 
 export function ReiconIcon(props: ReiconIconProps) {
-  const { color, name, size, style, weight = "Outline" } = props;
+  const { color = "#000000", name, size, style, weight = "Outline" } = props;
   const Icon = REICON_COMPONENTS[name];
 
   return <Icon color={color} size={size} style={style} weight={weight} />;
