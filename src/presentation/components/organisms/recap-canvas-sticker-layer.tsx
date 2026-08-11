@@ -6,7 +6,6 @@ import {
   Text,
   TextInput,
   View,
-  type LayoutChangeEvent,
   type StyleProp,
   type TextStyle,
 } from "react-native";
@@ -51,8 +50,7 @@ type RecapCanvasStickerLayerProps = {
       | RecapCanvasStickerElement
       | RecapCanvasWidgetElement,
   ) => void;
-  onDeleteElement: (elementId: string) => void;
-  onMoveElement: (elementId: string, direction: "backward" | "forward") => void;
+  onLongPressElement: (elementId: string) => void;
   onEndWidgetEditing: () => void;
   onRequestPhotoSelection: (elementId: string) => void;
   onSelectElement: (elementId: string | null) => void;
@@ -70,8 +68,7 @@ type RecapCanvasStickerItemProps = {
   monthKey: string;
   photo: DailyPhoto | null;
   onChangeElement: RecapCanvasStickerLayerProps["onChangeElement"];
-  onDeleteElement: (elementId: string) => void;
-  onMoveElement: (elementId: string, direction: "backward" | "forward") => void;
+  onLongPressElement: (elementId: string) => void;
   onEndWidgetEditing: () => void;
   onRequestPhotoSelection: (elementId: string) => void;
   onSelectElement: (elementId: string) => void;
@@ -82,12 +79,6 @@ const DEFAULT_ITEM_SIZE = 132;
 const MIN_ELEMENT_SCALE = 0.25;
 const MAX_ELEMENT_SCALE = 4;
 const DOUBLE_TAP_DELAY_MS = 280;
-const ACTION_BUTTON_SIZE = 44;
-const ACTION_BUTTON_GAP = 8;
-const ACTION_BUTTON_COUNT = 3;
-const ACTION_BUTTONS_WIDTH =
-  ACTION_BUTTON_SIZE * ACTION_BUTTON_COUNT +
-  ACTION_BUTTON_GAP * (ACTION_BUTTON_COUNT - 1);
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
 export function RecapCanvasStickerLayer(props: RecapCanvasStickerLayerProps) {
@@ -97,8 +88,7 @@ export function RecapCanvasStickerLayer(props: RecapCanvasStickerLayerProps) {
     elements,
     monthKey,
     onChangeElement,
-    onDeleteElement,
-    onMoveElement,
+    onLongPressElement,
     onEndWidgetEditing,
     onRequestPhotoSelection,
     onSelectElement,
@@ -147,8 +137,7 @@ export function RecapCanvasStickerLayer(props: RecapCanvasStickerLayerProps) {
             monthKey={monthKey}
             photo={photo}
             onChangeElement={onChangeElement}
-            onDeleteElement={onDeleteElement}
-            onMoveElement={onMoveElement}
+            onLongPressElement={onLongPressElement}
             onEndWidgetEditing={onEndWidgetEditing}
             onRequestPhotoSelection={onRequestPhotoSelection}
             onSelectElement={onSelectElement}
@@ -168,8 +157,7 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
     isSelected,
     monthKey,
     onChangeElement,
-    onDeleteElement,
-    onMoveElement,
+    onLongPressElement,
     onEndWidgetEditing,
     onRequestPhotoSelection,
     onSelectElement,
@@ -187,8 +175,6 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
   const gestureStartRotation = useSharedValue(element.rotation);
   const isEditing =
     element.type === "widget" && element.id === editingWidgetElementId;
-  const [areActionButtonsVisible, setAreActionButtonsVisible] = useState(false);
-  const [elementLayout, setElementLayout] = useState({ height: 0, width: 0 });
   const [photoAspectRatio, setPhotoAspectRatio] = useState(1);
   const [inputLineCount, setInputLineCount] = useState(
     getExplicitTextLineCount(element),
@@ -215,17 +201,8 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
   }, [element.id, onSelectElement]);
   const handleLongPress = useCallback(() => {
     onSelectElement(element.id);
-    setAreActionButtonsVisible(true);
-  }, [element.id, onSelectElement]);
-  const handleElementLayout = useCallback((event: LayoutChangeEvent) => {
-    const { height, width } = event.nativeEvent.layout;
-
-    setElementLayout((current) =>
-      current.width === width && current.height === height
-        ? current
-        : { height, width },
-    );
-  }, []);
+    onLongPressElement(element.id);
+  }, [element.id, onLongPressElement, onSelectElement]);
   const handleGestureEnd = useCallback(
     (x: number, y: number, scale: number, rotation: number) => {
       onChangeElement(
@@ -340,28 +317,6 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
       { rotate: `${elementRotation.value}deg` },
     ],
   }));
-  const animatedActionButtonsStyle = useAnimatedStyle(() => {
-    const radians = (elementRotation.value * Math.PI) / 180;
-    const cosine = Math.cos(radians);
-    const sine = Math.sin(radians);
-    const halfWidth = elementLayout.width / 2;
-    const halfHeight = elementLayout.height / 2;
-    const cornerX =
-      halfWidth + elementScale.value * (halfWidth * cosine + halfHeight * sine);
-    const cornerY =
-      halfHeight +
-      elementScale.value * (halfWidth * sine - halfHeight * cosine);
-
-    return {
-      transform: [
-        {
-          translateX: cornerX - ACTION_BUTTONS_WIDTH + ACTION_BUTTON_SIZE / 2,
-        },
-        { translateY: cornerY - ACTION_BUTTON_SIZE / 2 },
-      ],
-    };
-  });
-
   const handlePress = () => {
     const now = Date.now();
     const isDoubleTap = now - lastTapAtRef.current <= DOUBLE_TAP_DELAY_MS;
@@ -381,16 +336,7 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
   return (
     <Animated.View
       pointerEvents="box-none"
-      style={[
-        styles.item,
-        {
-          zIndex:
-            isSelected && areActionButtonsVisible
-              ? appLayers.canvasElement + 2
-              : element.zIndex,
-        },
-        animatedPositionStyle,
-      ]}
+      style={[styles.item, { zIndex: element.zIndex }, animatedPositionStyle]}
     >
       <GestureDetector gesture={gesture}>
         <Animated.View style={animatedElementTransformStyle}>
@@ -409,18 +355,11 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
               ],
               isSelected && styles.selectedFrame,
             ]}
-            onLayout={handleElementLayout}
-            onPressIn={() => {
-              setAreActionButtonsVisible(false);
-            }}
             onLongPress={() => {
               handleLongPress();
             }}
             onPress={(event) => {
               event.stopPropagation();
-              if (!areActionButtonsVisible) {
-                setAreActionButtonsVisible(false);
-              }
               handlePress();
             }}
           >
@@ -457,49 +396,6 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
           </Pressable>
         </Animated.View>
       </GestureDetector>
-      {isSelected && areActionButtonsVisible ? (
-        <Animated.View
-          pointerEvents="box-none"
-          style={[styles.actionButtons, animatedActionButtonsStyle]}
-        >
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="요소 뒤로 이동"
-            hitSlop={8}
-            style={styles.layerButton}
-            onPress={(event) => {
-              event.stopPropagation();
-              onMoveElement(element.id, "backward");
-            }}
-          >
-            <ReiconIcon name="LayersArrowDown" size={20} />
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="요소 앞으로 이동"
-            hitSlop={8}
-            style={styles.layerButton}
-            onPress={(event) => {
-              event.stopPropagation();
-              onMoveElement(element.id, "forward");
-            }}
-          >
-            <ReiconIcon name="LayersArrowUp" size={20} />
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="요소 삭제"
-            hitSlop={8}
-            style={styles.deleteButton}
-            onPress={(event) => {
-              event.stopPropagation();
-              onDeleteElement(element.id);
-            }}
-          >
-            <ReiconIcon color={appColors.white} name="Trash5" size={20} />
-          </Pressable>
-        </Animated.View>
-      ) : null}
     </Animated.View>
   );
 }
@@ -841,34 +737,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "800",
     lineHeight: 20,
-  },
-  deleteButton: {
-    alignItems: "center",
-    backgroundColor: "#D92D20",
-    borderRadius: 22,
-    height: 44,
-    justifyContent: "center",
-    width: 44,
-  },
-  actionButtons: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 8,
-    left: 0,
-    position: "absolute",
-    top: 0,
-  },
-  layerButton: {
-    alignItems: "center",
-    backgroundColor: appColors.white,
-    borderRadius: 22,
-    elevation: 3,
-    height: 44,
-    justifyContent: "center",
-    shadowColor: appColors.black,
-    shadowOpacity: 0.16,
-    shadowRadius: 4,
-    width: 44,
   },
   emptyPolaroid: {
     backgroundColor: "#fffdfa",

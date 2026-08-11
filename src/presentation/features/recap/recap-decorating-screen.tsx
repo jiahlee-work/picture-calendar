@@ -36,6 +36,7 @@ import type { StickerAsset } from "@/application/services/stickers/types";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { RecapCanvasStickerLayer } from "@/presentation/components/organisms/recap-canvas-sticker-layer";
+import { RecapElementLayerToolbar } from "@/presentation/components/organisms/recap-element-layer-toolbar";
 import { RecapCanvasTextLayer } from "@/presentation/components/organisms/recap-canvas-text-layer";
 import {
   RecapDecoratingToolbar,
@@ -105,6 +106,9 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   const [selectedElementId, setSelectedElementId] = useState<string | null>(
     null,
   );
+  const [longPressedElementId, setLongPressedElementId] = useState<
+    string | null
+  >(null);
   const [editingTextElementId, setEditingTextElementId] = useState<
     string | null
   >(null);
@@ -199,11 +203,9 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       (element): element is RecapCanvasTextElement =>
         element.id === textSheetElementId && element.type === "text",
     ) ?? null;
-  const selectedStickerOrWidgetElement =
+  const selectedCanvasElement =
     committedElements.find(
-      (element) =>
-        element.id === selectedElementId &&
-        (element.type === "sticker" || element.type === "widget"),
+      (element) => element.id === selectedElementId && element.type !== "text",
     ) ?? null;
   const selectedPolaroidWidgetElement =
     committedElements.find(
@@ -354,8 +356,13 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
   const handleSelectElement = (elementId: string | null) => {
     setSelectedElementId(elementId);
+    setLongPressedElementId(null);
     setEditingTextElementId(null);
     setEditingWidgetElementId(null);
+  };
+
+  const handleLongPressElement = (elementId: string) => {
+    setLongPressedElementId(elementId);
   };
 
   const handleRequestPhotoSelection = (elementId: string) => {
@@ -412,6 +419,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       deleteRecapCanvasElement(committedElements, elementId),
     );
     setSelectedElementId(null);
+    setLongPressedElementId(null);
     setEditingTextElementId(null);
     setEditingWidgetElementId(null);
   };
@@ -796,8 +804,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
               photosById={photosById}
               selectedElementId={selectedElementId}
               onChangeElement={handleChangeCanvasElement}
-              onDeleteElement={handleDeleteCanvasElement}
-              onMoveElement={handleMoveCanvasElement}
+              onLongPressElement={handleLongPressElement}
               onEndWidgetEditing={() => setEditingWidgetElementId(null)}
               onRequestPhotoSelection={handleRequestPhotoSelection}
               onSelectElement={handleSelectElement}
@@ -895,7 +902,18 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
             }
             onUpdateTextStyle={handleUpdateSelectedTextStyle}
           />
-        ) : selectedStickerOrWidgetElement ? null : (
+        ) : selectedCanvasElement &&
+          longPressedElementId === selectedCanvasElement.id ? (
+          <RecapElementLayerToolbar
+            onDelete={() => handleDeleteCanvasElement(selectedCanvasElement.id)}
+            onMoveBackward={() =>
+              handleMoveCanvasElement(selectedCanvasElement.id, "backward")
+            }
+            onMoveForward={() =>
+              handleMoveCanvasElement(selectedCanvasElement.id, "forward")
+            }
+          />
+        ) : (
           <RecapDecoratingToolbar onSelectAction={handleToolbarActionPress} />
         )}
       </View>
@@ -1044,8 +1062,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
             photosById={photosById}
             selectedElementId={null}
             onChangeElement={() => {}}
-            onDeleteElement={() => {}}
-            onMoveElement={() => {}}
+            onLongPressElement={() => {}}
             onEndWidgetEditing={() => {}}
             onRequestPhotoSelection={() => {}}
             onSelectElement={() => {}}
