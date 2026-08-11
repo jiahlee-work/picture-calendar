@@ -70,7 +70,7 @@ export function StickerPickerSheet(props: StickerPickerSheetProps) {
     width,
     appSpacing.screenHorizontalPadding,
   );
-  const snapPoints = useMemo(() => ["36%", "90%"], []);
+  const snapPoints = useMemo(() => ["40%", "90%"], []);
   const widgetAssets = useMemo(
     () =>
       stickers.filter(
@@ -103,6 +103,7 @@ export function StickerPickerSheet(props: StickerPickerSheetProps) {
       backdropComponent={StickerPickerSheetBackdrop}
       containerStyle={styles.sheetContainer}
       enableDynamicSizing={false}
+      enableHandlePanningGesture
       enablePanDownToClose
       handleComponent={() => (
         <StickerPickerSheetHandle isDimmed={isRegisterMenuOpen} />
