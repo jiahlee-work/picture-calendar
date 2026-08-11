@@ -134,7 +134,15 @@ function toRecapCanvasElement(value: unknown): RecapCanvasElement | null {
   if (base.type === "photo") {
     const photoId = stringValue(value.photoId);
 
-    return photoId ? { ...base, photoId, type: "photo" } : null;
+    return photoId
+      ? {
+          ...base,
+          height: positiveNumberValue(value.height) ?? undefined,
+          photoId,
+          type: "photo",
+          width: positiveNumberValue(value.width) ?? undefined,
+        }
+      : null;
   }
 
   if (base.type === "sticker") {
@@ -227,6 +235,12 @@ function baseElementValue(value: Record<string, unknown>) {
     zIndex,
     opacity: numberValue(value.opacity) ?? undefined,
   };
+}
+
+function positiveNumberValue(value: unknown): number | null {
+  const number = numberValue(value);
+
+  return number !== null && number > 0 ? number : null;
 }
 
 function layoutIdValue(value: unknown): RecapCanvasLayoutId | null {

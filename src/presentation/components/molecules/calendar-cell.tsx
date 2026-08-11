@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { CalendarGridCell } from "@/application/services/calendar/calendar-grid";
 import { DailyPhotoImage } from "@/presentation/components/atoms/daily-photo-image";
+import { SelectionCheckbox } from "@/presentation/components/atoms/selection-checkbox";
 import { appColors } from "@/presentation/theme/colors";
 
 type CalendarCellProps = {
@@ -9,6 +10,11 @@ type CalendarCellProps = {
   cellWidth: number;
   day: CalendarGridCell;
   selectionOrder?: number | null;
+  selectionCheckbox?: {
+    accessibilityLabel: string;
+    isSelected: boolean;
+    onPress: () => void;
+  };
   onLongPressDate?: (dateKey: string) => void;
   onPressDate: (dateKey: string) => void;
 };
@@ -21,6 +27,7 @@ export function CalendarCell(props: CalendarCellProps) {
     onLongPressDate,
     onPressDate,
     selectionOrder = null,
+    selectionCheckbox,
   } = props;
   const isToday = day?.isToday;
   const photo = day?.photo;
@@ -54,6 +61,15 @@ export function CalendarCell(props: CalendarCellProps) {
       <Text style={[styles.dateText, isToday && styles.todayText]}>
         {day.dayOfMonth}
       </Text>
+      {selectionCheckbox ? (
+        <SelectionCheckbox
+          accessibilityLabel={selectionCheckbox.accessibilityLabel}
+          isSelected={selectionCheckbox.isSelected}
+          size={24}
+          style={styles.selectionCheckbox}
+          onPress={selectionCheckbox.onPress}
+        />
+      ) : null}
       {isSelected && (
         <View pointerEvents="none" style={styles.selectedOverlay}>
           <View style={styles.selectionBadge}>
@@ -68,10 +84,6 @@ export function CalendarCell(props: CalendarCellProps) {
 const styles = StyleSheet.create({
   cell: {
     backgroundColor: appColors.background,
-    borderColor: "#f0f0f0",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderTopWidth: StyleSheet.hairlineWidth,
     overflow: "hidden",
     position: "relative",
   },
@@ -142,5 +154,12 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     lineHeight: 16,
     textAlign: "center",
+  },
+  selectionCheckbox: {
+    bottom: 4,
+    left: "50%",
+    position: "absolute",
+    transform: [{ translateX: -12 }],
+    zIndex: 4,
   },
 });

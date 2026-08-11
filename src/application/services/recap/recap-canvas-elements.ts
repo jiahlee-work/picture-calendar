@@ -1,5 +1,6 @@
 import type {
   RecapCanvasElement,
+  RecapCanvasPhotoElement,
   RecapCanvasStickerElement,
   RecapCanvasTextElement,
   RecapCanvasWidgetElement,
@@ -21,6 +22,16 @@ export type CreateRecapStickerElementOptions = {
   zIndex: number;
 };
 
+export type CreateRecapPhotoElementOptions = {
+  height?: number;
+  id: string;
+  photoId: string;
+  width?: number;
+  x: number;
+  y: number;
+  zIndex: number;
+};
+
 export type CreateRecapWidgetElementOptions = {
   id: string;
   photoId?: string;
@@ -35,9 +46,39 @@ export type RecapCanvasTextElementUpdate = Partial<
   Omit<RecapCanvasTextElement, "id" | "type">
 >;
 
+export type RecapCanvasElementLayerDirection = "backward" | "forward";
+
 export const DEFAULT_RECAP_TEXT_CONTENT = "텍스트를 입력하려면 두 번 탭하세요.";
 export const DEFAULT_RECAP_TEXT_WIDTH = 340;
 export const DEFAULT_RECAP_WIDGET_SPEECH_BUBBLE_TEXT = "텍스트 입력";
+export const DEFAULT_RECAP_PHOTO_ELEMENT_MAX_SIZE = 164;
+
+export function getRecapPhotoElementSize(
+  sourceWidth: number,
+  sourceHeight: number,
+  maxSize = DEFAULT_RECAP_PHOTO_ELEMENT_MAX_SIZE,
+): { height: number; width: number } {
+  if (
+    !Number.isFinite(sourceWidth) ||
+    !Number.isFinite(sourceHeight) ||
+    sourceWidth <= 0 ||
+    sourceHeight <= 0 ||
+    maxSize <= 0
+  ) {
+    return { height: maxSize, width: maxSize };
+  }
+
+  const scale = maxSize / Math.max(sourceWidth, sourceHeight);
+
+  return {
+    height: roundToThreeDecimals(sourceHeight * scale),
+    width: roundToThreeDecimals(sourceWidth * scale),
+  };
+}
+
+function roundToThreeDecimals(value: number): number {
+  return Math.round(value * 1000) / 1000;
+}
 
 export function createRecapTextElement(
   options: CreateRecapTextElementOptions,
@@ -77,6 +118,23 @@ export function createRecapStickerElement(
     x,
     y,
     zIndex,
+  };
+}
+
+export function createRecapPhotoElement(
+  options: CreateRecapPhotoElementOptions,
+): RecapCanvasPhotoElement {
+  return {
+    height: options.height,
+    id: options.id,
+    photoId: options.photoId,
+    rotation: 0,
+    scale: 1,
+    type: "photo",
+    width: options.width,
+    x: options.x,
+    y: options.y,
+    zIndex: options.zIndex,
   };
 }
 
@@ -164,6 +222,43 @@ export function deleteRecapCanvasElement(
       .filter((element) => element.id !== elementId)
       .map(cloneRecapCanvasElement),
   );
+}
+
+export function moveRecapCanvasElement(
+  elements: RecapCanvasElement[],
+  elementId: string,
+  direction: RecapCanvasElementLayerDirection,
+): RecapCanvasElement[] {
+  const sortedElements = sortRecapCanvasElements(elements);
+  const currentIndex = sortedElements.findIndex(
+    (element) => element.id === elementId,
+  );
+
+  if (currentIndex < 0) {
+    return sortedElements.map(cloneRecapCanvasElement);
+  }
+
+  const adjacentIndex =
+    direction === "forward" ? currentIndex + 1 : currentIndex - 1;
+
+  if (adjacentIndex < 0 || adjacentIndex >= sortedElements.length) {
+    return sortedElements.map(cloneRecapCanvasElement);
+  }
+
+  const currentElement = sortedElements[currentIndex];
+  const adjacentElement = sortedElements[adjacentIndex];
+  const nextElements = sortedElements.map(cloneRecapCanvasElement);
+
+  nextElements[currentIndex] = {
+    ...currentElement,
+    zIndex: adjacentElement.zIndex,
+  };
+  nextElements[adjacentIndex] = {
+    ...adjacentElement,
+    zIndex: currentElement.zIndex,
+  };
+
+  return sortRecapCanvasElements(nextElements);
 }
 
 export function getNextRecapCanvasElementZIndex(

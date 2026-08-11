@@ -28,8 +28,10 @@ export type RecapCanvasBaseElement = {
 };
 
 export type RecapCanvasPhotoElement = RecapCanvasBaseElement & {
+  height?: number;
   photoId: string;
   type: "photo";
+  width?: number;
 };
 
 export type RecapCanvasStickerElement = RecapCanvasBaseElement & {

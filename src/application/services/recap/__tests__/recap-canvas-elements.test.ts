@@ -1,17 +1,64 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createRecapPhotoElement,
   createRecapStickerElement,
   createRecapTextElement,
   createRecapWidgetElement,
   deleteRecapCanvasElement,
   getNextRecapCanvasElementZIndex,
+  getRecapPhotoElementSize,
+  moveRecapCanvasElement,
   updateRecapCanvasTextElement,
   upsertRecapCanvasElement,
 } from "@/application/services/recap/recap-canvas-elements";
 import type { RecapCanvasElement } from "@/shared/recap/types";
 
 describe("recap canvas elements", () => {
+  it("sizes a photo element from its original aspect ratio", () => {
+    expect(getRecapPhotoElementSize(1200, 1200)).toEqual({
+      height: 164,
+      width: 164,
+    });
+    expect(getRecapPhotoElementSize(1600, 1200)).toEqual({
+      height: 123,
+      width: 164,
+    });
+    expect(getRecapPhotoElementSize(1920, 1080)).toEqual({
+      height: 92.25,
+      width: 164,
+    });
+    expect(getRecapPhotoElementSize(1080, 1920)).toEqual({
+      height: 164,
+      width: 92.25,
+    });
+  });
+
+  it("creates a photo element from a daily photo id", () => {
+    expect(
+      createRecapPhotoElement({
+        height: 92.25,
+        id: "photo-element-1",
+        photoId: "daily-photo-1",
+        width: 164,
+        x: 80,
+        y: 120,
+        zIndex: 4,
+      }),
+    ).toMatchObject({
+      height: 92.25,
+      id: "photo-element-1",
+      photoId: "daily-photo-1",
+      rotation: 0,
+      scale: 1,
+      type: "photo",
+      width: 164,
+      x: 80,
+      y: 120,
+      zIndex: 4,
+    });
+  });
+
   it("creates a default text element", () => {
     expect(
       createRecapTextElement({
@@ -174,6 +221,39 @@ describe("recap canvas elements", () => {
         createElement({ zIndex: 7 }),
       ]),
     ).toBe(8);
+  });
+
+  it("moves an element one layer forward or backward", () => {
+    const elements = [
+      createElement({ id: "bottom", zIndex: 1 }),
+      createElement({ id: "middle", zIndex: 2 }),
+      createElement({ id: "top", zIndex: 3 }),
+    ];
+
+    expect(
+      moveRecapCanvasElement(elements, "middle", "forward").map(
+        (element) => element.id,
+      ),
+    ).toEqual(["bottom", "top", "middle"]);
+    expect(
+      moveRecapCanvasElement(elements, "middle", "backward").map(
+        (element) => element.id,
+      ),
+    ).toEqual(["middle", "bottom", "top"]);
+  });
+
+  it("keeps an element unchanged at the layer boundary", () => {
+    const elements = [
+      createElement({ id: "bottom", zIndex: 1 }),
+      createElement({ id: "top", zIndex: 2 }),
+    ];
+
+    expect(moveRecapCanvasElement(elements, "top", "forward")).toEqual(
+      elements,
+    );
+    expect(moveRecapCanvasElement(elements, "bottom", "backward")).toEqual(
+      elements,
+    );
   });
 });
 

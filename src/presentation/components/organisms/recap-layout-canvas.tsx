@@ -1,12 +1,6 @@
 import { Image } from "expo-image";
 import type { ReactNode } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  type ViewStyle,
-} from "react-native";
+import { Pressable, StyleSheet, View, type ViewStyle } from "react-native";
 
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import type {
@@ -16,6 +10,7 @@ import type {
   RecapCanvasLayoutSlotPhotoMap,
 } from "@/application/services/recap/recap-canvas-layout";
 import { appColors } from "@/presentation/theme/colors";
+import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 
 const LAYOUT_GUIDE_LINE_COLOR = "#D0D0D0";
 const LAYOUT_GUIDE_LINE_WIDTH = 1;
@@ -49,7 +44,7 @@ export function RecapLayoutCanvas(props: RecapLayoutCanvasProps) {
 
   return (
     <View style={[styles.canvas, { backgroundColor }]}>
-      {layout.slots.map((slot, index) => {
+      {layout.slots.map((slot) => {
         const photoId = slotPhotoIds[slot.id];
         const photo = photoId ? photosById[photoId] : undefined;
         const isSelected = slot.id === selectedSlotId;
@@ -73,21 +68,13 @@ export function RecapLayoutCanvas(props: RecapLayoutCanvasProps) {
             ) : (
               <View style={styles.emptySlot} />
             )}
-            {isEditing ? (
-              <View
-                style={[
-                  styles.slotBadge,
-                  isSelected && styles.selectedSlotBadge,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.slotBadgeText,
-                    isSelected && styles.selectedSlotBadgeText,
-                  ]}
-                >
-                  {index + 1}
-                </Text>
+            {isEditing && !photo ? (
+              <View pointerEvents="none" style={styles.slotAction}>
+                <ReiconIcon
+                  color={appColors.blackOverlay34}
+                  name="GalleryAdd"
+                  size={24}
+                />
               </View>
             ) : null}
           </Pressable>
@@ -158,31 +145,14 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "absolute",
   },
-  slotBadge: {
+  slotAction: {
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.78)",
-    borderColor: "#C8C8C8",
-    borderRadius: 13,
-    borderWidth: 1,
-    height: 26,
+    height: 44,
     justifyContent: "center",
     left: "50%",
     position: "absolute",
     top: "50%",
-    transform: [{ translateX: -13 }, { translateY: -13 }],
-    width: 26,
-  },
-  slotBadgeText: {
-    color: "#8C8C8C",
-    fontSize: 13,
-    fontWeight: "800",
-    lineHeight: 17,
-  },
-  selectedSlotBadge: {
-    backgroundColor: appColors.black,
-    borderColor: appColors.black,
-  },
-  selectedSlotBadgeText: {
-    color: appColors.white,
+    transform: [{ translateX: -22 }, { translateY: -22 }],
+    width: 44,
   },
 });

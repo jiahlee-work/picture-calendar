@@ -1,7 +1,9 @@
+import { Image as ExpoImage } from "expo-image";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image as NativeImage,
   StyleSheet,
   Text,
   useWindowDimensions,
@@ -13,10 +15,13 @@ import { useMonthlyRecapCanvas } from "@/application/hooks/use-monthly-recap-can
 import { useMonthlyRecapDetail } from "@/application/hooks/use-monthly-recap-detail";
 import {
   createRecapStickerElement,
+  createRecapPhotoElement,
   createRecapTextElement,
   createRecapWidgetElement,
   deleteRecapCanvasElement,
   getNextRecapCanvasElementZIndex,
+  getRecapPhotoElementSize,
+  moveRecapCanvasElement,
   updateRecapCanvasTextElement,
   upsertRecapCanvasElement,
   type RecapCanvasTextElementUpdate,
@@ -37,7 +42,7 @@ import {
   type RecapDecoratingToolbarAction,
 } from "@/presentation/components/organisms/recap-decorating-toolbar";
 import { RecapLayoutCanvas } from "@/presentation/components/organisms/recap-layout-canvas";
-import { RecapLayoutPhotoPicker } from "@/presentation/components/organisms/recap-layout-photo-picker";
+import { RecapPhotoCalendarSheet } from "@/presentation/components/organisms/recap-photo-calendar-sheet";
 import { RecapLayoutToolbar } from "@/presentation/components/organisms/recap-layout-toolbar";
 import { RecapColorSheet } from "@/presentation/components/organisms/recap-color-sheet";
 import {
@@ -108,6 +113,10 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   >(null);
   const [isStickerPickerVisible, setIsStickerPickerVisible] = useState(false);
   const [stickerPickerSnapIndex, setStickerPickerSnapIndex] = useState(0);
+  const [isPolaroidPhotoPickerVisible, setIsPolaroidPhotoPickerVisible] =
+    useState(false);
+  const [isPhotoPickerVisible, setIsPhotoPickerVisible] = useState(false);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<string[]>([]);
   const [isTextTypographySheetVisible, setIsTextTypographySheetVisible] =
     useState(false);
   const [isTextColorSheetVisible, setIsTextColorSheetVisible] = useState(false);
@@ -125,6 +134,12 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       ),
     );
   const [selectedLayoutSlotId, setSelectedLayoutSlotId] = useState<
+    string | null
+  >(null);
+  const [pendingLayoutPhotoId, setPendingLayoutPhotoId] = useState<
+    string | null
+  >(null);
+  const [pendingPolaroidPhotoId, setPendingPolaroidPhotoId] = useState<
     string | null
   >(null);
   const [draftSlotPhotoIdsByLayoutId, setDraftSlotPhotoIdsByLayoutId] =
@@ -202,6 +217,9 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
         (element.variant === "polaroidFrame" ||
           element.variant === "polaroidFramePortrait"),
     ) ?? null;
+  const isPhotoCalendarVisible =
+    (mode === "layout" && Boolean(selectedLayoutSlotId)) ||
+    (mode === "default" && isPolaroidPhotoPickerVisible);
   const hasUnsavedDecoratingChanges =
     JSON.stringify({
       backgroundColor: committedBackgroundColor,
@@ -303,6 +321,14 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       setEditingTextElementId(null);
       setEditingWidgetElementId(null);
     }
+
+    if (action.id === "gallery") {
+      setSelectedPhotoIds([]);
+      setIsPhotoPickerVisible(true);
+      setSelectedElementId(null);
+      setEditingTextElementId(null);
+      setEditingWidgetElementId(null);
+    }
   };
 
   const handleAddTextElement = () => {
@@ -330,6 +356,17 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     setSelectedElementId(elementId);
     setEditingTextElementId(null);
     setEditingWidgetElementId(null);
+  };
+
+  const handleRequestPhotoSelection = (elementId: string) => {
+    setSelectedElementId(elementId);
+    const element = committedElements.find((item) => item.id === elementId);
+    setPendingPolaroidPhotoId(
+      element?.type === "widget" && "photoId" in element
+        ? (element.photoId ?? null)
+        : null,
+    );
+    setIsPolaroidPhotoPickerVisible(true);
   };
 
   const handleStartTextEditing = (elementId: string) => {
@@ -363,7 +400,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   };
 
   const handleChangeCanvasElement = (
-    element: Exclude<RecapCanvasElement, { type: "text" | "photo" }>,
+    element: Exclude<RecapCanvasElement, { type: "text" }>,
   ) => {
     setCommittedElementsOverride(
       upsertRecapCanvasElement(committedElements, element),
@@ -385,6 +422,15 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   ) => {
     setCommittedElementsOverride(
       updateRecapCanvasTextElement(committedElements, elementId, update),
+    );
+  };
+
+  const handleMoveCanvasElement = (
+    elementId: string,
+    direction: "backward" | "forward",
+  ) => {
+    setCommittedElementsOverride(
+      moveRecapCanvasElement(committedElements, elementId, direction),
     );
   };
 
@@ -418,7 +464,8 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
         ? committedSlotPhotoIds
         : createEmptyRecapCanvasLayoutSlotPhotoMap(nextLayout),
     );
-    setSelectedLayoutSlotId(nextLayout.slots[0]?.id ?? null);
+    setSelectedLayoutSlotId(null);
+    setIsPolaroidPhotoPickerVisible(false);
     setDraftSlotPhotoIdsByLayoutId({});
     setEditedLayoutIds({});
     setMode("layout");
@@ -426,6 +473,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
   const discardLayoutDraft = () => {
     setSelectedLayoutSlotId(null);
+    setIsPolaroidPhotoPickerVisible(false);
     setDraftSlotPhotoIdsByLayoutId({});
     setEditedLayoutIds({});
     setSelectedElementId(null);
@@ -498,7 +546,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
     setDraftLayoutId(layoutId);
     setDraftSlotPhotoIds(nextSlotPhotoIds);
-    setSelectedLayoutSlotId(nextLayout.slots[0]?.id ?? null);
+    setSelectedLayoutSlotId(null);
   };
 
   const handleSelectLayoutSlot = (slotId: string) => {
@@ -507,67 +555,112 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     }
 
     setSelectedLayoutSlotId(slotId);
+    setPendingLayoutPhotoId(draftSlotPhotoIds[slotId] ?? null);
   };
 
-  const handleSelectLayoutPhoto = (photoId: string | null) => {
-    if (!selectedLayoutSlotId) {
-      return;
-    }
+  const handleSelectLayoutPhoto = (photoIds: string[]) => {
+    setPendingLayoutPhotoId(photoIds[0] ?? null);
+  };
 
-    if (!draftLayoutId) {
-      return;
-    }
+  const handleSelectPolaroidPhoto = (photoIds: string[]) => {
+    setPendingPolaroidPhotoId(photoIds[0] ?? null);
+  };
 
-    const previousPhotoId = draftSlotPhotoIds[selectedLayoutSlotId] ?? null;
-
-    if (previousPhotoId === photoId) {
-      return;
-    }
-
-    const wasCurrentSlotEmpty = !previousPhotoId;
+  const handleCompleteLayoutPhotoSelection = () => {
+    if (!selectedLayoutSlotId || !draftLayoutId) return;
     const nextSlotPhotoIds = {
       ...draftSlotPhotoIds,
-      [selectedLayoutSlotId]: photoId,
+      [selectedLayoutSlotId]: pendingLayoutPhotoId,
     };
-
     setDraftSlotPhotoIds(nextSlotPhotoIds);
     setDraftSlotPhotoIdsByLayoutId((current) => ({
       ...current,
       [draftLayoutId]: nextSlotPhotoIds,
     }));
-    setEditedLayoutIds((current) => ({
-      ...current,
-      [draftLayoutId]: true,
-    }));
-
-    if (photoId && wasCurrentSlotEmpty && draftLayout) {
-      const currentSlotIndex = draftLayout.slots.findIndex(
-        (slot) => slot.id === selectedLayoutSlotId,
-      );
-      const nextEmptySlot = draftLayout.slots
-        .slice(currentSlotIndex + 1)
-        .find((slot) => !nextSlotPhotoIds[slot.id]);
-
-      if (nextEmptySlot) {
-        setSelectedLayoutSlotId(nextEmptySlot.id);
-      }
-    }
+    setEditedLayoutIds((current) => ({ ...current, [draftLayoutId]: true }));
+    setSelectedLayoutSlotId(null);
+    setPendingLayoutPhotoId(null);
   };
 
-  const handleSelectPolaroidPhoto = (photoId: string | null) => {
-    if (!selectedPolaroidWidgetElement) {
-      return;
-    }
-
+  const handleCompletePolaroidPhotoSelection = () => {
+    if (!selectedPolaroidWidgetElement) return;
     const nextElement = {
       ...selectedPolaroidWidgetElement,
-      photoId: photoId ?? undefined,
+      photoId: pendingPolaroidPhotoId ?? undefined,
     };
-
     setCommittedElementsOverride(
       upsertRecapCanvasElement(committedElements, nextElement),
     );
-    setSelectedElementId(nextElement.id);
+    setPendingPolaroidPhotoId(null);
+    setIsPolaroidPhotoPickerVisible(false);
+  };
+
+  const handleCompletePhotoSelection = async () => {
+    if (selectedPhotoIds.length === 0) {
+      setIsPhotoPickerVisible(false);
+      return;
+    }
+
+    const measuredPhotos = await Promise.all(
+      selectedPhotoIds.map(async (photoId) => {
+        const photo = photosById[photoId];
+
+        if (!photo) {
+          return null;
+        }
+
+        const size = await loadRecapPhotoElementSize(photo.imagePath);
+
+        return size ? { photoId, ...size } : null;
+      }),
+    );
+    const selectedPhotosWithSize = measuredPhotos.filter(
+      (photo): photo is NonNullable<typeof photo> => photo !== null,
+    );
+
+    if (selectedPhotosWithSize.length === 0) {
+      Alert.alert(
+        "사진을 불러오지 못했어요",
+        "사진의 원본 크기를 확인한 뒤 다시 시도해 주세요.",
+      );
+      return;
+    }
+    const createdAt = Date.now();
+    const nextElements = selectedPhotosWithSize.reduce(
+      (elements, photo, index) =>
+        upsertRecapCanvasElement(
+          elements,
+          createRecapPhotoElement({
+            height: photo.height,
+            id: `recap-photo-${createdAt}-${index}`,
+            photoId: photo.photoId,
+            width: photo.width,
+            x: Math.max(
+              Math.round(windowDimensions.width / 2 - photo.width / 2),
+              24,
+            ),
+            y: Math.max(
+              Math.round(
+                windowDimensions.height / 2 - photo.height / 2 + index * 24,
+              ),
+              120,
+            ),
+            zIndex: getNextRecapCanvasElementZIndex(elements),
+          }),
+        ),
+      committedElements,
+    );
+
+    setCommittedElementsOverride(nextElements);
+    setSelectedPhotoIds([]);
+    setIsPhotoPickerVisible(false);
+
+    if (selectedPhotosWithSize.length < selectedPhotoIds.length) {
+      Alert.alert(
+        "일부 사진을 불러오지 못했어요",
+        "크기를 확인할 수 있는 사진만 캔버스에 추가했습니다.",
+      );
+    }
   };
 
   const handleSelectStickerAsset = (asset: StickerAsset) => {
@@ -663,45 +756,56 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
   return (
     <View style={styles.screen}>
-      <RecapLayoutCanvas
-        backgroundColor={committedBackgroundColor}
-        isEditing={mode === "layout"}
-        layout={visibleLayout}
-        photosById={photosById}
-        selectedSlotId={mode === "layout" ? selectedLayoutSlotId : null}
-        slotPhotoIds={visibleSlotPhotoIds}
-        onSelectSlot={handleSelectLayoutSlot}
+      <View
+        style={[
+          styles.canvasRegion,
+          isPhotoCalendarVisible && styles.canvasRegionWithPicker,
+        ]}
       >
-        {emptyCanvasMessage ? (
-          <Text style={styles.emptyText}>{emptyCanvasMessage}</Text>
+        <RecapLayoutCanvas
+          backgroundColor={
+            mode === "layout" ? appColors.white : committedBackgroundColor
+          }
+          isEditing={mode === "layout"}
+          layout={visibleLayout}
+          photosById={photosById}
+          selectedSlotId={mode === "layout" ? selectedLayoutSlotId : null}
+          slotPhotoIds={visibleSlotPhotoIds}
+          onSelectSlot={handleSelectLayoutSlot}
+        >
+          {emptyCanvasMessage ? (
+            <Text style={styles.emptyText}>{emptyCanvasMessage}</Text>
+          ) : null}
+        </RecapLayoutCanvas>
+        {mode === "default" ? (
+          <>
+            <RecapCanvasTextLayer
+              editingElementId={editingTextElementId}
+              elements={committedElements}
+              selectedElementId={selectedElementId}
+              onChangeTextElement={handleChangeTextElement}
+              onEndTextEditing={() => setEditingTextElementId(null)}
+              onSelectElement={handleSelectElement}
+              onStartTextEditing={handleStartTextEditing}
+            />
+            <RecapCanvasStickerLayer
+              assets={stickers}
+              editingWidgetElementId={editingWidgetElementId}
+              elements={committedElements}
+              monthKey={monthKey}
+              photosById={photosById}
+              selectedElementId={selectedElementId}
+              onChangeElement={handleChangeCanvasElement}
+              onDeleteElement={handleDeleteCanvasElement}
+              onMoveElement={handleMoveCanvasElement}
+              onEndWidgetEditing={() => setEditingWidgetElementId(null)}
+              onRequestPhotoSelection={handleRequestPhotoSelection}
+              onSelectElement={handleSelectElement}
+              onStartWidgetEditing={handleStartWidgetEditing}
+            />
+          </>
         ) : null}
-      </RecapLayoutCanvas>
-      {mode === "default" ? (
-        <>
-          <RecapCanvasTextLayer
-            editingElementId={editingTextElementId}
-            elements={committedElements}
-            selectedElementId={selectedElementId}
-            onChangeTextElement={handleChangeTextElement}
-            onEndTextEditing={() => setEditingTextElementId(null)}
-            onSelectElement={handleSelectElement}
-            onStartTextEditing={handleStartTextEditing}
-          />
-          <RecapCanvasStickerLayer
-            assets={stickers}
-            editingWidgetElementId={editingWidgetElementId}
-            elements={committedElements}
-            monthKey={monthKey}
-            photosById={photosById}
-            selectedElementId={selectedElementId}
-            onChangeElement={handleChangeCanvasElement}
-            onDeleteElement={handleDeleteCanvasElement}
-            onEndWidgetEditing={() => setEditingWidgetElementId(null)}
-            onSelectElement={handleSelectElement}
-            onStartWidgetEditing={handleStartWidgetEditing}
-          />
-        </>
-      ) : null}
+      </View>
       <AppSafeAreaView
         edges={["top"]}
         pointerEvents="box-none"
@@ -783,29 +887,57 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
               setTextSheetElementId(selectedTextElement.id);
               setIsTextTypographySheetVisible(true);
             }}
+            onMoveBackward={() =>
+              handleMoveCanvasElement(selectedTextElement.id, "backward")
+            }
+            onMoveForward={() =>
+              handleMoveCanvasElement(selectedTextElement.id, "forward")
+            }
             onUpdateTextStyle={handleUpdateSelectedTextStyle}
           />
         ) : selectedStickerOrWidgetElement ? null : (
           <RecapDecoratingToolbar onSelectAction={handleToolbarActionPress} />
         )}
       </View>
-      <RecapLayoutPhotoPicker
+      <RecapPhotoCalendarSheet
+        monthKey={monthKey}
         photos={recapPhotos}
-        selectedPhotoId={
-          selectedLayoutSlotId
-            ? (draftSlotPhotoIds[selectedLayoutSlotId] ?? null)
-            : null
+        selectedPhotoIds={
+          mode === "layout"
+            ? pendingLayoutPhotoId
+              ? [pendingLayoutPhotoId]
+              : []
+            : pendingPolaroidPhotoId
+              ? [pendingPolaroidPhotoId]
+              : []
         }
-        visible={mode === "layout" && Boolean(selectedLayoutSlotId)}
-        onSelectPhoto={handleSelectLayoutPhoto}
+        visible={isPhotoCalendarVisible}
+        onClose={() => {
+          setSelectedLayoutSlotId(null);
+          setIsPolaroidPhotoPickerVisible(false);
+          setPendingLayoutPhotoId(null);
+          setPendingPolaroidPhotoId(null);
+        }}
+        onChangeSelectedPhotoIds={
+          mode === "layout"
+            ? handleSelectLayoutPhoto
+            : handleSelectPolaroidPhoto
+        }
+        onComplete={
+          mode === "layout"
+            ? handleCompleteLayoutPhotoSelection
+            : handleCompletePolaroidPhotoSelection
+        }
       />
-      <RecapLayoutPhotoPicker
-        accessibilityLabel="폴라로이드 사진 선택"
+      <RecapPhotoCalendarSheet
+        monthKey={monthKey}
+        multiple
         photos={recapPhotos}
-        selectedPhotoId={selectedPolaroidWidgetElement?.photoId ?? null}
-        toggleSelection={false}
-        visible={mode === "default" && Boolean(selectedPolaroidWidgetElement)}
-        onSelectPhoto={handleSelectPolaroidPhoto}
+        selectedPhotoIds={selectedPhotoIds}
+        visible={isPhotoPickerVisible}
+        onClose={() => setIsPhotoPickerVisible(false)}
+        onChangeSelectedPhotoIds={setSelectedPhotoIds}
+        onComplete={handleCompletePhotoSelection}
       />
       {isStickerPickerVisible ? (
         <StickerPickerSheet
@@ -913,7 +1045,9 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
             selectedElementId={null}
             onChangeElement={() => {}}
             onDeleteElement={() => {}}
+            onMoveElement={() => {}}
             onEndWidgetEditing={() => {}}
+            onRequestPhotoSelection={() => {}}
             onSelectElement={() => {}}
             onStartWidgetEditing={() => {}}
           />
@@ -932,10 +1066,52 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   );
 }
 
+async function loadRecapPhotoElementSize(
+  imagePath: string,
+): Promise<{ height: number; width: number } | null> {
+  const nativeSize = await loadNativeImageSize(imagePath);
+
+  if (nativeSize) {
+    return getRecapPhotoElementSize(nativeSize.width, nativeSize.height);
+  }
+
+  try {
+    const image = await ExpoImage.loadAsync({ uri: imagePath });
+
+    if (image.width > 0 && image.height > 0) {
+      return getRecapPhotoElementSize(image.width, image.height);
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+function loadNativeImageSize(
+  imagePath: string,
+): Promise<{ height: number; width: number } | null> {
+  return new Promise((resolve) => {
+    NativeImage.getSize(
+      imagePath,
+      (width, height) => resolve({ height, width }),
+      () => resolve(null),
+    );
+  });
+}
+
 const styles = StyleSheet.create({
   appBarActions: {
     flexDirection: "row",
     gap: 10,
+  },
+  canvasRegion: {
+    flex: 1,
+    minHeight: 0,
+    position: "relative",
+  },
+  canvasRegionWithPicker: {
+    flex: 3,
   },
   emptyText: {
     color: "#8C8C8C",

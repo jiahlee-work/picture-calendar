@@ -19,6 +19,14 @@ type MonthlyCalendarProps = {
   calendar: CalendarMonth;
   canSwipeMonth?: boolean;
   contentWidth?: number;
+  selectionCheckboxByDateKey?: Record<
+    string,
+    {
+      accessibilityLabel: string;
+      isSelected: boolean;
+      onPress: () => void;
+    }
+  >;
   selectedDateKeys?: string[];
   onLongPressDate?: (dateKey: string) => void;
   onNextMonth?: () => void;
@@ -36,6 +44,7 @@ export function MonthlyCalendar(props: MonthlyCalendarProps) {
     onPreviousMonth,
     onSelectDate,
     selectedDateKeys = [],
+    selectionCheckboxByDateKey = {},
   } = props;
   const { width: windowWidth } = useWindowDimensions();
   const [gridHeight, setGridHeight] = useState(0);
@@ -96,6 +105,11 @@ export function MonthlyCalendar(props: MonthlyCalendarProps) {
             day={day}
             selectionOrder={
               day ? (selectionOrderByDateKey.get(day.key) ?? null) : null
+            }
+            selectionCheckbox={
+              day && selectionCheckboxByDateKey[day.key]?.isSelected
+                ? selectionCheckboxByDateKey[day.key]
+                : undefined
             }
             onLongPressDate={onLongPressDate}
             onPressDate={onSelectDate}
