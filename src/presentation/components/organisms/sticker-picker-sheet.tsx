@@ -6,6 +6,7 @@ import BottomSheet, {
 } from "@gorhom/bottom-sheet";
 import { useEffect, useMemo, useRef, useState, type ComponentRef } from "react";
 import {
+  ActivityIndicator,
   Pressable,
   StyleSheet,
   Text,
@@ -19,12 +20,13 @@ import Animated, {
   useAnimatedStyle,
 } from "react-native-reanimated";
 
+import { partitionStickerAssets } from "@/application/services/stickers/sticker-assets";
 import type { StickerAsset } from "@/application/services/stickers/types";
-import { Menu } from "@/presentation/components/molecules/menu";
 import {
   ReiconIcon,
   type ReiconName,
 } from "@/presentation/components/atoms/reicon-icon";
+import { StickerRegistrationMenu } from "@/presentation/components/molecules/sticker-registration-menu";
 import { StickerTile } from "@/presentation/components/organisms/sticker-tile";
 import { getStickerLibraryGridLayout } from "@/presentation/helpers/stickers/sticker-library-layout";
 import { appColors } from "@/presentation/theme/colors";
@@ -32,6 +34,8 @@ import { appLayers } from "@/presentation/theme/layers";
 import { appSpacing } from "@/presentation/theme/spacing";
 
 type StickerPickerSheetProps = {
+  isLoading: boolean;
+  isRegistering: boolean;
   snapIndex: number;
   stickers: StickerAsset[];
   visible: boolean;
@@ -42,15 +46,10 @@ type StickerPickerSheetProps = {
   onSelectSticker: (asset: StickerAsset) => void;
 };
 
-const WIDGET_VARIANTS = [
-  "calendar",
-  "polaroidFrame",
-  "polaroidFramePortrait",
-  "speechBubble",
-] as const;
-
 export function StickerPickerSheet(props: StickerPickerSheetProps) {
   const {
+    isLoading,
+    isRegistering,
     onChangeSnapIndex,
     onClose,
     onRegisterFromClipboard,
@@ -64,23 +63,14 @@ export function StickerPickerSheet(props: StickerPickerSheetProps) {
   const [assetTypeValue, setAssetTypeValue] = useState<"stickers" | "widgets">(
     "stickers",
   );
-  const [isRegisterMenuOpen, setIsRegisterMenuOpen] = useState(false);
   const { width } = useWindowDimensions();
   const { cardGap, cardWidth } = getStickerLibraryGridLayout(
     width,
     appSpacing.screenHorizontalPadding,
   );
   const snapPoints = useMemo(() => ["40%", "90%"], []);
-  const widgetAssets = useMemo(
-    () =>
-      stickers.filter(
-        (asset) =>
-          asset.source === "widget" && WIDGET_VARIANTS.includes(asset.variant),
-      ),
-    [stickers],
-  );
-  const stickerAssets = useMemo(
-    () => stickers.filter((asset) => asset.source === "sticker"),
+  const { stickers: stickerAssets, widgets: widgetAssets } = useMemo(
+    () => partitionStickerAssets(stickers),
     [stickers],
   );
 
@@ -92,6 +82,11 @@ export function StickerPickerSheet(props: StickerPickerSheetProps) {
     bottomSheetRef.current?.snapToIndex(snapIndex);
   }, [snapIndex, visible]);
 
+  const handleClose = () => {
+    setAssetTypeValue("stickers");
+    onClose();
+  };
+
   if (!visible) {
     return null;
   }
@@ -99,26 +94,22 @@ export function StickerPickerSheet(props: StickerPickerSheetProps) {
   return (
     <BottomSheet
       ref={bottomSheetRef}
+      accessible={false}
       backgroundComponent={StickerPickerSheetBackground}
       backdropComponent={StickerPickerSheetBackdrop}
       containerStyle={styles.sheetContainer}
       enableDynamicSizing={false}
       enableHandlePanningGesture
       enablePanDownToClose
-      handleComponent={() => (
-        <StickerPickerSheetHandle isDimmed={isRegisterMenuOpen} />
-      )}
+      handleComponent={StickerPickerSheetHandle}
       index={snapIndex}
       snapPoints={snapPoints}
       onChange={(nextIndex) => {
-        if (nextIndex === -1) {
-          onClose();
-          return;
+        if (nextIndex >= 0) {
+          onChangeSnapIndex(nextIndex);
         }
-
-        onChangeSnapIndex(nextIndex);
       }}
-      onClose={onClose}
+      onClose={handleClose}
     >
       <View style={styles.header}>
         <View style={styles.assetTypeActions}>
@@ -136,40 +127,29 @@ export function StickerPickerSheet(props: StickerPickerSheetProps) {
           />
         </View>
         {assetTypeValue === "stickers" ? (
-          <Menu
-            accessibilityLabel="스티커 등록 메뉴 열기"
-            onOpenChange={setIsRegisterMenuOpen}
-            trigger={({ isOpen, toggle }) => (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="스티커 등록 메뉴 열기"
-                accessibilityState={{ expanded: isOpen }}
-                style={({ pressed }) => [
-                  styles.assetTypeButton,
-                  styles.assetTypeButtonSelected,
-                  pressed && styles.assetTypeButtonPressed,
-                ]}
-                onPress={toggle}
-              >
-                <ReiconIcon color={appColors.black} name="Add" size={24} />
-              </Pressable>
-            )}
+          <StickerRegistrationMenu
+            disabled={isRegistering}
+            onRegisterFromClipboard={() => onRegisterFromClipboard?.()}
+            onRegisterFromLibrary={() => onRegisterFromLibrary?.()}
           >
-            <Menu.Item
-              icon="Gallery"
-              label="갤러리에서 등록"
-              onPress={() => {
-                onRegisterFromLibrary?.();
-              }}
-            />
-            <Menu.Item
-              icon="Clipboard"
-              label="클립보드 붙여넣기"
-              onPress={() => {
-                onRegisterFromClipboard?.();
-              }}
-            />
-          </Menu>
+            <View
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="스티커 등록 메뉴 열기"
+              accessibilityState={{ disabled: isRegistering }}
+              style={[
+                styles.assetTypeButton,
+                styles.assetTypeButtonSelected,
+                isRegistering && styles.assetTypeButtonDisabled,
+              ]}
+            >
+              {isRegistering ? (
+                <ActivityIndicator color={appColors.black} size="small" />
+              ) : (
+                <ReiconIcon color={appColors.black} name="Add" size={24} />
+              )}
+            </View>
+          </StickerRegistrationMenu>
         ) : (
           <View style={styles.headerActionPlaceholder} />
         )}
@@ -184,6 +164,7 @@ export function StickerPickerSheet(props: StickerPickerSheetProps) {
             cardGap={cardGap}
             cardWidth={cardWidth}
             emptyText="사용할 수 있는 위젯이 없습니다."
+            isLoading={false}
             onSelectSticker={onSelectSticker}
           />
         ) : (
@@ -192,6 +173,7 @@ export function StickerPickerSheet(props: StickerPickerSheetProps) {
             cardGap={cardGap}
             cardWidth={cardWidth}
             emptyText="등록된 스티커가 없습니다."
+            isLoading={isLoading}
             onSelectSticker={onSelectSticker}
           />
         )}
@@ -205,9 +187,20 @@ function StickerPickerGrid(props: {
   cardGap: number;
   cardWidth: number;
   emptyText: string;
+  isLoading: boolean;
   onSelectSticker: (asset: StickerAsset) => void;
 }) {
-  const { assets, cardGap, cardWidth, emptyText, onSelectSticker } = props;
+  const { assets, cardGap, cardWidth, emptyText, isLoading, onSelectSticker } =
+    props;
+
+  if (isLoading) {
+    return (
+      <View style={styles.emptyPanel}>
+        <ActivityIndicator color={appColors.black} size="small" />
+        <Text style={styles.emptyText}>스티커를 불러오는 중이에요.</Text>
+      </View>
+    );
+  }
 
   if (assets.length === 0) {
     return (
@@ -226,7 +219,6 @@ function StickerPickerGrid(props: {
           isSelectable
           showsSelectionControl={false}
           tileSize={cardWidth}
-          onOpenDetails={onSelectSticker}
           onToggleSelection={onSelectSticker}
         />
       ))}
@@ -311,11 +303,9 @@ function StickerPickerSheetBackdrop(props: BottomSheetBackdropProps) {
   );
 }
 
-function StickerPickerSheetHandle(props: { isDimmed: boolean }) {
-  const { isDimmed } = props;
-
+function StickerPickerSheetHandle() {
   return (
-    <View style={[styles.handle, isDimmed && styles.handleDimmed]}>
+    <View style={styles.handle}>
       <View style={styles.handleIndicator} />
     </View>
   );
@@ -353,9 +343,6 @@ const styles = StyleSheet.create({
     padding: 10,
     width: "100%",
   },
-  handleDimmed: {
-    backgroundColor: appColors.blackOverlay26,
-  },
   header: {
     alignItems: "center",
     flexDirection: "row",
@@ -381,6 +368,9 @@ const styles = StyleSheet.create({
   },
   assetTypeButtonPressed: {
     opacity: 0.5,
+  },
+  assetTypeButtonDisabled: {
+    opacity: 0.4,
   },
   headerActionPlaceholder: {
     height: 40,

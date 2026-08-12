@@ -21,6 +21,7 @@ import {
   getRecapPhotoElementSize,
   sortRecapCanvasElements,
 } from "@/application/services/recap/recap-canvas-elements";
+import { resolveRecapCanvasTap } from "@/application/services/recap/recap-canvas-interaction";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import type { StickerAsset } from "@/application/services/stickers/types";
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
@@ -78,7 +79,6 @@ type RecapCanvasStickerItemProps = {
 const DEFAULT_ITEM_SIZE = 132;
 const MIN_ELEMENT_SCALE = 0.25;
 const MAX_ELEMENT_SCALE = 4;
-const DOUBLE_TAP_DELAY_MS = 280;
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
 export function RecapCanvasStickerLayer(props: RecapCanvasStickerLayerProps) {
@@ -111,9 +111,13 @@ export function RecapCanvasStickerLayer(props: RecapCanvasStickerLayerProps) {
       element.type === "sticker" ||
       element.type === "widget",
   );
+  const layerZIndex = getLayerZIndex(stickerElements);
 
   return (
-    <View pointerEvents="box-none" style={styles.layer}>
+    <View
+      pointerEvents="box-none"
+      style={[styles.layer, { zIndex: layerZIndex }]}
+    >
       {stickerElements.map((element) => {
         const asset =
           element.type === "sticker"
@@ -146,6 +150,22 @@ export function RecapCanvasStickerLayer(props: RecapCanvasStickerLayerProps) {
         );
       })}
     </View>
+  );
+}
+
+function getLayerZIndex(
+  elements: (
+    | RecapCanvasPhotoElement
+    | RecapCanvasStickerElement
+    | RecapCanvasWidgetElement
+  )[],
+): number {
+  return (
+    appLayers.canvasElement +
+    elements.reduce(
+      (highestZIndex, element) => Math.max(highestZIndex, element.zIndex),
+      0,
+    )
   );
 }
 
@@ -319,13 +339,13 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
   }));
   const handlePress = () => {
     const now = Date.now();
-    const isDoubleTap = now - lastTapAtRef.current <= DOUBLE_TAP_DELAY_MS;
+    const tapResult = resolveRecapCanvasTap(lastTapAtRef.current, now);
 
-    lastTapAtRef.current = now;
     onSelectElement(element.id);
+    lastTapAtRef.current = tapResult.nextLastTapAt;
 
     if (
-      isDoubleTap &&
+      tapResult.shouldStartEditing &&
       element.type === "widget" &&
       element.variant === "speechBubble"
     ) {
@@ -341,6 +361,7 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
       <GestureDetector gesture={gesture}>
         <Animated.View style={animatedElementTransformStyle}>
           <Pressable
+            accessible={!isEditing}
             accessibilityRole="button"
             accessibilityLabel={getElementAccessibilityLabel(element)}
             accessibilityState={{ selected: isSelected }}
@@ -355,9 +376,6 @@ function RecapCanvasStickerItem(props: RecapCanvasStickerItemProps) {
               ],
               isSelected && styles.selectedFrame,
             ]}
-            onLongPress={() => {
-              handleLongPress();
-            }}
             onPress={(event) => {
               event.stopPropagation();
               handlePress();
@@ -581,6 +599,7 @@ function RecapSpeechBubbleWidget(props: {
       style={styles.speechBubble}
     >
       <TextInput
+        accessibilityLabel="말풍선 내용 편집"
         autoFocus
         multiline
         scrollEnabled={false}

@@ -119,17 +119,19 @@ export function RecapTextTypographySheet(props: RecapTextTypographySheetProps) {
     }
   }, [visible]);
 
-  const handleDismiss = () => {
-    isPresentedRef.current = false;
+  const closePopover = useCallback(() => {
     setActivePopover(null);
     setPopoverFrame(null);
+  }, []);
+  const handleDismiss = () => {
+    isPresentedRef.current = false;
+    closePopover();
     onClose();
   };
   const handleTogglePopover = useCallback(
     (nextPopover: TypographyPopover, rowRef: RefObject<View | null>) => {
       if (activePopover === nextPopover) {
-        setActivePopover(null);
-        setPopoverFrame(null);
+        closePopover();
         return;
       }
 
@@ -138,17 +140,15 @@ export function RecapTextTypographySheet(props: RecapTextTypographySheetProps) {
         setActivePopover(nextPopover);
       });
     },
-    [activePopover],
+    [activePopover, closePopover],
   );
   const handleSelectFontFamily = (nextFontFamily: string | undefined) => {
     onChangeFontFamily(nextFontFamily);
-    setActivePopover(null);
-    setPopoverFrame(null);
+    closePopover();
   };
   const handleSelectFontSize = (nextFontSize: number) => {
     onChangeFontSize(nextFontSize);
-    setActivePopover(null);
-    setPopoverFrame(null);
+    closePopover();
   };
 
   return (
@@ -197,14 +197,14 @@ export function RecapTextTypographySheet(props: RecapTextTypographySheetProps) {
         transparent
         animationType="fade"
         visible={activePopover !== null}
-        onRequestClose={() => setActivePopover(null)}
+        onRequestClose={closePopover}
       >
         <View style={styles.modalRoot} pointerEvents="box-none">
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="서체와 글자 크기 옵션 닫기"
             style={StyleSheet.absoluteFill}
-            onPress={() => setActivePopover(null)}
+            onPress={closePopover}
           />
           {activePopover === "fontFamily" ? (
             <View style={[styles.floatingPopover, popoverStyle]}>

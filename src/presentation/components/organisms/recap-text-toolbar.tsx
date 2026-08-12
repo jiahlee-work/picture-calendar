@@ -5,21 +5,29 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import {
-  MenuView,
-  type MenuAction,
-  type NativeActionEvent,
-} from "@expo/ui/community/menu";
 import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
 
+import {
+  isRecapTextAlignmentSelected,
+  isRecapTextStyleSelected,
+  resolveRecapTextAlignmentUpdate,
+  resolveRecapTextStyleUpdate,
+  type RecapTextAlignmentActionId,
+  type RecapTextStyleActionId,
+  type RecapTextStyleUpdate,
+} from "@/application/services/recap/recap-canvas-text";
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
-import { Menu } from "@/presentation/components/molecules/menu";
 import { TextFormatIcon } from "@/presentation/components/atoms/text-format-icon";
 import { TextStyleIcon } from "@/presentation/components/atoms/text-style-icon";
+import { RecapTextMenuButton } from "@/presentation/components/molecules/recap-text-menu-button";
+import type { RecapTextMenuIconName } from "@/presentation/components/molecules/recap-text-menu-button.types";
+import { orderNativeMenuActions } from "@/presentation/helpers/controls/native-menu-actions";
 import { appColors } from "@/presentation/theme/colors";
 import type { RecapCanvasTextElement } from "@/shared/recap/types";
 
 type RecapTextToolbarProps = {
+  canMoveBackward: boolean;
+  canMoveForward: boolean;
   textElement: RecapCanvasTextElement;
   onDelete: () => void;
   onOpenColorPicker: () => void;
@@ -29,61 +37,39 @@ type RecapTextToolbarProps = {
   onUpdateTextStyle: (update: RecapTextStyleUpdate) => void;
 };
 
-export type RecapTextStyleUpdate = Partial<
-  Pick<
-    RecapCanvasTextElement,
-    "fontStyle" | "fontWeight" | "textAlign" | "textDecorationLine"
-  >
->;
-
 type StyleAction = {
-  accessibilityLabel: string;
-  id: "bold" | "italic" | "underline";
-  image: MenuAction["image"];
+  id: RecapTextStyleActionId;
+  icon: RecapTextMenuIconName;
   title: string;
-  isSelected: (textElement: RecapCanvasTextElement) => boolean;
-  resolveUpdate: (textElement: RecapCanvasTextElement) => RecapTextStyleUpdate;
 };
 
 type AlignAction = {
-  accessibilityLabel: string;
-  id: "center" | "left" | "right";
+  id: RecapTextAlignmentActionId;
+  icon: RecapTextMenuIconName;
   title: string;
-  isSelected: (textElement: RecapCanvasTextElement) => boolean;
-  resolveUpdate: () => RecapTextStyleUpdate;
+};
+
+type LayerAction = {
+  id: "backward" | "forward";
+  icon: RecapTextMenuIconName;
+  title: string;
 };
 
 const STYLE_ACTIONS: StyleAction[] = [
   {
-    accessibilityLabel: "텍스트 굵게",
     id: "bold",
-    image: "bold",
+    icon: "bold",
     title: "굵게",
-    isSelected: (textElement) => textElement.fontWeight === "bold",
-    resolveUpdate: (textElement) => ({
-      fontWeight: textElement.fontWeight === "bold" ? "normal" : "bold",
-    }),
   },
   {
-    accessibilityLabel: "텍스트 기울임",
     id: "italic",
-    image: "italic",
+    icon: "italic",
     title: "기울임",
-    isSelected: (textElement) => textElement.fontStyle === "italic",
-    resolveUpdate: (textElement) => ({
-      fontStyle: textElement.fontStyle === "italic" ? "normal" : "italic",
-    }),
   },
   {
-    accessibilityLabel: "텍스트 밑줄",
     id: "underline",
-    image: "underline",
+    icon: "underline",
     title: "밑줄",
-    isSelected: (textElement) => textElement.textDecorationLine === "underline",
-    resolveUpdate: (textElement) => ({
-      textDecorationLine:
-        textElement.textDecorationLine === "underline" ? "none" : "underline",
-    }),
   },
 ];
 
@@ -96,31 +82,39 @@ const TEXT_TOOLBAR_HORIZONTAL_PADDING = 10;
 
 const ALIGN_ACTIONS: AlignAction[] = [
   {
-    accessibilityLabel: "텍스트 왼쪽 정렬",
     id: "left",
+    icon: "alignLeft",
     title: "왼쪽 정렬",
-    isSelected: (textElement) =>
-      !textElement.textAlign || textElement.textAlign === "left",
-    resolveUpdate: () => ({ textAlign: "left" }),
   },
   {
-    accessibilityLabel: "텍스트 가운데 정렬",
     id: "center",
+    icon: "alignCenter",
     title: "가운데 정렬",
-    isSelected: (textElement) => textElement.textAlign === "center",
-    resolveUpdate: () => ({ textAlign: "center" }),
   },
   {
-    accessibilityLabel: "텍스트 오른쪽 정렬",
     id: "right",
+    icon: "alignRight",
     title: "오른쪽 정렬",
-    isSelected: (textElement) => textElement.textAlign === "right",
-    resolveUpdate: () => ({ textAlign: "right" }),
+  },
+];
+
+const LAYER_ACTIONS: LayerAction[] = [
+  {
+    id: "forward",
+    icon: "layerForward",
+    title: "앞으로",
+  },
+  {
+    id: "backward",
+    icon: "layerBackward",
+    title: "뒤로",
   },
 ];
 
 export function RecapTextToolbar(props: RecapTextToolbarProps) {
   const {
+    canMoveBackward,
+    canMoveForward,
     onDelete,
     onOpenColorPicker,
     onOpenTypographyPicker,
@@ -129,38 +123,63 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
     onUpdateTextStyle,
     textElement,
   } = props;
-  const styleMenuActions = STYLE_ACTIONS.map((action) => ({
-    id: action.id,
-    image: action.image,
-    state: action.isSelected(textElement) ? ("on" as const) : ("off" as const),
-    title: action.title,
-  })).reverse();
-  const alignMenuActions = ALIGN_ACTIONS.map((action) => ({
-    id: action.id,
-    state: action.isSelected(textElement) ? ("on" as const) : ("off" as const),
-    title: action.title,
-  }));
-  const handleStyleMenuAction = (event: NativeActionEvent) => {
+  const styleMenuActions = orderNativeMenuActions(
+    STYLE_ACTIONS.map((action) => ({
+      id: action.id,
+      icon: action.icon,
+      selected: isRecapTextStyleSelected(textElement, action.id),
+      title: action.title,
+    })),
+  );
+  const alignMenuActions = orderNativeMenuActions(
+    ALIGN_ACTIONS.map((action) => ({
+      id: action.id,
+      icon: action.icon,
+      selected: isRecapTextAlignmentSelected(textElement, action.id),
+      title: action.title,
+    })),
+  );
+  const layerMenuActions = orderNativeMenuActions(
+    LAYER_ACTIONS.map((action) => ({
+      disabled: action.id === "forward" ? !canMoveForward : !canMoveBackward,
+      id: action.id,
+      icon: action.icon,
+      title: action.title,
+    })),
+  );
+  const handleStyleMenuAction = (actionId: string) => {
     const selectedAction = STYLE_ACTIONS.find(
-      (action) => action.id === event.nativeEvent.event,
+      (action) => action.id === actionId,
     );
 
     if (!selectedAction) {
       return;
     }
 
-    onUpdateTextStyle(selectedAction.resolveUpdate(textElement));
+    onUpdateTextStyle(
+      resolveRecapTextStyleUpdate(textElement, selectedAction.id),
+    );
   };
-  const handleAlignMenuAction = (event: NativeActionEvent) => {
+  const handleAlignMenuAction = (actionId: string) => {
     const selectedAction = ALIGN_ACTIONS.find(
-      (action) => action.id === event.nativeEvent.event,
+      (action) => action.id === actionId,
     );
 
     if (!selectedAction) {
       return;
     }
 
-    onUpdateTextStyle(selectedAction.resolveUpdate());
+    onUpdateTextStyle(resolveRecapTextAlignmentUpdate(selectedAction.id));
+  };
+  const handleLayerMenuAction = (actionId: string) => {
+    if (actionId === "forward") {
+      onMoveForward();
+      return;
+    }
+
+    if (actionId === "backward") {
+      onMoveBackward();
+    }
   };
   return (
     <Animated.View
@@ -179,7 +198,7 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
             size={TEXT_TOOLBAR_TEXT_FORMAT_ICON_SIZE}
           />
         </ToolbarButton>
-        <ToolbarMenuButton
+        <RecapTextMenuButton
           accessibilityLabel="텍스트 스타일 선택"
           actions={styleMenuActions}
           onPressAction={handleStyleMenuAction}
@@ -188,42 +207,25 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
             color={appColors.black}
             size={TEXT_TOOLBAR_TEXT_STYLE_ICON_SIZE}
           />
-        </ToolbarMenuButton>
-        <ToolbarMenuButton
+        </RecapTextMenuButton>
+        <RecapTextMenuButton
           accessibilityLabel="텍스트 정렬 선택"
           actions={alignMenuActions}
           onPressAction={handleAlignMenuAction}
         >
           <ReiconIcon
             color={appColors.black}
-            name="AlignHCenter"
+            name="TextalignCenter"
             size={TEXT_TOOLBAR_ICON_SIZE}
           />
-        </ToolbarMenuButton>
-        <Menu
+        </RecapTextMenuButton>
+        <RecapTextMenuButton
           accessibilityLabel="텍스트 레이어 순서 선택"
-          panelMinWidth={0}
-          placement="top"
-          trigger={({ toggle }) => (
-            <ToolbarButton
-              accessibilityLabel="텍스트 레이어 순서 선택"
-              onPress={() => toggle()}
-            >
-              <ReiconIcon name="Layers" size={TEXT_TOOLBAR_ICON_SIZE} />
-            </ToolbarButton>
-          )}
+          actions={layerMenuActions}
+          onPressAction={handleLayerMenuAction}
         >
-          <Menu.Item
-            icon="LayersArrowUp"
-            label="앞으로"
-            onPress={onMoveForward}
-          />
-          <Menu.Item
-            icon="LayersArrowDown"
-            label="뒤로"
-            onPress={onMoveBackward}
-          />
-        </Menu>
+          <ReiconIcon name="Layers" size={TEXT_TOOLBAR_ICON_SIZE} />
+        </RecapTextMenuButton>
         <ToolbarButton
           accessibilityLabel="텍스트 색상 선택"
           onPress={onOpenColorPicker}
@@ -244,28 +246,6 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
         </ToolbarButton>
       </View>
     </Animated.View>
-  );
-}
-
-function ToolbarMenuButton(props: {
-  accessibilityLabel: string;
-  actions: MenuAction[];
-  children: ReactNode;
-  onPressAction: (event: NativeActionEvent) => void;
-}) {
-  const { accessibilityLabel, actions, children, onPressAction } = props;
-
-  return (
-    <MenuView actions={actions} onPressAction={onPressAction}>
-      <View
-        accessible
-        accessibilityRole="button"
-        accessibilityLabel={accessibilityLabel}
-        style={styles.toolbarButton}
-      >
-        {children}
-      </View>
-    </MenuView>
   );
 }
 

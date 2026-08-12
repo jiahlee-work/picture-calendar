@@ -11,7 +11,7 @@ export type StickerTileProps = {
   selectionMode?: boolean;
   showsSelectionControl?: boolean;
   tileSize: number;
-  onOpenDetails: (asset: StickerAsset) => void;
+  onOpenDetails?: (asset: StickerAsset) => void;
   onToggleSelection?: (asset: StickerAsset) => void;
 };
 
@@ -27,11 +27,17 @@ export function StickerTile(props: StickerTileProps) {
     tileSize,
   } = props;
   const title = asset.name ?? "Sticker";
-  const accessibilityHint = isSelectable
-    ? "탭하여 스티커 선택, 길게 눌러 스티커 상세보기"
-    : selectionMode
-      ? "스티커 선택 상태 변경"
-      : "길게 눌러 스티커 상세보기";
+  const canOpenDetails = Boolean(onOpenDetails);
+  const accessibilityHint =
+    isSelectable && canOpenDetails
+      ? "탭하여 스티커 선택, 길게 눌러 스티커 상세보기"
+      : isSelectable
+        ? "탭하여 스티커 선택"
+        : selectionMode
+          ? "스티커 선택 상태 변경"
+          : canOpenDetails
+            ? "길게 눌러 스티커 상세보기"
+            : undefined;
 
   const handlePress = () => {
     if (isSelectable) {
@@ -56,7 +62,7 @@ export function StickerTile(props: StickerTileProps) {
         },
       ]}
       onPress={handlePress}
-      onLongPress={() => onOpenDetails(asset)}
+      onLongPress={onOpenDetails ? () => onOpenDetails(asset) : undefined}
     >
       <StickerAssetPreview asset={asset} />
       {showsSelectionControl && (

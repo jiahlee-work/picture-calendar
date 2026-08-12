@@ -9,6 +9,7 @@ import type {
   RecapCanvasLayoutState,
 } from "@/shared/recap/types";
 import { RecapCanvasLayoutId as RecapCanvasLayoutIdValue } from "@/shared/recap/types";
+import { parseRecapCanvasTextMetadata } from "@/infrastructure/persistence/recap/recap-canvas-text-metadata";
 
 const MONTHLY_RECAP_CANVASES_DIRECTORY_NAME = "monthly-recap-canvases";
 const METADATA_FILE_NAME = "metadata.json";
@@ -152,26 +153,7 @@ function toRecapCanvasElement(value: unknown): RecapCanvasElement | null {
   }
 
   if (base.type === "text") {
-    const content = stringValue(value.content);
-    const color = stringValue(value.color);
-    const fontSize = numberValue(value.fontSize);
-
-    if (!content || !color || fontSize === null) {
-      return null;
-    }
-
-    return {
-      ...base,
-      color,
-      content,
-      fontFamily: stringValue(value.fontFamily) ?? undefined,
-      fontSize,
-      fontStyle: fontStyleValue(value.fontStyle),
-      fontWeight: fontWeightValue(value.fontWeight),
-      textAlign: textAlignValue(value.textAlign),
-      textDecorationLine: textDecorationLineValue(value.textDecorationLine),
-      type: "text",
-    };
+    return parseRecapCanvasTextMetadata(value, base);
   }
 
   if (base.type === "widget") {
@@ -280,24 +262,6 @@ function elementTypeValue(value: unknown): RecapCanvasElementType | null {
   }
 
   return null;
-}
-
-function fontStyleValue(value: unknown) {
-  return value === "italic" || value === "normal" ? value : undefined;
-}
-
-function fontWeightValue(value: unknown) {
-  return value === "bold" || value === "normal" ? value : undefined;
-}
-
-function textAlignValue(value: unknown) {
-  return value === "center" || value === "left" || value === "right"
-    ? value
-    : undefined;
-}
-
-function textDecorationLineValue(value: unknown) {
-  return value === "none" || value === "underline" ? value : undefined;
 }
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {

@@ -6,6 +6,7 @@
   "dependencies": {
     "@expo/ui": "~56.0.25",
     "@gorhom/bottom-sheet": "^5.2.14",
+    "@gorhom/portal": "^1.0.14",
     "@quidone/react-native-wheel-picker": "^1.7.0",
     "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-native-community/datetimepicker": "^9.1.0",
@@ -75,6 +76,7 @@
     "lint:fix": "expo lint --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "generate:native-menu-icons": "node scripts/generate-reicon-menu-assets.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "check": "tsc --noEmit && node scripts/boundary-check.js",

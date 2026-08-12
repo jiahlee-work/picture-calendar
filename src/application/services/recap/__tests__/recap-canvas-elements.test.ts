@@ -7,6 +7,7 @@ import {
   createRecapWidgetElement,
   deleteRecapCanvasElement,
   getNextRecapCanvasElementZIndex,
+  getRecapCanvasElementLayerCapabilities,
   getRecapPhotoElementSize,
   moveRecapCanvasElement,
   updateRecapCanvasTextElement,
@@ -205,6 +206,24 @@ describe("recap canvas elements", () => {
     ]);
   });
 
+  it("normalizes text values while applying an update", () => {
+    expect(
+      updateRecapCanvasTextElement([createElement()], "text-1", {
+        color: "#FFF",
+        fontFamily: " Unknown Font ",
+        fontSize: 999,
+        width: 12,
+      }),
+    ).toMatchObject([
+      {
+        color: "#ffffff",
+        fontFamily: undefined,
+        fontSize: 180,
+        width: 72,
+      },
+    ]);
+  });
+
   it("deletes elements by id", () => {
     expect(
       deleteRecapCanvasElement(
@@ -223,23 +242,132 @@ describe("recap canvas elements", () => {
     ).toBe(8);
   });
 
-  it("moves an element one layer forward or backward", () => {
+  it("reports whether an element can move to a layer boundary", () => {
     const elements = [
       createElement({ id: "bottom", zIndex: 1 }),
       createElement({ id: "middle", zIndex: 2 }),
       createElement({ id: "top", zIndex: 3 }),
     ];
 
+    expect(getRecapCanvasElementLayerCapabilities(elements, "bottom")).toEqual({
+      canMoveBackward: false,
+      canMoveForward: true,
+    });
+    expect(getRecapCanvasElementLayerCapabilities(elements, "middle")).toEqual({
+      canMoveBackward: true,
+      canMoveForward: true,
+    });
+    expect(getRecapCanvasElementLayerCapabilities(elements, "top")).toEqual({
+      canMoveBackward: true,
+      canMoveForward: false,
+    });
+    expect(getRecapCanvasElementLayerCapabilities(elements, "missing")).toEqual(
+      {
+        canMoveBackward: false,
+        canMoveForward: false,
+      },
+    );
+  });
+
+  it("moves an element to the front or back", () => {
+    const elements = [
+      createElement({ id: "bottom", zIndex: 10 }),
+      createElement({ id: "middle", zIndex: 20 }),
+      createElement({ id: "top", zIndex: 30 }),
+    ];
+
+    expect(moveRecapCanvasElement(elements, "middle", "forward")).toMatchObject(
+      [
+        { id: "bottom", zIndex: 1 },
+        { id: "top", zIndex: 2 },
+        { id: "middle", zIndex: 3 },
+      ],
+    );
     expect(
-      moveRecapCanvasElement(elements, "middle", "forward").map(
+      moveRecapCanvasElement(elements, "middle", "backward"),
+    ).toMatchObject([
+      { id: "middle", zIndex: 1 },
+      { id: "bottom", zIndex: 2 },
+      { id: "top", zIndex: 3 },
+    ]);
+  });
+
+  it("keeps z-index values normalized after repeated layer moves", () => {
+    const initialElements = [
+      createElement({ id: "bottom", zIndex: -50 }),
+      createElement({ id: "middle", zIndex: 12 }),
+      createElement({ id: "top", zIndex: 900 }),
+    ];
+    const movedForward = moveRecapCanvasElement(
+      initialElements,
+      "bottom",
+      "forward",
+    );
+    const movedBackward = moveRecapCanvasElement(
+      movedForward,
+      "top",
+      "backward",
+    );
+
+    expect(movedBackward.map((element) => element.zIndex)).toEqual([1, 2, 3]);
+    expect(movedBackward.map((element) => element.id)).toEqual([
+      "top",
+      "middle",
+      "bottom",
+    ]);
+  });
+
+  it("moves a calendar widget in front of multiple stickers at once", () => {
+    const elements = [
+      createElement({
+        id: "calendar",
+        type: "widget",
+        variant: "calendar",
+        zIndex: 1,
+      }),
+      createElement({
+        id: "house",
+        type: "sticker",
+        stickerAssetId: "house",
+        zIndex: 2,
+      }),
+      createElement({
+        id: "star",
+        type: "sticker",
+        stickerAssetId: "star",
+        zIndex: 3,
+      }),
+    ];
+
+    expect(
+      moveRecapCanvasElement(elements, "calendar", "forward").map(
         (element) => element.id,
       ),
-    ).toEqual(["bottom", "top", "middle"]);
+    ).toEqual(["house", "star", "calendar"]);
+  });
+
+  it("moves a calendar widget behind both a sticker and text at once", () => {
+    const elements = [
+      createElement({
+        id: "house",
+        type: "sticker",
+        stickerAssetId: "house",
+        zIndex: 1,
+      }),
+      createElement({ id: "caption", type: "text", zIndex: 2 }),
+      createElement({
+        id: "calendar",
+        type: "widget",
+        variant: "calendar",
+        zIndex: 3,
+      }),
+    ];
+
     expect(
-      moveRecapCanvasElement(elements, "middle", "backward").map(
+      moveRecapCanvasElement(elements, "calendar", "backward").map(
         (element) => element.id,
       ),
-    ).toEqual(["middle", "bottom", "top"]);
+    ).toEqual(["calendar", "house", "caption"]);
   });
 
   it("keeps an element unchanged at the layer boundary", () => {

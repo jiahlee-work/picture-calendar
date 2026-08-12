@@ -1,9 +1,8 @@
 import type { StyleProp, ViewStyle } from "react-native";
 import type { IconComponent, IconWeight } from "reicon-react-native/createIcon";
+import LayersArrowDownIcon from "@/presentation/components/atoms/reicon-icons/layers-arrow-down";
+import LayersArrowUpIcon from "@/presentation/components/atoms/reicon-icons/layers-arrow-up";
 import AddIcon from "reicon-react-native/icons/Add";
-import AlignHCenterIcon from "reicon-react-native/icons/AlignHCenter";
-import AlignLeftIcon from "reicon-react-native/icons/AlignLeft";
-import AlignRightIcon from "reicon-react-native/icons/AlignRight";
 import AlertCircleIcon from "reicon-react-native/icons/AlertCircle";
 import AngleRightIcon from "reicon-react-native/icons/AngleRight";
 import ArrowRightIcon from "reicon-react-native/icons/ArrowRight";
@@ -32,10 +31,11 @@ import StarIcon from "reicon-react-native/icons/Star";
 import StickerSmileIcon from "reicon-react-native/icons/StickerSmile";
 import TagIcon from "reicon-react-native/icons/Tag";
 import TextIcon from "reicon-react-native/icons/Text";
+import TextalignCenterIcon from "reicon-react-native/icons/TextalignCenter";
+import TextalignLeftIcon from "reicon-react-native/icons/TextalignLeft";
+import TextalignRightIcon from "reicon-react-native/icons/TextalignRight";
 import Trash5Icon from "reicon-react-native/icons/Trash5";
 import ItalicIcon from "reicon-react-native/icons/Italic";
-import LayersArrowDownIcon from "./reicon-icons/layers-arrow-down";
-import LayersArrowUpIcon from "./reicon-icons/layers-arrow-up";
 import UnderlineIcon from "reicon-react-native/icons/Underline";
 import Wand3Icon from "reicon-react-native/icons/Wand3";
 import Widget6Icon from "reicon-react-native/icons/Widget6";
@@ -43,9 +43,6 @@ import XIcon from "reicon-react-native/icons/X";
 
 const REICON_COMPONENTS = {
   Add: AddIcon,
-  AlignHCenter: AlignHCenterIcon,
-  AlignLeft: AlignLeftIcon,
-  AlignRight: AlignRightIcon,
   AlertCircle: AlertCircleIcon,
   ArrowRight: ArrowRightIcon,
   AngleRight: AngleRightIcon,
@@ -77,6 +74,9 @@ const REICON_COMPONENTS = {
   StickerSmile: StickerSmileIcon,
   Tag: TagIcon,
   Text: TextIcon,
+  TextalignCenter: TextalignCenterIcon,
+  TextalignLeft: TextalignLeftIcon,
+  TextalignRight: TextalignRightIcon,
   Trash5: Trash5Icon,
   Underline: UnderlineIcon,
   Wand3: Wand3Icon,

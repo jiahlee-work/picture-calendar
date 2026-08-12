@@ -16,17 +16,18 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useStickerLibrary } from "@/application/hooks/use-sticker-library";
-import { getStickerLibraryGridLayout } from "@/presentation/helpers/stickers/sticker-library-layout";
 import type {
   StickerAsset,
   UserStickerAsset,
 } from "@/application/services/stickers/types";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
-import { Menu } from "@/presentation/components/molecules/menu";
+import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import { SegmentedTabs } from "@/presentation/components/molecules/segmented-tabs";
+import { StickerRegistrationMenu } from "@/presentation/components/molecules/sticker-registration-menu";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { StickerDetailSheet } from "@/presentation/components/organisms/sticker-detail-sheet";
 import { StickerTile } from "@/presentation/components/organisms/sticker-tile";
+import { getStickerLibraryGridLayout } from "@/presentation/helpers/stickers/sticker-library-layout";
 import { useAppBottomNavigationHidden } from "@/presentation/providers/app-bottom-navigation-controller";
 import { appColors } from "@/presentation/theme/colors";
 import { appLayers } from "@/presentation/theme/layers";
@@ -303,26 +304,28 @@ export function StickerLibraryScreen() {
       <AppBar>
         <AppBar.Title variant="large">Library</AppBar.Title>
         {activeTabValue === "sticker" ? (
-          <Menu
-            accessibilityLabel="스티커 등록 메뉴 열기"
+          <StickerRegistrationMenu
             disabled={isSelectionMode}
-            trigger={{ icon: "Add" }}
+            onRegisterFromClipboard={() => {
+              void handleRegisterFromClipboard();
+            }}
+            onRegisterFromLibrary={() => {
+              void handleRegisterFromLibrary();
+            }}
           >
-            <Menu.Item
-              icon="Gallery"
-              label="갤러리에서 등록"
-              onPress={() => {
-                void handleRegisterFromLibrary();
-              }}
-            />
-            <Menu.Item
-              icon="Clipboard"
-              label="클립보드 붙여넣기"
-              onPress={() => {
-                void handleRegisterFromClipboard();
-              }}
-            />
-          </Menu>
+            <View
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel="스티커 등록 메뉴 열기"
+              accessibilityState={{ disabled: isSelectionMode }}
+              style={[
+                styles.registrationMenuTrigger,
+                isSelectionMode && styles.registrationMenuTriggerDisabled,
+              ]}
+            >
+              <ReiconIcon color={appColors.white} name="Add" size={24} />
+            </View>
+          </StickerRegistrationMenu>
         ) : (
           <View style={styles.appBarActionPlaceholder} />
         )}
@@ -485,6 +488,17 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
+  },
+  registrationMenuTrigger: {
+    alignItems: "center",
+    backgroundColor: appColors.blackOverlay26,
+    borderRadius: 20,
+    height: 40,
+    justifyContent: "center",
+    width: 40,
+  },
+  registrationMenuTriggerDisabled: {
+    opacity: 0.38,
   },
   emptyPanel: {
     alignItems: "center",

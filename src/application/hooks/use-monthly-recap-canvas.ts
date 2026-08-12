@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { createMonthlyRecapCanvasRepositoryForRuntime } from "@/application/services/recap/monthly-recap-canvas-repository-factory";
+import { normalizeRecapCanvasTextElements } from "@/application/services/recap/recap-canvas-text";
 import { LOCAL_USER_ID } from "@/application/services/local-user";
 import { runtimePlatform } from "@/infrastructure/device/runtime-platform";
 import { logger } from "@/infrastructure/logging/logger";
@@ -33,7 +34,16 @@ export function useMonthlyRecapCanvas(monthKey: string) {
       setState((current) => ({ ...current, isLoading: true }));
 
       try {
-        const canvas = await repository.getByMonth(LOCAL_USER_ID, monthKey);
+        const storedCanvas = await repository.getByMonth(
+          LOCAL_USER_ID,
+          monthKey,
+        );
+        const canvas = storedCanvas
+          ? {
+              ...storedCanvas,
+              elements: normalizeRecapCanvasTextElements(storedCanvas.elements),
+            }
+          : null;
 
         if (isMounted) {
           setState((current) => ({
@@ -68,6 +78,7 @@ export function useMonthlyRecapCanvas(monthKey: string) {
       try {
         const canvas = await repository.save({
           ...draft,
+          elements: normalizeRecapCanvasTextElements(draft.elements),
           month: monthKey,
           userId: LOCAL_USER_ID,
         });

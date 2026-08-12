@@ -29,7 +29,7 @@ type RecapColorSheetProps = {
   onClose: () => void;
 };
 
-const BASIC_TEXT_COLOR_OPTIONS = [
+const BASIC_COLOR_OPTIONS = [
   "#121212",
   "#FFFFFF",
   "#EF4444",
@@ -58,10 +58,7 @@ export function RecapColorSheet(props: RecapColorSheetProps) {
     [isCustomPickerVisible],
   );
   const colorRows = useMemo(
-    () => [
-      BASIC_TEXT_COLOR_OPTIONS.slice(0, 6),
-      BASIC_TEXT_COLOR_OPTIONS.slice(6, 12),
-    ],
+    () => [BASIC_COLOR_OPTIONS.slice(0, 6), BASIC_COLOR_OPTIONS.slice(6, 12)],
     [],
   );
 

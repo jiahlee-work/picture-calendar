@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { createStickerFileStoreForRuntime } from "@/application/services/stickers/sticker-file-store-factory";
 import { createStickerRepositoryForRuntime } from "@/application/services/stickers/sticker-repository-factory";
-import { listStickerAssets } from "@/application/services/stickers/sticker-assets";
+import {
+  listStickerAssets,
+  WIDGET_ASSETS,
+} from "@/application/services/stickers/sticker-assets";
 import { toDefaultStickerName } from "@/application/services/stickers/sticker-name";
 import type {
   StickerAsset,
@@ -28,7 +31,9 @@ type StickerRegistrationResult =
   | "failed";
 
 export function useStickerLibrary() {
-  const [stickers, setStickers] = useState<StickerAsset[]>([]);
+  const [stickers, setStickers] = useState<StickerAsset[]>(() => [
+    ...WIDGET_ASSETS,
+  ]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const fileStore = useMemo(

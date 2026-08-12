@@ -7,45 +7,47 @@ import {
 } from "@/presentation/components/atoms/reicon-icon";
 import { appColors } from "@/presentation/theme/colors";
 
-export type RecapDecoratingToolbarAction = {
+export type RecapDecoratingToolbarActionId =
+  "background" | "layout" | "photo" | "sticker" | "text";
+
+type RecapDecoratingToolbarAction = {
   accessibilityLabel: string;
   icon: ReiconName;
-  id: "background" | "gallery" | "layout" | "sticker" | "text";
+  id: RecapDecoratingToolbarActionId;
 };
 
-export const RECAP_DECORATING_TOOLBAR_ACTIONS: RecapDecoratingToolbarAction[] =
-  [
-    {
-      accessibilityLabel: "레이아웃 선택",
-      icon: "Grid10",
-      id: "layout",
-    },
-    {
-      accessibilityLabel: "배경색 선택",
-      icon: "ColorsSquare",
-      id: "background",
-    },
-    {
-      accessibilityLabel: "텍스트 추가",
-      icon: "Text",
-      id: "text",
-    },
-    {
-      accessibilityLabel: "라이브러리 열기",
-      icon: "StickerSmile",
-      id: "sticker",
-    },
-    {
-      accessibilityLabel: "리캡 사진 선택",
-      icon: "Gallery",
-      id: "gallery",
-    },
-  ];
+const RECAP_DECORATING_TOOLBAR_ACTIONS = [
+  {
+    accessibilityLabel: "레이아웃 선택",
+    icon: "Grid10",
+    id: "layout",
+  },
+  {
+    accessibilityLabel: "배경색 선택",
+    icon: "ColorsSquare",
+    id: "background",
+  },
+  {
+    accessibilityLabel: "텍스트 추가",
+    icon: "Text",
+    id: "text",
+  },
+  {
+    accessibilityLabel: "라이브러리 열기",
+    icon: "StickerSmile",
+    id: "sticker",
+  },
+  {
+    accessibilityLabel: "리캡 사진 선택",
+    icon: "Gallery",
+    id: "photo",
+  },
+] satisfies RecapDecoratingToolbarAction[];
 
 const RECAP_DECORATING_TOOLBAR_ICON_SIZE = 24;
 
 type RecapDecoratingToolbarProps = {
-  onSelectAction: (action: RecapDecoratingToolbarAction) => void;
+  onSelectAction: (actionId: RecapDecoratingToolbarActionId) => void;
 };
 
 export function RecapDecoratingToolbar(props: RecapDecoratingToolbarProps) {
@@ -67,7 +69,7 @@ export function RecapDecoratingToolbar(props: RecapDecoratingToolbarProps) {
             styles.toolbarButton,
             pressed && styles.toolbarButtonPressed,
           ]}
-          onPress={() => onSelectAction(action)}
+          onPress={() => onSelectAction(action.id)}
         >
           <ReiconIcon
             color={appColors.black}

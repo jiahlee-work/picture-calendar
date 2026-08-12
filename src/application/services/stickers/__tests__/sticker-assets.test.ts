@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { listStickerAssets } from "@/application/services/stickers/sticker-assets";
+import {
+  listStickerAssets,
+  partitionStickerAssets,
+  WIDGET_ASSETS,
+} from "@/application/services/stickers/sticker-assets";
 import type { StickerRepository } from "@/application/services/stickers/types";
 
 describe("listStickerAssets", () => {
@@ -28,6 +32,26 @@ describe("listStickerAssets", () => {
       },
       { id: "user-sticker", source: "sticker", userId: "user-1" },
     ]);
+  });
+});
+
+describe("partitionStickerAssets", () => {
+  it("separates widgets from user stickers while preserving their order", () => {
+    const userSticker = {
+      id: "user-sticker",
+      source: "sticker" as const,
+      userId: "user-1",
+      imagePath: "file://sticker.png",
+      storageKey: "user-1/sticker.png",
+      createdAt: "2026-06-01T00:00:00.000Z",
+    };
+
+    expect(
+      partitionStickerAssets([WIDGET_ASSETS[1], userSticker, WIDGET_ASSETS[0]]),
+    ).toEqual({
+      stickers: [userSticker],
+      widgets: [WIDGET_ASSETS[1], WIDGET_ASSETS[0]],
+    });
   });
 });
 

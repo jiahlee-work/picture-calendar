@@ -1,9 +1,17 @@
-import { createContext, use, useState, type ReactNode } from "react";
+import { Portal } from "@gorhom/portal";
 import {
-  type LayoutChangeEvent,
+  createContext,
+  use,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import {
   Pressable,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import Animated, {
@@ -11,11 +19,18 @@ import Animated, {
   FadeOut,
   ZoomInEasyDown,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   ReiconIcon,
   type ReiconName,
 } from "@/presentation/components/atoms/reicon-icon";
+import {
+  getMenuPanelLayout,
+  type MenuAnchorFrame,
+  type MenuPanelPlacement,
+} from "@/presentation/helpers/controls/menu-panel-layout";
+import { APP_OVERLAY_PORTAL_HOST_NAME } from "@/presentation/helpers/overlays/app-portal";
 import { appColors } from "@/presentation/theme/colors";
 
 type MenuProps = {
@@ -23,8 +38,7 @@ type MenuProps = {
   children: ReactNode;
   disabled?: boolean;
   onOpenChange?: (isOpen: boolean) => void;
-  panelMinWidth?: number;
-  placement?: "bottom" | "top";
+  placement?: MenuPanelPlacement;
   trigger: MenuTriggerConfig | ((props: MenuTriggerRenderProps) => ReactNode);
 };
 
@@ -40,6 +54,7 @@ type MenuTriggerRenderProps = {
 };
 
 type MenuItemProps = {
+  disabled?: boolean;
   icon?: ReiconName;
   label: string;
   onPress: () => void;
@@ -54,7 +69,6 @@ type MenuComponent = {
 const MenuCloseContext = createContext<(() => void) | null>(null);
 
 const MENU_BUTTON_SIZE = 40;
-const MENU_PANEL_GAP = 8;
 
 function MenuRoot(props: MenuProps) {
   const {
@@ -62,41 +76,64 @@ function MenuRoot(props: MenuProps) {
     children,
     disabled = false,
     onOpenChange,
-    panelMinWidth = 148,
     placement = "bottom",
     trigger,
   } = props;
-  const [isOpen, setIsOpen] = useState(false);
-  const [triggerHeight, setTriggerHeight] = useState(MENU_BUTTON_SIZE);
-  const panelTop = triggerHeight + MENU_PANEL_GAP;
-  const panelBottom = triggerHeight + MENU_PANEL_GAP;
+  const triggerRef = useRef<View>(null);
+  const insets = useSafeAreaInsets();
+  const { height: screenHeight, width: screenWidth } = useWindowDimensions();
+  const [isOpening, setIsOpening] = useState(false);
+  const [anchorFrame, setAnchorFrame] = useState<MenuAnchorFrame | null>(null);
+  const isOpen = anchorFrame !== null;
+  const panelLayout = anchorFrame
+    ? getMenuPanelLayout(
+        anchorFrame,
+        { height: screenHeight, width: screenWidth },
+        insets,
+        placement,
+      )
+    : null;
 
   const handleToggle = () => {
     if (disabled) {
       return;
     }
 
-    setIsOpen((current) => {
-      const nextIsOpen = !current;
-      onOpenChange?.(nextIsOpen);
-      return nextIsOpen;
-    });
+    if (isOpen) {
+      setAnchorFrame(null);
+      onOpenChange?.(false);
+      return;
+    }
+
+    setIsOpening(true);
   };
   const handleClose = () => {
-    setIsOpen(false);
+    setAnchorFrame(null);
     onOpenChange?.(false);
   };
-  const handleTriggerLayout = (event: LayoutChangeEvent) => {
-    const nextHeight = Math.round(event.nativeEvent.layout.height);
 
-    setTriggerHeight((current) =>
-      current === nextHeight ? current : nextHeight,
-    );
-  };
+  useLayoutEffect(() => {
+    if (!isOpening) {
+      return;
+    }
+
+    const triggerNode = triggerRef.current;
+
+    if (!triggerNode) {
+      setIsOpening(false);
+      return;
+    }
+
+    triggerNode.measureInWindow((x, y, width, height) => {
+      setIsOpening(false);
+      setAnchorFrame({ height, width, x, y });
+      onOpenChange?.(true);
+    });
+  }, [isOpening, onOpenChange]);
 
   return (
     <View style={styles.root}>
-      <View onLayout={handleTriggerLayout}>
+      <View ref={triggerRef} collapsable={false}>
         {typeof trigger === "function" ? (
           trigger({ isOpen, toggle: handleToggle })
         ) : (
@@ -110,31 +147,28 @@ function MenuRoot(props: MenuProps) {
         )}
       </View>
 
-      {isOpen && (
-        <>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="메뉴 닫기"
-            style={styles.dismissOverlay}
-            onPress={handleClose}
-          />
-          <Animated.View
-            entering={ZoomInEasyDown.duration(220).easing(
-              Easing.out(Easing.cubic),
-            )}
-            exiting={FadeOut.duration(120).easing(Easing.out(Easing.quad))}
-            style={[
-              styles.panel,
-              {
-                bottom: placement === "top" ? panelBottom : undefined,
-                minWidth: panelMinWidth,
-                top: placement === "bottom" ? panelTop : undefined,
-              },
-            ]}
-          >
-            <MenuCloseContext value={handleClose}>{children}</MenuCloseContext>
-          </Animated.View>
-        </>
+      {isOpen && panelLayout && (
+        <Portal hostName={APP_OVERLAY_PORTAL_HOST_NAME}>
+          <View pointerEvents="box-none" style={styles.portalRoot}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="메뉴 닫기"
+              style={styles.dismissOverlay}
+              onPress={handleClose}
+            />
+            <Animated.View
+              entering={ZoomInEasyDown.duration(220).easing(
+                Easing.out(Easing.cubic),
+              )}
+              exiting={FadeOut.duration(120).easing(Easing.out(Easing.quad))}
+              style={[styles.panel, panelLayout]}
+            >
+              <MenuCloseContext value={handleClose}>
+                {children}
+              </MenuCloseContext>
+            </Animated.View>
+          </View>
+        </Portal>
       )}
     </View>
   );
@@ -182,19 +216,32 @@ function MenuTrigger({
 }
 
 function MenuItem(props: MenuItemProps) {
-  const { icon, label, onPress } = props;
+  const { disabled = false, icon, label, onPress } = props;
   const closeMenu = useMenuClose();
 
   const handlePress = () => {
-    closeMenu?.();
+    if (disabled) {
+      return;
+    }
+
     onPress();
+    closeMenu?.();
   };
 
   return (
     <Pressable
       accessibilityRole="menuitem"
-      style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
-      onPress={handlePress}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      style={({ pressed }) => [
+        styles.item,
+        disabled && styles.itemDisabled,
+        pressed && styles.itemPressed,
+      ]}
+      onPress={(event) => {
+        event.stopPropagation();
+        handlePress();
+      }}
     >
       {icon && <ReiconIcon color={appColors.black} name={icon} size={20} />}
       <Text style={styles.itemText}>{label}</Text>
@@ -247,23 +294,16 @@ const styles = StyleSheet.create({
   },
   dismissOverlay: {
     backgroundColor: appColors.blackOverlay26,
-    bottom: -3000,
-    left: -3000,
-    position: "absolute",
-    right: -3000,
-    top: -3000,
-    zIndex: 9,
+    ...StyleSheet.absoluteFill,
   },
   panel: {
     backgroundColor: appColors.background,
     borderColor: "#eeeeee",
     borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
-    minWidth: 148,
     overflow: "hidden",
     position: "absolute",
-    right: 0,
-    zIndex: 11,
+    zIndex: 1,
   },
   item: {
     alignItems: "center",
@@ -272,12 +312,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 14,
   },
+  itemDisabled: {
+    opacity: 0.34,
+  },
   itemPressed: {
     backgroundColor: "#f4f4f4",
   },
   itemText: {
     color: appColors.black,
+    flexShrink: 1,
     fontSize: 15,
     fontWeight: "800",
+  },
+  portalRoot: {
+    ...StyleSheet.absoluteFill,
+    elevation: 100,
+    zIndex: 100,
   },
 });

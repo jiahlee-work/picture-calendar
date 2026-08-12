@@ -16,6 +16,16 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { sortRecapCanvasElements } from "@/application/services/recap/recap-canvas-elements";
+import { resolveRecapCanvasTap } from "@/application/services/recap/recap-canvas-interaction";
+import {
+  DEFAULT_RECAP_TEXT_WIDTH,
+  MAX_RECAP_TEXT_FONT_SIZE,
+  MAX_RECAP_TEXT_WIDTH,
+  MIN_RECAP_TEXT_FONT_SIZE,
+  MIN_RECAP_TEXT_WIDTH,
+  normalizeRecapTextFontSize,
+  normalizeRecapTextWidth,
+} from "@/application/services/recap/recap-canvas-text";
 import { appColors } from "@/presentation/theme/colors";
 import { appLayers } from "@/presentation/theme/layers";
 import type {
@@ -45,12 +55,6 @@ type RecapCanvasTextItemProps = {
 
 const MIN_TEXT_SCALE = 0.35;
 const MAX_TEXT_SCALE = 4;
-const MIN_TEXT_FONT_SIZE = 8;
-const MAX_TEXT_FONT_SIZE = 180;
-const MIN_TEXT_BOX_WIDTH = 72;
-const MAX_TEXT_BOX_WIDTH = 720;
-const DEFAULT_TEXT_BOX_WIDTH = 340;
-const DOUBLE_TAP_DELAY_MS = 280;
 const ITALIC_SKEW_X = "-10deg";
 
 const AnimatedText = Animated.createAnimatedComponent(Text);
@@ -69,12 +73,12 @@ export function RecapCanvasTextLayer(props: RecapCanvasTextLayerProps) {
   const textElements = sortRecapCanvasElements(elements).filter(
     (element): element is RecapCanvasTextElement => element.type === "text",
   );
+  const layerZIndex = getLayerZIndex(textElements);
 
   return (
-    <Pressable
-      accessibilityRole="none"
-      style={styles.layer}
-      onPress={() => onSelectElement(null)}
+    <Animated.View
+      pointerEvents="box-none"
+      style={[styles.layer, { zIndex: layerZIndex }]}
     >
       {textElements.map((element) => (
         <RecapCanvasTextItem
@@ -88,7 +92,17 @@ export function RecapCanvasTextLayer(props: RecapCanvasTextLayerProps) {
           onStartTextEditing={onStartTextEditing}
         />
       ))}
-    </Pressable>
+    </Animated.View>
+  );
+}
+
+function getLayerZIndex(elements: RecapCanvasTextElement[]): number {
+  return (
+    appLayers.canvasElement +
+    elements.reduce(
+      (highestZIndex, element) => Math.max(highestZIndex, element.zIndex),
+      0,
+    )
   );
 }
 
@@ -107,13 +121,15 @@ function RecapCanvasTextItem(props: RecapCanvasTextItemProps) {
   const elementY = useSharedValue(element.y);
   const elementScale = useSharedValue(element.scale);
   const elementRotation = useSharedValue(element.rotation);
-  const elementWidth = useSharedValue(element.width ?? DEFAULT_TEXT_BOX_WIDTH);
+  const elementWidth = useSharedValue(
+    element.width ?? DEFAULT_RECAP_TEXT_WIDTH,
+  );
   const gestureStartX = useSharedValue(element.x);
   const gestureStartY = useSharedValue(element.y);
   const gestureStartScale = useSharedValue(element.scale);
   const gestureStartRotation = useSharedValue(element.rotation);
   const gestureStartWidth = useSharedValue(
-    element.width ?? DEFAULT_TEXT_BOX_WIDTH,
+    element.width ?? DEFAULT_RECAP_TEXT_WIDTH,
   );
 
   useEffect(() => {
@@ -121,7 +137,7 @@ function RecapCanvasTextItem(props: RecapCanvasTextItemProps) {
     elementY.value = element.y;
     elementScale.value = element.scale;
     elementRotation.value = element.rotation;
-    elementWidth.value = element.width ?? DEFAULT_TEXT_BOX_WIDTH;
+    elementWidth.value = element.width ?? DEFAULT_RECAP_TEXT_WIDTH;
   }, [
     element.rotation,
     element.scale,
@@ -140,9 +156,7 @@ function RecapCanvasTextItem(props: RecapCanvasTextItemProps) {
   }, [element.id, onSelectElement]);
   const handleGestureEnd = useCallback(
     (x: number, y: number, scale: number, rotation: number, width: number) => {
-      const nextFontSize = clampTextFontSize(
-        Math.round(element.fontSize * scale),
-      );
+      const nextFontSize = normalizeRecapTextFontSize(element.fontSize * scale);
       const nextWidth = clampTextBoxWidth(width);
 
       onChangeTextElement(
@@ -206,8 +220,8 @@ function RecapCanvasTextItem(props: RecapCanvasTextItemProps) {
       })
       .onUpdate((event) => {
         const nextScale = gestureStartScale.value * event.scale;
-        const minScale = MIN_TEXT_FONT_SIZE / element.fontSize;
-        const maxScale = MAX_TEXT_FONT_SIZE / element.fontSize;
+        const minScale = MIN_RECAP_TEXT_FONT_SIZE / element.fontSize;
+        const maxScale = MAX_RECAP_TEXT_FONT_SIZE / element.fontSize;
 
         elementScale.value = Math.max(
           Math.max(MIN_TEXT_SCALE, minScale),
@@ -276,10 +290,10 @@ function RecapCanvasTextItem(props: RecapCanvasTextItemProps) {
   }));
   const animatedTextSizeStyle = useAnimatedStyle(() => {
     const nextFontSize = Math.max(
-      MIN_TEXT_FONT_SIZE,
+      MIN_RECAP_TEXT_FONT_SIZE,
       Math.min(
         Math.round(element.fontSize * elementScale.value),
-        MAX_TEXT_FONT_SIZE,
+        MAX_RECAP_TEXT_FONT_SIZE,
       ),
     );
 
@@ -389,11 +403,18 @@ function RecapCanvasTextItem(props: RecapCanvasTextItemProps) {
           const localDeltaX =
             event.translationX * Math.cos(rotationRadians) +
             event.translationY * Math.sin(rotationRadians);
-          const nextScale = Math.max(
+          const minimumScale = Math.max(
             MIN_TEXT_SCALE,
+            MIN_RECAP_TEXT_FONT_SIZE / element.fontSize,
+          );
+          const nextScale = Math.max(
+            minimumScale,
             Math.min(
               1 + localDeltaX / gestureStartWidth.value,
-              Math.min(MAX_TEXT_SCALE, MAX_TEXT_FONT_SIZE / element.fontSize),
+              Math.min(
+                MAX_TEXT_SCALE,
+                MAX_RECAP_TEXT_FONT_SIZE / element.fontSize,
+              ),
             ),
           );
 
@@ -429,12 +450,12 @@ function RecapCanvasTextItem(props: RecapCanvasTextItemProps) {
 
   const handlePress = () => {
     const now = Date.now();
-    const isDoubleTap = now - lastTapAtRef.current <= DOUBLE_TAP_DELAY_MS;
+    const tapResult = resolveRecapCanvasTap(lastTapAtRef.current, now);
 
-    lastTapAtRef.current = now;
     onSelectElement(element.id);
+    lastTapAtRef.current = tapResult.nextLastTapAt;
 
-    if (isDoubleTap) {
+    if (tapResult.shouldStartEditing) {
       onStartTextEditing(element.id);
     }
   };
@@ -466,6 +487,7 @@ function RecapCanvasTextItem(props: RecapCanvasTextItemProps) {
           style={[animatedTextTransformStyle, animatedTextFrameStyle]}
         >
           <Pressable
+            accessible={!isEditing}
             accessibilityRole="button"
             accessibilityLabel="텍스트 선택"
             accessibilityState={{ selected: isSelected }}
@@ -499,6 +521,7 @@ function RecapCanvasTextItem(props: RecapCanvasTextItemProps) {
             ) : null}
             {isEditing ? (
               <AnimatedTextInput
+                accessibilityLabel="텍스트 내용 편집"
                 autoFocus
                 multiline
                 scrollEnabled={false}
@@ -555,14 +578,10 @@ function toItalicTextStyle(element: RecapCanvasTextElement): TextStyle {
   };
 }
 
-function clampTextFontSize(fontSize: number): number {
-  return Math.max(MIN_TEXT_FONT_SIZE, Math.min(fontSize, MAX_TEXT_FONT_SIZE));
-}
-
 function clampTextBoxWidth(width: number): number {
   "worklet";
 
-  return Math.max(MIN_TEXT_BOX_WIDTH, Math.min(width, MAX_TEXT_BOX_WIDTH));
+  return Math.max(MIN_RECAP_TEXT_WIDTH, Math.min(width, MAX_RECAP_TEXT_WIDTH));
 }
 
 function toCommittedTextElement(
@@ -572,7 +591,7 @@ function toCommittedTextElement(
     ...element,
     rotation: roundElementNumber(element.rotation),
     scale: roundElementNumber(element.scale),
-    width: Math.round(element.width ?? DEFAULT_TEXT_BOX_WIDTH),
+    width: normalizeRecapTextWidth(element.width),
     x: Math.round(element.x),
     y: Math.round(element.y),
   };

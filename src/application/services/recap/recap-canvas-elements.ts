@@ -6,6 +6,12 @@ import type {
   RecapCanvasWidgetElement,
 } from "@/shared/recap/types";
 import type { WidgetVariant } from "@/application/services/stickers/types";
+import {
+  DEFAULT_RECAP_TEXT_COLOR,
+  DEFAULT_RECAP_TEXT_FONT_SIZE,
+  DEFAULT_RECAP_TEXT_WIDTH,
+  normalizeRecapCanvasTextElement,
+} from "@/application/services/recap/recap-canvas-text";
 
 export type CreateRecapTextElementOptions = {
   id: string;
@@ -49,7 +55,6 @@ export type RecapCanvasTextElementUpdate = Partial<
 export type RecapCanvasElementLayerDirection = "backward" | "forward";
 
 export const DEFAULT_RECAP_TEXT_CONTENT = "텍스트를 입력하려면 두 번 탭하세요.";
-export const DEFAULT_RECAP_TEXT_WIDTH = 340;
 export const DEFAULT_RECAP_WIDGET_SPEECH_BUBBLE_TEXT = "텍스트 입력";
 export const DEFAULT_RECAP_PHOTO_ELEMENT_MAX_SIZE = 164;
 
@@ -87,9 +92,9 @@ export function createRecapTextElement(
 
   return {
     id,
-    color: "#121212",
+    color: DEFAULT_RECAP_TEXT_COLOR,
     content: DEFAULT_RECAP_TEXT_CONTENT,
-    fontSize: 24,
+    fontSize: DEFAULT_RECAP_TEXT_FONT_SIZE,
     fontStyle: "normal",
     fontWeight: "normal",
     rotation: 0,
@@ -187,7 +192,12 @@ export function upsertRecapCanvasElement(
     );
   }
 
-  elementsById.set(element.id, cloneRecapCanvasElement(element));
+  elementsById.set(
+    element.id,
+    element.type === "text"
+      ? normalizeRecapCanvasTextElement(element)
+      : cloneRecapCanvasElement(element),
+  );
 
   return sortRecapCanvasElements(Array.from(elementsById.values()));
 }
@@ -203,12 +213,12 @@ export function updateRecapCanvasTextElement(
         return cloneRecapCanvasElement(element);
       }
 
-      return {
+      return normalizeRecapCanvasTextElement({
         ...element,
         ...update,
         id: element.id,
         type: "text",
-      };
+      });
     }),
   );
 }
@@ -238,27 +248,28 @@ export function moveRecapCanvasElement(
     return sortedElements.map(cloneRecapCanvasElement);
   }
 
-  const adjacentIndex =
-    direction === "forward" ? currentIndex + 1 : currentIndex - 1;
+  const isAtBoundary =
+    direction === "forward"
+      ? currentIndex === sortedElements.length - 1
+      : currentIndex === 0;
 
-  if (adjacentIndex < 0 || adjacentIndex >= sortedElements.length) {
+  if (isAtBoundary) {
     return sortedElements.map(cloneRecapCanvasElement);
   }
 
   const currentElement = sortedElements[currentIndex];
-  const adjacentElement = sortedElements[adjacentIndex];
-  const nextElements = sortedElements.map(cloneRecapCanvasElement);
+  const remainingElements = sortedElements.filter(
+    (element) => element.id !== elementId,
+  );
+  const reorderedElements =
+    direction === "forward"
+      ? [...remainingElements, currentElement]
+      : [currentElement, ...remainingElements];
 
-  nextElements[currentIndex] = {
-    ...currentElement,
-    zIndex: adjacentElement.zIndex,
-  };
-  nextElements[adjacentIndex] = {
-    ...adjacentElement,
-    zIndex: currentElement.zIndex,
-  };
-
-  return sortRecapCanvasElements(nextElements);
+  return reorderedElements.map((element, index) => ({
+    ...element,
+    zIndex: index + 1,
+  }));
 }
 
 export function getNextRecapCanvasElementZIndex(
@@ -268,6 +279,22 @@ export function getNextRecapCanvasElementZIndex(
     (nextZIndex, element) => Math.max(nextZIndex, element.zIndex + 1),
     1,
   );
+}
+
+export function getRecapCanvasElementLayerCapabilities(
+  elements: RecapCanvasElement[],
+  elementId: string,
+): { canMoveBackward: boolean; canMoveForward: boolean } {
+  const sortedElements = sortRecapCanvasElements(elements);
+  const currentIndex = sortedElements.findIndex(
+    (element) => element.id === elementId,
+  );
+
+  return {
+    canMoveBackward: currentIndex > 0,
+    canMoveForward:
+      currentIndex >= 0 && currentIndex < sortedElements.length - 1,
+  };
 }
 
 export function sortRecapCanvasElements(

@@ -43,3 +43,21 @@ export async function listStickerAssets(
 
   return [...WIDGET_ASSETS, ...userAssets];
 }
+
+export function partitionStickerAssets(assets: StickerAsset[]): {
+  stickers: Extract<StickerAsset, { source: "sticker" }>[];
+  widgets: Extract<StickerAsset, { source: "widget" }>[];
+} {
+  const stickers: Extract<StickerAsset, { source: "sticker" }>[] = [];
+  const widgets: Extract<StickerAsset, { source: "widget" }>[] = [];
+
+  for (const asset of assets) {
+    if (asset.source === "sticker") {
+      stickers.push(asset);
+    } else {
+      widgets.push(asset);
+    }
+  }
+
+  return { stickers, widgets };
+}

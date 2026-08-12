@@ -5,6 +5,8 @@ import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import { appColors } from "@/presentation/theme/colors";
 
 type RecapElementLayerToolbarProps = {
+  canMoveBackward: boolean;
+  canMoveForward: boolean;
   onDelete: () => void;
   onMoveBackward: () => void;
   onMoveForward: () => void;
@@ -13,7 +15,13 @@ type RecapElementLayerToolbarProps = {
 const TOOLBAR_ICON_SIZE = 24;
 
 export function RecapElementLayerToolbar(props: RecapElementLayerToolbarProps) {
-  const { onDelete, onMoveBackward, onMoveForward } = props;
+  const {
+    canMoveBackward,
+    canMoveForward,
+    onDelete,
+    onMoveBackward,
+    onMoveForward,
+  } = props;
 
   return (
     <Animated.View
@@ -23,11 +31,13 @@ export function RecapElementLayerToolbar(props: RecapElementLayerToolbarProps) {
     >
       <ToolbarButton
         accessibilityLabel="요소 앞으로 이동"
+        disabled={!canMoveForward}
         icon="LayersArrowUp"
         onPress={onMoveForward}
       />
       <ToolbarButton
         accessibilityLabel="요소 뒤로 이동"
+        disabled={!canMoveBackward}
         icon="LayersArrowDown"
         onPress={onMoveBackward}
       />
@@ -45,18 +55,22 @@ export function RecapElementLayerToolbar(props: RecapElementLayerToolbarProps) {
 
 function ToolbarButton(props: {
   accessibilityLabel: string;
+  disabled?: boolean;
   icon: "LayersArrowDown" | "LayersArrowUp" | "Trash5";
   onPress: () => void;
 }) {
-  const { accessibilityLabel, icon, onPress } = props;
+  const { accessibilityLabel, disabled = false, icon, onPress } = props;
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
       hitSlop={10}
       style={({ pressed }) => [
         styles.toolbarButton,
+        disabled && styles.toolbarButtonDisabled,
         pressed && styles.toolbarButtonPressed,
       ]}
       onPress={(event) => {
@@ -111,5 +125,8 @@ const styles = StyleSheet.create({
   },
   toolbarButtonPressed: {
     opacity: 0.55,
+  },
+  toolbarButtonDisabled: {
+    opacity: 0.34,
   },
 });

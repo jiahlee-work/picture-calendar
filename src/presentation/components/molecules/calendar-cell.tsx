@@ -47,7 +47,12 @@ export function CalendarCell(props: CalendarCellProps) {
 
   return (
     <Pressable
-      accessibilityState={isSelected ? { selected: true } : undefined}
+      accessibilityLabel={selectionCheckbox?.accessibilityLabel}
+      accessibilityState={
+        isSelected || selectionCheckbox?.isSelected
+          ? { selected: true }
+          : undefined
+      }
       style={[
         styles.cell,
         { height: cellHeight, width: cellWidth },
@@ -61,7 +66,7 @@ export function CalendarCell(props: CalendarCellProps) {
       <Text style={[styles.dateText, isToday && styles.todayText]}>
         {day.dayOfMonth}
       </Text>
-      {selectionCheckbox ? (
+      {selectionCheckbox?.isSelected ? (
         <SelectionCheckbox
           accessibilityLabel={selectionCheckbox.accessibilityLabel}
           isSelected={selectionCheckbox.isSelected}

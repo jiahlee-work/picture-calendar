@@ -1,4 +1,4 @@
-import createIcon from "reicon-react-native/createIcon";
+import { createIcon } from "reicon-react-native/createIcon";
 
 const LayersArrowDown = createIcon("LayersArrowDown", {
   O: `<path d="M12 7v15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M2 12a1 1 0 0 0 .58.91l5.093 2.316" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M22 12a1 1 0 0 1-.59.92l-5.077 2.308" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="m8 10.37-5.4-2.46a1 1 0 0 1 0-1.831l8.57-3.9a2 2 0 0 1 1.66.001l8.59 3.91a1 1 0 0 1 0 1.831l-5.392 2.45" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="m9 19 3 3 3-3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/>`,

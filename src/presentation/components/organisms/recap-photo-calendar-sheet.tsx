@@ -1,10 +1,12 @@
 import BottomSheet, {
   BottomSheetView,
   useBottomSheet,
+  type BottomSheetBackdropProps,
   type BottomSheetBackgroundProps,
 } from "@gorhom/bottom-sheet";
 import { useMemo } from "react";
 import {
+  ActivityIndicator,
   Pressable,
   StyleSheet,
   Text,
@@ -21,6 +23,7 @@ import { appSpacing } from "@/presentation/theme/spacing";
 import { dayjs } from "@/shared/date/dayjs";
 
 type RecapPhotoCalendarSheetProps = {
+  isCompleting?: boolean;
   monthKey: string;
   multiple?: boolean;
   photos: DailyPhoto[];
@@ -33,6 +36,7 @@ type RecapPhotoCalendarSheetProps = {
 
 export function RecapPhotoCalendarSheet(props: RecapPhotoCalendarSheetProps) {
   const {
+    isCompleting = false,
     monthKey,
     multiple = false,
     onClose,
@@ -55,6 +59,7 @@ export function RecapPhotoCalendarSheet(props: RecapPhotoCalendarSheetProps) {
     );
   }, [monthKey, photos]);
   const snapPoints = useMemo(() => ["90%"], []);
+  const isCompleteDisabled = selectedPhotoIds.length === 0 || isCompleting;
   const selectionCheckboxByDateKey = useMemo(
     () =>
       Object.fromEntries(
@@ -68,6 +73,10 @@ export function RecapPhotoCalendarSheet(props: RecapPhotoCalendarSheetProps) {
                 accessibilityLabel: `${day.dayOfMonth}일 사진 선택`,
                 isSelected: selectedPhotoIds.includes(photo.id),
                 onPress: () => {
+                  if (isCompleting) {
+                    return;
+                  }
+
                   const nextPhotoIds = selectedPhotoIds.includes(photo.id)
                     ? selectedPhotoIds.filter((id) => id !== photo.id)
                     : multiple
@@ -80,7 +89,13 @@ export function RecapPhotoCalendarSheet(props: RecapPhotoCalendarSheetProps) {
           ];
         }),
       ),
-    [calendar.days, multiple, onChangeSelectedPhotoIds, selectedPhotoIds],
+    [
+      calendar.days,
+      isCompleting,
+      multiple,
+      onChangeSelectedPhotoIds,
+      selectedPhotoIds,
+    ],
   );
   if (!visible) {
     return null;
@@ -88,15 +103,20 @@ export function RecapPhotoCalendarSheet(props: RecapPhotoCalendarSheetProps) {
 
   return (
     <BottomSheet
+      accessible={false}
       backgroundComponent={PhotoCalendarSheetBackground}
-      backdropComponent={PhotoCalendarSheetBackdrop}
+      backdropComponent={(backdropProps) => (
+        <PhotoCalendarSheetBackdrop
+          {...backdropProps}
+          disabled={isCompleting}
+        />
+      )}
       containerStyle={styles.sheetContainer}
       enableDynamicSizing={false}
-      enablePanDownToClose
+      enablePanDownToClose={!isCompleting}
       handleComponent={PhotoCalendarSheetHandle}
       index={0}
       snapPoints={snapPoints}
-      onChange={(nextIndex) => nextIndex === -1 && onClose()}
       onClose={onClose}
     >
       <BottomSheetView style={styles.content}>
@@ -104,18 +124,27 @@ export function RecapPhotoCalendarSheet(props: RecapPhotoCalendarSheetProps) {
           <Text style={styles.title}>{calendar.monthName}</Text>
           <Text style={styles.year}>{calendar.year}</Text>
           <Pressable
-            accessibilityState={{ disabled: selectedPhotoIds.length === 0 }}
+            accessibilityState={{
+              busy: isCompleting,
+              disabled: isCompleteDisabled,
+            }}
             accessibilityRole="button"
-            accessibilityLabel="사진 선택 완료"
+            accessibilityLabel={
+              isCompleting ? "사진 추가 중" : "사진 선택 완료"
+            }
             style={({ pressed }) => [
               styles.completeButton,
-              selectedPhotoIds.length === 0 && styles.completeButtonDisabled,
-              pressed && styles.completeButtonPressed,
+              isCompleteDisabled && styles.completeButtonDisabled,
+              pressed && !isCompleteDisabled && styles.completeButtonPressed,
             ]}
-            disabled={selectedPhotoIds.length === 0}
+            disabled={isCompleteDisabled}
             onPress={onComplete ?? onClose}
           >
-            <Text style={styles.completeButtonText}>완료</Text>
+            {isCompleting ? (
+              <ActivityIndicator color={appColors.white} size="small" />
+            ) : (
+              <Text style={styles.completeButtonText}>완료</Text>
+            )}
           </Pressable>
         </View>
         <View style={styles.calendarContainer}>
@@ -125,6 +154,10 @@ export function RecapPhotoCalendarSheet(props: RecapPhotoCalendarSheetProps) {
             contentWidth={width - appSpacing.screenHorizontalPadding * 2}
             selectionCheckboxByDateKey={selectionCheckboxByDateKey}
             onSelectDate={(dateKey) => {
+              if (isCompleting) {
+                return;
+              }
+
               selectionCheckboxByDateKey[dateKey]?.onPress();
             }}
           />
@@ -137,13 +170,6 @@ export function RecapPhotoCalendarSheet(props: RecapPhotoCalendarSheetProps) {
 const styles = StyleSheet.create({
   calendarContainer: {
     flex: 1,
-  },
-  calendarGrid: {
-    backgroundColor: appColors.background,
-    flex: 1,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    overflow: "hidden",
   },
   content: {
     gap: 18,
@@ -170,46 +196,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "400",
   },
-  dayBadge: {
-    backgroundColor: "rgba(18,18,18,0.72)",
-    borderRadius: 10,
-    left: "50%",
-    minWidth: 30,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    position: "absolute",
-    top: 4,
-    transform: [{ translateX: -15 }],
-  },
-  dayBadgeText: {
-    color: appColors.white,
-    fontSize: 11,
-    fontWeight: "800",
-    lineHeight: 14,
-    textAlign: "center",
-  },
-  dayCell: {
-    backgroundColor: appColors.background,
-    borderColor: "#eeeeee",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    height: "16.6667%",
-    overflow: "hidden",
-    position: "relative",
-    width: "14.2857%",
-  },
-  dayText: {
-    color: appColors.black,
-    fontSize: 15,
-    fontWeight: "400",
-    lineHeight: 20,
-    left: 0,
-    position: "absolute",
-    right: 0,
-    textAlign: "center",
-    top: 9,
-  },
   header: {
     alignItems: "baseline",
     flexDirection: "row",
@@ -223,28 +209,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
     alignSelf: "center",
     width: 42,
-  },
-  photo: {
-    bottom: 0,
-    height: "100%",
-    left: 0,
-    position: "absolute",
-    right: 0,
-    top: 0,
-    width: "100%",
-    zIndex: 1,
-  },
-  photoCell: {
-    overflow: "hidden",
-  },
-  photoCellPressed: {
-    opacity: 0.65,
-  },
-  selectionControl: {
-    bottom: 4,
-    left: "50%",
-    position: "absolute",
-    transform: [{ translateX: -12 }],
   },
   sheetBackground: {
     backgroundColor: appColors.background,
@@ -260,22 +224,6 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "900",
     lineHeight: 38,
-  },
-  weekday: {
-    backgroundColor: appColors.background,
-    color: "#9a9a9a",
-    flex: 1,
-    fontSize: 15,
-    fontWeight: "500",
-    paddingBottom: 12,
-    paddingTop: 8,
-    textAlign: "center",
-  },
-  weekdayRow: {
-    borderBottomColor: "#eeeeee",
-    borderBottomWidth: 1,
-    flexDirection: "row",
-    paddingHorizontal: 2,
   },
   year: {
     color: appColors.blackOverlay34,
@@ -294,14 +242,19 @@ function PhotoCalendarSheetBackground(props: BottomSheetBackgroundProps) {
   );
 }
 
-function PhotoCalendarSheetBackdrop() {
+function PhotoCalendarSheetBackdrop(
+  props: BottomSheetBackdropProps & { disabled: boolean },
+) {
   const { close } = useBottomSheet();
+  const { disabled, style } = props;
 
   return (
     <Pressable
-      accessibilityRole="button"
       accessibilityLabel="사진 선택창 닫기"
-      style={StyleSheet.absoluteFill}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      style={[StyleSheet.absoluteFill, style]}
       onPress={() => close()}
     />
   );

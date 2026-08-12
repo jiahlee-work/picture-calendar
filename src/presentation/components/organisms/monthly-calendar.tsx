@@ -107,9 +107,7 @@ export function MonthlyCalendar(props: MonthlyCalendarProps) {
               day ? (selectionOrderByDateKey.get(day.key) ?? null) : null
             }
             selectionCheckbox={
-              day && selectionCheckboxByDateKey[day.key]?.isSelected
-                ? selectionCheckboxByDateKey[day.key]
-                : undefined
+              day ? selectionCheckboxByDateKey[day.key] : undefined
             }
             onLongPressDate={onLongPressDate}
             onPressDate={onSelectDate}

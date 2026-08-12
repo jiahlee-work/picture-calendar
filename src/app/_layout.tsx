@@ -1,4 +1,5 @@
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { PortalHost } from "@gorhom/portal";
 import { NavigationBar } from "expo-navigation-bar";
 import { Stack, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -12,6 +13,7 @@ import {
   AppBottomNavigationVisibilityProvider,
 } from "@/presentation/providers/app-bottom-navigation-controller";
 import { AppRuntimeEffects } from "@/presentation/providers/app-runtime-effects";
+import { APP_OVERLAY_PORTAL_HOST_NAME } from "@/presentation/helpers/overlays/app-portal";
 
 export { ErrorBoundary } from "expo-router";
 
@@ -43,6 +45,7 @@ export default function RootLayout() {
               {!isStorybookRoute ? <AppBottomNavigationController /> : null}
             </View>
           </AppBottomNavigationVisibilityProvider>
+          <PortalHost name={APP_OVERLAY_PORTAL_HOST_NAME} />
           <NavigationBar hidden={false} style="light" />
           <StatusBar hidden={false} style="dark" />
         </BottomSheetModalProvider>
