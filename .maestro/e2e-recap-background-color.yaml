@@ -1,0 +1,25 @@
+appId: com.jiahleework.pical
+name: E2E recap background color
+---
+- tapOn: "리캡으로 이동"
+- extendedWaitUntil:
+    visible: "Recap"
+    timeout: 30000
+- tapOn: "August recap"
+- extendedWaitUntil:
+    visible: "리캡 공유 버튼"
+    timeout: 30000
+- tapOn: "배경색 선택"
+- extendedWaitUntil:
+    visible: "Bottom Sheet"
+    timeout: 5000
+- tapOn:
+    point: "73%,78%"
+- tapOn:
+    point: "50%,20%"
+- assertNotVisible: "Bottom Sheet"
+- tapOn: "배경색 선택"
+- assertVisible: "Bottom Sheet"
+- tapOn:
+    point: "50%,20%"
+- assertNotVisible: "Bottom Sheet"

@@ -51,4 +51,13 @@ fi
 wait_for_app_server
 maestro test -e "DEV_SERVER_HOST=${APP_HOST}" .maestro/open-app-dev-client.yaml
 maestro test -e "DEV_SERVER_HOST=${APP_HOST}" .maestro/e2e-core-navigation.yaml
+maestro test -e "DEV_SERVER_HOST=${APP_HOST}" .maestro/open-app-dev-client.yaml
+maestro test -e "DEV_SERVER_HOST=${APP_HOST}" .maestro/e2e-recap-layout-mode.yaml
+maestro test -e "DEV_SERVER_HOST=${APP_HOST}" .maestro/open-app-dev-client.yaml
+maestro test -e "DEV_SERVER_HOST=${APP_HOST}" .maestro/e2e-recap-background-color.yaml
+maestro test -e "DEV_SERVER_HOST=${APP_HOST}" .maestro/open-app-dev-client.yaml
 maestro test -e "DEV_SERVER_HOST=${APP_HOST}" .maestro/e2e-recap-layer-controls.yaml
+maestro test -e "DEV_SERVER_HOST=${APP_HOST}" .maestro/open-app-dev-client.yaml
+maestro test -e "DEV_SERVER_HOST=${APP_HOST}" .maestro/e2e-recap-sticker-widget-actions.yaml
+maestro test -e "DEV_SERVER_HOST=${APP_HOST}" .maestro/open-app-dev-client.yaml
+maestro test -e "DEV_SERVER_HOST=${APP_HOST}" .maestro/e2e-recap-text-layer-controls.yaml

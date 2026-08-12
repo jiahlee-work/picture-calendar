@@ -1,0 +1,46 @@
+appId: com.jiahleework.pical
+name: E2E recap photo actions
+---
+- tapOn: "리캡으로 이동"
+- extendedWaitUntil:
+    visible: "Recap"
+    timeout: 30000
+- tapOn: "August recap"
+- extendedWaitUntil:
+    visible: "리캡 공유 버튼"
+    timeout: 30000
+- tapOn: "리캡 사진 선택"
+- extendedWaitUntil:
+    visible: "사진 선택창 닫기"
+    timeout: 5000
+- tapOn: ".*6일 사진 선택.*"
+- extendedWaitUntil:
+    visible: "사진 선택 완료"
+    timeout: 5000
+- tapOn: "사진 선택 완료"
+- extendedWaitUntil:
+    notVisible: "사진 선택 완료"
+    timeout: 5000
+- extendedWaitUntil:
+    visible: "사진 선택"
+    timeout: 5000
+- longPressOn: "사진 선택"
+- extendedWaitUntil:
+    visible: "사진 크롭"
+    timeout: 5000
+- tapOn: "사진 크롭"
+- swipe:
+    start: 145, 360
+    end: 178, 393
+    duration: 500
+- swipe:
+    start: 200, 435
+    end: 220, 455
+    duration: 500
+- tapOn: "Choose"
+- extendedWaitUntil:
+    visible: "사진 선택"
+    timeout: 10000
+- extendedWaitUntil:
+    notVisible: "Uncaught Error"
+    timeout: 5000
