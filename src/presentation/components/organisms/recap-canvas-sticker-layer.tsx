@@ -463,16 +463,18 @@ function RecapCanvasStickerContent(props: {
 
   if (element.type === "photo") {
     return photo ? (
-      <Image
-        allowDownscaling={false}
-        cachePolicy="none"
-        contentFit="contain"
-        source={{ uri: photo.imagePath }}
-        style={styles.photoElementImage}
-        onLoad={(event) => {
-          onPhotoLoad(event.source.width, event.source.height);
-        }}
-      />
+      <View style={styles.photoContent}>
+        <Image
+          allowDownscaling={false}
+          cachePolicy="none"
+          contentFit="contain"
+          source={{ uri: element.imagePath ?? photo.imagePath }}
+          style={styles.photoElementImage}
+          onLoad={(event) => {
+            onPhotoLoad(event.source.width, event.source.height);
+          }}
+        />
+      </View>
     ) : null;
   }
 
@@ -840,6 +842,13 @@ const styles = StyleSheet.create({
   },
   photoElementImage: {
     height: "100%",
+    position: "absolute",
+    width: "100%",
+  },
+  photoContent: {
+    height: "100%",
+    overflow: "hidden",
+    position: "relative",
     width: "100%",
   },
   photoElementFrame: {

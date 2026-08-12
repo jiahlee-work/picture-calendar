@@ -28,6 +28,7 @@ import {
   type RecapCanvasTextElementUpdate,
 } from "@/application/services/recap/recap-canvas-elements";
 import { createRecapCanvasAssetInsertion } from "@/application/services/recap/recap-canvas-asset";
+import { cropImage } from "@/infrastructure/device/media/crop-image";
 import { insertRecapCanvasPhotoElements } from "@/application/services/recap/recap-canvas-photo";
 import { loadRecapPhotoElementSize } from "@/application/services/recap/recap-photo-element-size";
 import {
@@ -419,6 +420,35 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     setCommittedElementsOverride(
       upsertRecapCanvasElement(committedElements, element),
     );
+  };
+
+  const handleTogglePhotoCrop = async (elementId: string) => {
+    const element = committedElements.find((item) => item.id === elementId);
+
+    if (element?.type !== "photo" || !photosById[element.photoId]) {
+      return;
+    }
+
+    try {
+      const result = await cropImage(
+        element.imagePath ?? photosById[element.photoId].imagePath,
+      );
+
+      if (!result) {
+        return;
+      }
+
+      const size = getRecapPhotoElementSize(result.width, result.height);
+      handleChangeCanvasElement({
+        ...element,
+        crop: undefined,
+        height: size.height,
+        imagePath: result.uri,
+        width: size.width,
+      });
+    } catch {
+      Alert.alert("크롭 실패", "사진을 크롭하지 못했습니다.");
+    }
   };
 
   const handleDeleteCanvasElement = (elementId: string) => {
@@ -906,6 +936,11 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
               selectedCanvasElementLayerCapabilities.canMoveForward
             }
             onDelete={() => handleDeleteCanvasElement(selectedCanvasElement.id)}
+            onCrop={
+              selectedCanvasElement.type === "photo"
+                ? () => handleTogglePhotoCrop(selectedCanvasElement.id)
+                : undefined
+            }
             onMoveBackward={() =>
               handleMoveCanvasElement(selectedCanvasElement.id, "backward")
             }

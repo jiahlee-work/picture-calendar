@@ -138,7 +138,9 @@ function toRecapCanvasElement(value: unknown): RecapCanvasElement | null {
     return photoId
       ? {
           ...base,
+          crop: photoCropValue(value.crop) ?? undefined,
           height: positiveNumberValue(value.height) ?? undefined,
+          imagePath: stringValue(value.imagePath) ?? undefined,
           photoId,
           type: "photo",
           width: positiveNumberValue(value.width) ?? undefined,
@@ -184,6 +186,27 @@ function toRecapCanvasElement(value: unknown): RecapCanvasElement | null {
   }
 
   return null;
+}
+
+function photoCropValue(value: unknown) {
+  if (!isObjectRecord(value)) {
+    return null;
+  }
+
+  const x = normalizedNumberValue(value.x);
+  const y = normalizedNumberValue(value.y);
+  const width = normalizedNumberValue(value.width);
+  const height = normalizedNumberValue(value.height);
+
+  if (x === null || y === null || width === null || height === null) {
+    return null;
+  }
+
+  if (x + width > 1 || y + height > 1 || width <= 0 || height <= 0) {
+    return null;
+  }
+
+  return { height, width, x, y };
 }
 
 function baseElementValue(value: Record<string, unknown>) {
@@ -274,4 +297,10 @@ function stringValue(value: unknown): string | null {
 
 function numberValue(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function normalizedNumberValue(value: unknown): number | null {
+  const number = numberValue(value);
+
+  return number !== null && number >= 0 && number <= 1 ? number : null;
 }

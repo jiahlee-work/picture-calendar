@@ -7,6 +7,7 @@ import { appColors } from "@/presentation/theme/colors";
 type RecapElementLayerToolbarProps = {
   canMoveBackward: boolean;
   canMoveForward: boolean;
+  onCrop?: () => void;
   onDelete: () => void;
   onMoveBackward: () => void;
   onMoveForward: () => void;
@@ -18,6 +19,7 @@ export function RecapElementLayerToolbar(props: RecapElementLayerToolbarProps) {
   const {
     canMoveBackward,
     canMoveForward,
+    onCrop,
     onDelete,
     onMoveBackward,
     onMoveForward,
@@ -29,6 +31,13 @@ export function RecapElementLayerToolbar(props: RecapElementLayerToolbarProps) {
       exiting={FadeOutDown.duration(140)}
       style={styles.toolbar}
     >
+      {onCrop ? (
+        <ToolbarButton
+          accessibilityLabel="사진 크롭"
+          icon="Crop2"
+          onPress={onCrop}
+        />
+      ) : null}
       <ToolbarButton
         accessibilityLabel="요소 앞으로 이동"
         disabled={!canMoveForward}
@@ -56,7 +65,7 @@ export function RecapElementLayerToolbar(props: RecapElementLayerToolbarProps) {
 function ToolbarButton(props: {
   accessibilityLabel: string;
   disabled?: boolean;
-  icon: "LayersArrowDown" | "LayersArrowUp" | "Trash5";
+  icon: "Crop2" | "LayersArrowDown" | "LayersArrowUp" | "Trash5";
   onPress: () => void;
 }) {
   const { accessibilityLabel, disabled = false, icon, onPress } = props;
