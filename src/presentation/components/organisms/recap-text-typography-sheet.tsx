@@ -24,6 +24,7 @@ import { AppBottomSheetBackdrop } from "@/presentation/components/atoms/app-bott
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import { appColors } from "@/presentation/theme/colors";
 import { appLayers } from "@/presentation/theme/layers";
+import type { RecapFontFamily } from "@/presentation/theme/recap-fonts";
 
 type RecapTextTypographySheetProps = {
   fontFamily?: string;
@@ -37,7 +38,7 @@ type RecapTextTypographySheetProps = {
 type TypographyPopover = "fontFamily" | "fontSize";
 
 type RecapTextFontOption = {
-  fontFamily?: string;
+  fontFamily?: RecapFontFamily;
   id: string;
   label: string;
 };
@@ -54,21 +55,36 @@ const RECAP_TEXT_FONT_OPTIONS: RecapTextFontOption[] = [
     id: "system",
     label: "기본 서체",
   },
-  {
-    fontFamily: "Georgia",
-    id: "serif",
-    label: "명조",
-  },
-  {
-    fontFamily: "Avenir Next",
-    id: "rounded",
-    label: "둥근 서체",
-  },
-  {
-    fontFamily: "Menlo",
-    id: "mono",
-    label: "고정폭",
-  },
+  createFontOption("PretendardLight", "프리텐다드 Light"),
+  createFontOption("PretendardRegular", "프리텐다드 Regular"),
+  createFontOption("PretendardBold", "프리텐다드 Bold"),
+  createFontOption("PaperlogyLight", "페이퍼로지 Light"),
+  createFontOption("PaperlogyRegular", "페이퍼로지 Regular"),
+  createFontOption("PaperlogyBold", "페이퍼로지 Bold"),
+  createFontOption("GmarketSansLight", "G마켓 산스 Light"),
+  createFontOption("GmarketSansRegular", "G마켓 산스 Regular"),
+  createFontOption("GmarketSansBold", "G마켓 산스 Bold"),
+  createFontOption("GriunFromsol", "그리운 프롬솔"),
+  createFontOption("Jalnan2", "여기어때 잘난체"),
+  createFontOption("ChosunCentennial", "조선100년체"),
+  createFontOption("ChosunNm", "조선일보명조"),
+  createFontOption("ChosunGu", "조선굴림체"),
+  createFontOption("OngleapParkDahyun", "온글잎 박다현체"),
+  createFontOption("Jejudoldam", "제주돌담체"),
+  createFontOption("BookkMyungjoLight", "부크크 명조 Light"),
+  createFontOption("BookkMyungjoBold", "부크크 명조 Bold"),
+  createFontOption("BookkGothicLight", "부크크 고딕 Light"),
+  createFontOption("BookkGothicBold", "부크크 고딕 Bold"),
+  createFontOption("MaruBuriLight", "마루 부리 Light"),
+  createFontOption("MaruBuriRegular", "마루 부리 Regular"),
+  createFontOption("MaruBuriBold", "마루 부리 Bold"),
+  createFontOption("Isayoon", "이서윤체"),
+  createFontOption("BMKkubulim", "꾸불림체"),
+  createFontOption("GriunXHangeulOchungiKim", "그리운 국한박 오춘기 김작가"),
+  createFontOption("KimWildgagBold", "와일드각"),
+  createFontOption("Mona12Regular", "Mona12 Regular"),
+  createFontOption("Mona12Bold", "Mona12 Bold"),
+  createFontOption("YoonChildfundkoreaManSeh", "윤초록우산어린이 만세"),
 ];
 
 const RECAP_TEXT_FONT_SIZE_OPTIONS = [
@@ -208,23 +224,25 @@ export function RecapTextTypographySheet(props: RecapTextTypographySheetProps) {
           />
           {activePopover === "fontFamily" ? (
             <View style={[styles.floatingPopover, popoverStyle]}>
-              {RECAP_TEXT_FONT_OPTIONS.map((option) => {
-                const isSelected = option.id === selectedFontOption.id;
+              <ScrollView nestedScrollEnabled showsVerticalScrollIndicator>
+                {RECAP_TEXT_FONT_OPTIONS.map((option) => {
+                  const isSelected = option.id === selectedFontOption.id;
 
-                return (
-                  <TypographyOption
-                    key={option.id}
-                    isSelected={isSelected}
-                    label={option.label}
-                    labelStyle={
-                      option.fontFamily
-                        ? { fontFamily: option.fontFamily }
-                        : undefined
-                    }
-                    onPress={() => handleSelectFontFamily(option.fontFamily)}
-                  />
-                );
-              })}
+                  return (
+                    <TypographyOption
+                      key={option.id}
+                      isSelected={isSelected}
+                      label={option.label}
+                      labelStyle={
+                        option.fontFamily
+                          ? { fontFamily: option.fontFamily }
+                          : undefined
+                      }
+                      onPress={() => handleSelectFontFamily(option.fontFamily)}
+                    />
+                  );
+                })}
+              </ScrollView>
             </View>
           ) : null}
           {activePopover === "fontSize" ? (
@@ -303,6 +321,17 @@ function TypographyOption(props: {
       <Text style={[styles.optionText, labelStyle]}>{label}</Text>
     </Pressable>
   );
+}
+
+function createFontOption(
+  fontFamily: RecapFontFamily,
+  label: string,
+): RecapTextFontOption {
+  return {
+    fontFamily,
+    id: fontFamily,
+    label,
+  };
 }
 
 function getFontOption(fontFamily: string | undefined): RecapTextFontOption {

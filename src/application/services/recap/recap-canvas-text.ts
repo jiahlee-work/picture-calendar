@@ -2,6 +2,7 @@ import type {
   RecapCanvasElement,
   RecapCanvasTextElement,
 } from "@/shared/recap/types";
+import { RECAP_TEXT_FONT_FAMILIES } from "@/shared/recap/recap-font-families";
 
 export type RecapTextStyleActionId = "bold" | "italic" | "underline";
 export type RecapTextAlignmentActionId = "center" | "left" | "right";
@@ -23,8 +24,6 @@ export const MAX_RECAP_TEXT_WIDTH = 720;
 
 const SIX_DIGIT_HEX_COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
 const THREE_DIGIT_HEX_COLOR_PATTERN = /^#[0-9a-f]{3}$/i;
-const RECAP_TEXT_FONT_FAMILIES = new Set(["Georgia", "Avenir Next", "Menlo"]);
-
 export function normalizeRecapTextColor(color: string | undefined): string {
   const trimmedColor = color?.trim();
 

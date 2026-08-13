@@ -1,5 +1,6 @@
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { PortalHost } from "@gorhom/portal";
+import { useFonts } from "expo-font";
 import { NavigationBar } from "expo-navigation-bar";
 import { Stack, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -14,10 +15,12 @@ import {
 } from "@/presentation/providers/app-bottom-navigation-controller";
 import { AppRuntimeEffects } from "@/presentation/providers/app-runtime-effects";
 import { APP_OVERLAY_PORTAL_HOST_NAME } from "@/presentation/helpers/overlays/app-portal";
+import { recapFonts } from "@/presentation/theme/recap-fonts";
 
 export { ErrorBoundary } from "expo-router";
 
 export default function RootLayout() {
+  useFonts(recapFonts);
   const pathname = usePathname();
   const isStorybookRoute = pathname.startsWith("/storybook");
 

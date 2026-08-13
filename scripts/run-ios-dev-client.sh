@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# The iOS Simulator can reach the host Metro server through loopback. Using
+# localhost avoids LAN address resolution and simulator openurl timeouts.
+export REACT_NATIVE_PACKAGER_HOSTNAME="${REACT_NATIVE_PACKAGER_HOSTNAME:-127.0.0.1}"
+
 SIMULATOR_NAME="${IOS_SIMULATOR_NAME:-iPhone 17 Pro}"
 SIMULATOR_RUNTIME="${IOS_SIMULATOR_RUNTIME:-}"
 
