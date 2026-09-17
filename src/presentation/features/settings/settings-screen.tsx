@@ -1,8 +1,9 @@
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import { useRecapNotificationSettings } from "@/application/hooks/use-recap-notification-settings";
+import { openAppUpdate } from "@/application/services/device/open-app-update";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
 import { AppSwitch } from "@/presentation/components/atoms/app-switch";
 import { PhotoStorageNoticeBanner } from "@/presentation/components/molecules/photo-storage-notice-banner";
@@ -13,9 +14,12 @@ import { appSpacing } from "@/presentation/theme/spacing";
 export function SettingsScreen() {
   const { isEnabled, isLoading, isSupported, setEnabled } =
     useRecapNotificationSettings();
+  const isAppUpdateActionVisible = false;
 
   const handleUpdateAppVersion = () => {
-    console.log("update app version");
+    void openAppUpdate().catch(() => {
+      Alert.alert("스토어를 열 수 없어요", "잠시 후 다시 시도해 주세요.");
+    });
   };
 
   return (
@@ -44,20 +48,23 @@ export function SettingsScreen() {
               onValueChange={setEnabled}
             />
           </View>
-          <View style={styles.settingItem}>
-            <View style={styles.settingCopy}>
-              <Text style={styles.settingTitle}>앱 버전</Text>
-              <Text style={styles.settingSubtitle}>최신 버전</Text>
+          {/* TODO: 앱 스토어 출시 후 최신 버전 확인 기능을 연결하고 업데이트 버튼(스토어 딥링크)을 노출한다. */}
+          {isAppUpdateActionVisible ? (
+            <View style={styles.settingItem}>
+              <View style={styles.settingCopy}>
+                <Text style={styles.settingTitle}>앱 버전</Text>
+                <Text style={styles.settingSubtitle}>최신 버전</Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="업데이트"
+                style={styles.update}
+                onPress={handleUpdateAppVersion}
+              >
+                <Text style={styles.updateLabel}>업데이트</Text>
+              </Pressable>
             </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="업데이트"
-              style={styles.update}
-              onPress={handleUpdateAppVersion}
-            >
-              <Text style={styles.updateLabel}>업데이트</Text>
-            </Pressable>
-          </View>
+          ) : null}
         </View>
       </ScrollView>
     </AppSafeAreaView>
