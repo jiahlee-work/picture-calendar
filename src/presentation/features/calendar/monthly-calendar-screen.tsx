@@ -6,16 +6,27 @@ import {
   addNavigableCalendarMonths,
   clampCalendarMonth,
 } from "@/application/services/calendar/calendar-month-navigation";
+import { runtimePlatform } from "@/infrastructure/device/runtime-platform";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
 import { DailyPhotoPolicyDialog } from "@/presentation/components/organisms/daily-photo-policy-dialog";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { CalendarWheelPickerSheet } from "@/presentation/components/organisms/calendar-wheel-picker-sheet";
 import { DailyPhotoDetailSheet } from "@/presentation/components/organisms/daily-photo-detail-sheet";
 import { MonthlyCalendar } from "@/presentation/components/organisms/monthly-calendar";
-import { ShareCaptureMenu } from "@/presentation/components/organisms/share-capture-menu";
+import { RecapCanvasAspectRatioSheet } from "@/presentation/components/organisms/recap-canvas-aspect-ratio-sheet";
+import {
+  ShareCaptureMenu,
+  type ShareCaptureMenuHandle,
+} from "@/presentation/components/organisms/share-capture-menu";
+import { ShareExportActionSheet } from "@/presentation/components/organisms/share-export-action-sheet";
+import { getCanvasDimensions } from "@/presentation/helpers/canvas/canvas-aspect-ratio-layout";
 import { appColors } from "@/presentation/theme/colors";
 import { appSpacing } from "@/presentation/theme/spacing";
 import { dayjs } from "@/shared/date/dayjs";
+import {
+  RecapCanvasAspectRatio,
+  type RecapCanvasAspectRatio as RecapCanvasAspectRatioType,
+} from "@/shared/recap/types";
 
 type ShareContentLayout = {
   height: number;
@@ -24,6 +35,9 @@ type ShareContentLayout = {
 
 export function MonthlyCalendarScreen() {
   const shareCaptureRef = useRef<View>(null);
+  const shareCaptureMenuRef = useRef<ShareCaptureMenuHandle>(null);
+  const pendingShareFlowRef = useRef<"actions" | "share" | null>(null);
+  const pendingExportActionRef = useRef<"save" | "share" | null>(null);
   const [activeMonth, setActiveMonth] = useState(() =>
     clampCalendarMonth(dayjs().startOf("month").toDate()),
   );
@@ -31,6 +45,14 @@ export function MonthlyCalendarScreen() {
     useState(false);
   const [shareContentLayout, setShareContentLayout] =
     useState<ShareContentLayout | null>(null);
+  const [shareAspectRatio, setShareAspectRatio] =
+    useState<RecapCanvasAspectRatioType>(RecapCanvasAspectRatio.device);
+  const [pendingShareAspectRatio, setPendingShareAspectRatio] =
+    useState<RecapCanvasAspectRatioType>(RecapCanvasAspectRatio.device);
+  const [isShareAspectRatioSheetVisible, setIsShareAspectRatioSheetVisible] =
+    useState(false);
+  const [isShareExportActionSheetVisible, setIsShareExportActionSheetVisible] =
+    useState(false);
   const {
     calendar,
     photoDetail,
@@ -43,6 +65,9 @@ export function MonthlyCalendarScreen() {
   } = useTodayPhotoFlow(activeMonth);
   const isShareReady = calendar.days.length > 0;
   const shareFileName = dayjs(activeMonth).format("YYYY-MM");
+  const shareCanvasDimensions = shareContentLayout
+    ? getCanvasDimensions(shareAspectRatio, shareContentLayout)
+    : null;
 
   const handlePreviousMonth = () => {
     setActiveMonth((current) => addNavigableCalendarMonths(current, -1));
@@ -83,6 +108,64 @@ export function MonthlyCalendarScreen() {
     });
   };
 
+  const handleOpenShareAspectRatioSheet = () => {
+    setPendingShareAspectRatio(shareAspectRatio);
+    setIsShareAspectRatioSheetVisible(true);
+  };
+
+  const handleCancelShareAspectRatio = () => {
+    pendingShareFlowRef.current = null;
+    setIsShareAspectRatioSheetVisible(false);
+  };
+
+  const handleConfirmShareAspectRatio = () => {
+    setShareAspectRatio(pendingShareAspectRatio);
+    pendingShareFlowRef.current =
+      runtimePlatform === "android" ? "actions" : "share";
+    setIsShareAspectRatioSheetVisible(false);
+  };
+
+  const handleCloseShareAspectRatioSheet = () => {
+    setIsShareAspectRatioSheetVisible(false);
+
+    const nextShareFlow = pendingShareFlowRef.current;
+    pendingShareFlowRef.current = null;
+
+    if (nextShareFlow === "actions") {
+      requestAnimationFrame(() => setIsShareExportActionSheetVisible(true));
+      return;
+    }
+
+    if (nextShareFlow === "share") {
+      requestAnimationFrame(() => shareCaptureMenuRef.current?.shareImage());
+    }
+  };
+
+  const handleRequestExportAction = (action: "save" | "share") => {
+    pendingExportActionRef.current = action;
+    setIsShareExportActionSheetVisible(false);
+  };
+
+  const handleCloseShareExportActionSheet = () => {
+    setIsShareExportActionSheetVisible(false);
+
+    const action = pendingExportActionRef.current;
+    pendingExportActionRef.current = null;
+
+    if (!action) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      if (action === "save") {
+        shareCaptureMenuRef.current?.saveImage();
+        return;
+      }
+
+      shareCaptureMenuRef.current?.shareImage();
+    });
+  };
+
   const handleRequestDeletePhoto = () => {
     Alert.alert(
       "사진 삭제",
@@ -115,10 +198,14 @@ export function MonthlyCalendarScreen() {
           </AppBar.Title>
           <View style={styles.appBarActions}>
             <ShareCaptureMenu
+              ref={shareCaptureMenuRef}
               accessibilityLabel="캘린더 공유 버튼"
+              captureHeight={shareCanvasDimensions?.height}
               captureRef={shareCaptureRef}
+              captureWidth={shareCanvasDimensions?.width}
               fileName={shareFileName}
-              isReady={isShareReady && Boolean(shareContentLayout)}
+              isReady={isShareReady && Boolean(shareCanvasDimensions)}
+              onPress={handleOpenShareAspectRatioSheet}
             />
           </View>
         </AppBar>
@@ -132,7 +219,7 @@ export function MonthlyCalendarScreen() {
           />
         </View>
       </View>
-      {shareContentLayout && (
+      {shareCanvasDimensions && (
         <View
           ref={shareCaptureRef}
           collapsable={false}
@@ -141,9 +228,9 @@ export function MonthlyCalendarScreen() {
           style={[
             styles.shareCaptureCanvas,
             {
-              height: shareContentLayout.height,
-              transform: [{ translateX: -(shareContentLayout.width + 120) }],
-              width: shareContentLayout.width,
+              height: shareCanvasDimensions.height,
+              transform: [{ translateX: -(shareCanvasDimensions.width + 120) }],
+              width: shareCanvasDimensions.width,
             },
           ]}
         >
@@ -155,7 +242,8 @@ export function MonthlyCalendarScreen() {
               <MonthlyCalendar
                 calendar={calendar}
                 canSwipeMonth={false}
-                contentWidth={shareContentLayout.width}
+                contentWidth={shareCanvasDimensions.width}
+                showTodayHighlight={false}
                 onSelectDate={() => {}}
               />
             </View>
@@ -163,6 +251,21 @@ export function MonthlyCalendarScreen() {
         </View>
       )}
       <DailyPhotoPolicyDialog dialog={policyDialog} onCancel={dismissDialog} />
+      <RecapCanvasAspectRatioSheet
+        subtitle="사진으로 채운 캘린더의 캔버스 비율을 선택해 주세요."
+        value={pendingShareAspectRatio}
+        visible={isShareAspectRatioSheetVisible}
+        onCancel={handleCancelShareAspectRatio}
+        onClose={handleCloseShareAspectRatioSheet}
+        onConfirm={handleConfirmShareAspectRatio}
+        onSelect={setPendingShareAspectRatio}
+      />
+      <ShareExportActionSheet
+        visible={isShareExportActionSheetVisible}
+        onClose={handleCloseShareExportActionSheet}
+        onSave={() => handleRequestExportAction("save")}
+        onShare={() => handleRequestExportAction("share")}
+      />
       <DailyPhotoDetailSheet
         dateLabel={photoDetail?.dateLabel ?? ""}
         isToday={photoDetail?.isToday ?? false}
