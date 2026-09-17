@@ -1,4 +1,9 @@
-import { useState, type RefObject } from "react";
+import {
+  forwardRef,
+  useImperativeHandle,
+  useState,
+  type RefObject,
+} from "react";
 import { Alert, StyleSheet, View } from "react-native";
 
 import {
@@ -27,6 +32,13 @@ type ShareCaptureMenuProps = {
   disabledMessage?: string;
   fileName: string;
   isReady: boolean;
+  onPress?: () => void;
+  presentation?: "button" | "menuItem";
+};
+
+export type ShareCaptureMenuHandle = {
+  saveImage: () => void;
+  shareImage: () => void;
 };
 
 type PermissionAlertState = {
@@ -34,7 +46,10 @@ type PermissionAlertState = {
   visible: boolean;
 };
 
-export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
+export const ShareCaptureMenu = forwardRef<
+  ShareCaptureMenuHandle,
+  ShareCaptureMenuProps
+>(function ShareCaptureMenu(props, ref) {
   const {
     accessibilityLabel,
     captureHeight,
@@ -44,6 +59,8 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
     disabledMessage,
     fileName,
     isReady,
+    onPress,
+    presentation = "button",
   } = props;
   const [permissionAlert, setPermissionAlert] = useState<PermissionAlertState>({
     canAskAgain: true,
@@ -132,11 +149,59 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
     setSaveToastState(ShareSaveToastState.hidden);
   };
 
+  useImperativeHandle(ref, () => ({
+    saveImage: () => {
+      void handleSaveImage();
+    },
+    shareImage: () => {
+      void handleShareImage();
+    },
+  }));
+
+  const handleTriggerPress = () => {
+    if (disabled || isProcessing) {
+      handleBlockedPress();
+      return;
+    }
+
+    onPress?.();
+  };
+
   const shouldShowActionMenu = runtimePlatform === "android";
+
+  if (presentation === "menuItem") {
+    return (
+      <View style={styles.root}>
+        <Menu.Item
+          disabled={disabled || isProcessing}
+          icon="Share"
+          label="공유하기"
+          onPress={handleShareImage}
+        />
+        <MediaLibraryPermissionAlert
+          canAskAgain={permissionAlert.canAskAgain}
+          visible={permissionAlert.visible}
+          onClose={handleClosePermissionAlert}
+          onOpenSettings={() => {
+            void openDeviceAppSettings();
+          }}
+        />
+        <ShareSaveToast state={saveToastState} onDone={handleHideSaveToast} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.root}>
-      {shouldShowActionMenu && !isBlockedWithMessage ? (
+      {onPress ? (
+        <SymbolIconButton
+          accessibilityLabel={accessibilityLabel}
+          disabled={disabled && !isBlockedWithMessage}
+          icon="Share"
+          isDimmed={isBlockedWithMessage}
+          onPress={handleTriggerPress}
+        />
+      ) : shouldShowActionMenu && !isBlockedWithMessage ? (
         <Menu
           accessibilityLabel={accessibilityLabel}
           disabled={disabled}
@@ -169,7 +234,7 @@ export function ShareCaptureMenu(props: ShareCaptureMenuProps) {
       <ShareSaveToast state={saveToastState} onDone={handleHideSaveToast} />
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   root: {

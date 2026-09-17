@@ -14,6 +14,15 @@ export type RecapCanvasLayoutState = {
   slotPhotoIds: Record<string, string | null>;
 };
 
+export const RecapCanvasAspectRatio = {
+  device: "device",
+  portraitFourFive: "portrait_4_5",
+  portraitNineSixteen: "portrait_9_16",
+} as const;
+
+export type RecapCanvasAspectRatio =
+  (typeof RecapCanvasAspectRatio)[keyof typeof RecapCanvasAspectRatio];
+
 export type RecapCanvasElementType = "photo" | "sticker" | "text" | "widget";
 
 export type RecapCanvasBaseElement = {
@@ -89,6 +98,7 @@ export type RecapCanvasElement =
   | RecapCanvasWidgetElement;
 
 export type MonthlyRecapCanvas = {
+  aspectRatio?: RecapCanvasAspectRatio;
   backgroundColor?: string;
   createdAt: string;
   elements: RecapCanvasElement[];
@@ -100,6 +110,7 @@ export type MonthlyRecapCanvas = {
 };
 
 export type MonthlyRecapCanvasDraft = {
+  aspectRatio?: RecapCanvasAspectRatio;
   backgroundColor?: string;
   elements: RecapCanvasElement[];
   layout: RecapCanvasLayoutState | null;

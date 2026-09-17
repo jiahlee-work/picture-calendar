@@ -5,6 +5,7 @@ import type {
   MonthlyRecapCanvasMetadataStore,
   RecapCanvasElement,
   RecapCanvasElementType,
+  RecapCanvasAspectRatio,
   RecapCanvasLayoutId,
   RecapCanvasLayoutState,
 } from "@/shared/recap/types";
@@ -57,6 +58,18 @@ export function createLocalMonthlyRecapCanvasMetadataStore(): MonthlyRecapCanvas
   };
 }
 
+function aspectRatioValue(value: unknown): RecapCanvasAspectRatio | null {
+  if (
+    value === "device" ||
+    value === "portrait_4_5" ||
+    value === "portrait_9_16"
+  ) {
+    return value;
+  }
+
+  return null;
+}
+
 function isMonthlyRecapCanvas(
   canvas: MonthlyRecapCanvas | null,
 ): canvas is MonthlyRecapCanvas {
@@ -79,6 +92,7 @@ function toMonthlyRecapCanvas(value: unknown): MonthlyRecapCanvas | null {
   }
 
   return {
+    aspectRatio: aspectRatioValue(value.aspectRatio) ?? undefined,
     backgroundColor: stringValue(value.backgroundColor) ?? undefined,
     id,
     userId,

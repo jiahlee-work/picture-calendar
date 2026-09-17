@@ -1,21 +1,21 @@
 import { useCallback, useMemo, useRef, useState } from "react";
+import { useRouter } from "expo-router";
 import {
   ActivityIndicator,
   Alert,
   Pressable,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from "react-native";
 
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
+
 import { useStickerLibrary } from "@/application/hooks/use-sticker-library";
 import { useMonthlyRecapCanvas } from "@/application/hooks/use-monthly-recap-canvas";
 import { useMonthlyRecapDetail } from "@/application/hooks/use-monthly-recap-detail";
-import {
-  isDefaultRecapCanvasBackgroundColor,
-  normalizeRecapCanvasBackgroundColor,
-} from "@/application/services/recap/recap-canvas-background";
+import { normalizeRecapCanvasBackgroundColor } from "@/application/services/recap/recap-canvas-background";
+import { hasRecapCanvasContent } from "@/application/services/recap/recap-canvas-content";
 import {
   createRecapTextElement,
   deleteRecapCanvasElement,
@@ -50,6 +50,7 @@ import type { StickerAsset } from "@/application/services/stickers/types";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { RecapCanvasElementStack } from "@/presentation/components/organisms/recap-canvas-element-stack";
+import { RecapCanvasAspectRatioSheet } from "@/presentation/components/organisms/recap-canvas-aspect-ratio-sheet";
 import { RecapElementLayerToolbar } from "@/presentation/components/organisms/recap-element-layer-toolbar";
 import {
   RecapDecoratingToolbar,
@@ -62,12 +63,16 @@ import { RecapColorSheet } from "@/presentation/components/organisms/recap-color
 import { RecapTextToolbar } from "@/presentation/components/organisms/recap-text-toolbar";
 import { RecapTextTypographySheet } from "@/presentation/components/organisms/recap-text-typography-sheet";
 import { ShareCaptureMenu } from "@/presentation/components/organisms/share-capture-menu";
+import { Menu } from "@/presentation/components/molecules/menu";
 import { StickerPickerSheet } from "@/presentation/components/organisms/sticker-picker-sheet";
 import { useAppBottomNavigationHidden } from "@/presentation/providers/app-bottom-navigation-controller";
+import { getCanvasDimensions } from "@/presentation/helpers/canvas/canvas-aspect-ratio-layout";
 import { appColors } from "@/presentation/theme/colors";
 import { appLayers } from "@/presentation/theme/layers";
 import {
   RecapCanvasLayoutId,
+  RecapCanvasAspectRatio,
+  type RecapCanvasAspectRatio as RecapCanvasAspectRatioType,
   type RecapCanvasElement,
   type RecapCanvasLayoutId as RecapCanvasLayoutIdType,
   type RecapCanvasLayoutState,
@@ -87,9 +92,11 @@ const DEFAULT_LAYOUT_ID = RecapCanvasLayoutId.twoColumns;
 
 export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   const { month, year } = props;
+  const router = useRouter();
   const windowDimensions = useWindowDimensions();
   const shareCaptureRef = useRef<View>(null);
   const canvasElementSequenceRef = useRef(0);
+  const shouldOpenCanvasAspectRatioSheetRef = useRef(false);
   const monthKey = `${year}-${month}`;
   const { photos, status } = useMonthlyRecapDetail(monthKey);
   const {
@@ -101,11 +108,20 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   } = useStickerLibrary();
   const {
     canvas: savedCanvas,
+    entryCanvas,
+    entryMonthKey,
     isLoading: isCanvasLoading,
     isSaving: isCanvasSaving,
     saveCanvas,
   } = useMonthlyRecapCanvas(monthKey);
   const [mode, setMode] = useState<RecapDecoratingMode>("default");
+  const [committedAspectRatioOverride, setCommittedAspectRatioOverride] =
+    useState<RecapCanvasAspectRatioType | undefined>(undefined);
+  const [pendingAspectRatio, setPendingAspectRatio] = useState<
+    RecapCanvasAspectRatioType | undefined
+  >(undefined);
+  const [isCanvasAspectRatioSheetVisible, setIsCanvasAspectRatioSheetVisible] =
+    useState(false);
   const [committedLayoutOverride, setCommittedLayoutOverride] = useState<
     RecapCanvasLayoutState | null | undefined
   >(undefined);
@@ -174,6 +190,17 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       ? (savedCanvas?.elements ?? [])
       : committedElementsOverride;
   const committedLayoutId = committedLayout?.layoutId ?? null;
+  const savedAspectRatio = savedCanvas?.aspectRatio;
+  const committedAspectRatio =
+    committedAspectRatioOverride ?? savedAspectRatio ?? null;
+  const visibleAspectRatio =
+    committedAspectRatio ?? RecapCanvasAspectRatio.device;
+  const isConstrainedCanvasAspectRatio =
+    visibleAspectRatio !== RecapCanvasAspectRatio.device;
+  const canvasDimensions = useMemo(
+    () => getCanvasDimensions(visibleAspectRatio, windowDimensions),
+    [visibleAspectRatio, windowDimensions],
+  );
   const savedBackgroundColor = normalizeRecapCanvasBackgroundColor(
     savedCanvas?.backgroundColor,
   );
@@ -232,26 +259,33 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     (mode === "default" && isPolaroidPhotoPickerVisible);
   const hasUnsavedDecoratingChanges =
     JSON.stringify({
+      aspectRatio: committedAspectRatio,
       backgroundColor: committedBackgroundColor,
       elements: committedElements,
       layout: committedLayout,
     }) !==
     JSON.stringify({
+      aspectRatio: savedAspectRatio ?? null,
       backgroundColor: savedBackgroundColor,
       elements: savedCanvas?.elements ?? [],
       layout: savedCanvas?.layout ?? null,
     });
-  const hasCanvasContent =
-    Boolean(committedLayout) ||
-    committedElements.length > 0 ||
-    !isDefaultRecapCanvasBackgroundColor(committedBackgroundColor);
-  const isShareVisible = mode === "default" && hasCanvasContent;
+  const hasCanvasContent = hasRecapCanvasContent({
+    backgroundColor: committedBackgroundColor,
+    elements: committedElements,
+    layout: committedLayout,
+  });
   const emptyCanvasMessage =
     mode === "layout" && !visibleLayout
       ? "레이아웃 미적용"
       : hasCanvasContent
         ? null
-        : "리캡 페이지를 직접 만들어보세요!";
+        : "한 달 동안의 기억을 한 장의 페이지로 만들어보세요.";
+  const requiresInitialAspectRatioSelection =
+    !isCanvasLoading &&
+    entryMonthKey === monthKey &&
+    entryCanvas === null &&
+    committedAspectRatioOverride === undefined;
 
   const handleCompletePress = async () => {
     if (!hasUnsavedDecoratingChanges || isCanvasSaving) {
@@ -260,6 +294,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
     try {
       await saveCanvas({
+        aspectRatio: visibleAspectRatio,
         backgroundColor: committedBackgroundColor,
         elements: committedElements,
         layout: committedLayout,
@@ -314,6 +349,47 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     setEditingWidgetElementId(null);
   };
 
+  const handleOpenCanvasAspectRatioSheet = () => {
+    setPendingAspectRatio(visibleAspectRatio);
+    shouldOpenCanvasAspectRatioSheetRef.current = true;
+  };
+
+  const handleMoreMenuOpenChange = (isOpen: boolean) => {
+    if (isOpen || !shouldOpenCanvasAspectRatioSheetRef.current) {
+      return;
+    }
+
+    shouldOpenCanvasAspectRatioSheetRef.current = false;
+    requestAnimationFrame(() => setIsCanvasAspectRatioSheetVisible(true));
+  };
+
+  const handleSelectCanvasAspectRatio = (
+    nextAspectRatio: RecapCanvasAspectRatioType,
+  ) => {
+    setPendingAspectRatio(nextAspectRatio);
+  };
+
+  const handleConfirmCanvasAspectRatio = () => {
+    setCommittedAspectRatioOverride(pendingAspectRatio ?? visibleAspectRatio);
+    setPendingAspectRatio(undefined);
+    setIsCanvasAspectRatioSheetVisible(false);
+  };
+
+  const handleCloseCanvasAspectRatioSheet = () => {
+    setPendingAspectRatio(undefined);
+    setIsCanvasAspectRatioSheetVisible(false);
+  };
+
+  const handleCancelCanvasAspectRatio = () => {
+    if (requiresInitialAspectRatioSelection) {
+      setPendingAspectRatio(undefined);
+      router.back();
+      return;
+    }
+
+    handleCloseCanvasAspectRatioSheet();
+  };
+
   const handleToolbarActionPress = (
     actionId: RecapDecoratingToolbarActionId,
   ) => {
@@ -343,8 +419,8 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   const handleAddTextElement = () => {
     const nextTextElement = createRecapTextElement({
       id: `recap-text-${Date.now()}`,
-      x: Math.max(Math.round(windowDimensions.width / 2 - 178), 24),
-      y: Math.max(Math.round(windowDimensions.height / 2 - 28), 120),
+      x: Math.max(Math.round(canvasDimensions.width / 2 - 178), 24),
+      y: Math.max(Math.round(canvasDimensions.height / 2 - 28), 24),
       zIndex: getNextRecapCanvasElementZIndex(committedElements),
     });
     const nextElements = upsertRecapCanvasElement(
@@ -669,8 +745,8 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
       canvasElementSequenceRef.current += 1;
       const nextElements = insertRecapCanvasPhotoElements({
-        canvasHeight: windowDimensions.height,
-        canvasWidth: windowDimensions.width,
+        canvasHeight: canvasDimensions.height,
+        canvasWidth: canvasDimensions.width,
         elementIdPrefix: `recap-photo-${Date.now()}-${canvasElementSequenceRef.current}`,
         elements: committedElements,
         photos: selectedPhotosWithSize,
@@ -705,8 +781,8 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     const insertion = createRecapCanvasAssetInsertion({
       asset,
       id: `recap-${asset.source}-${Date.now()}-${canvasElementSequenceRef.current}`,
-      x: Math.max(Math.round(windowDimensions.width / 2 - 66), 24),
-      y: Math.max(Math.round(windowDimensions.height / 2 - 66), 120),
+      x: Math.max(Math.round(canvasDimensions.width / 2 - 66), 24),
+      y: Math.max(Math.round(canvasDimensions.height / 2 - 66), 24),
       zIndex: getNextRecapCanvasElementZIndex(committedElements),
     });
     const { element } = insertion;
@@ -791,52 +867,64 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       <View
         style={[
           styles.canvasRegion,
+          isConstrainedCanvasAspectRatio && styles.constrainedCanvasRegion,
           isPhotoCalendarVisible && styles.canvasRegionWithPicker,
         ]}
       >
-        <RecapLayoutCanvas
-          backgroundColor={
-            mode === "layout" ? appColors.white : committedBackgroundColor
-          }
-          isEditing={mode === "layout"}
-          layout={visibleLayout}
-          photosById={photosById}
-          selectedSlotId={mode === "layout" ? selectedLayoutSlotId : null}
-          slotPhotoIds={visibleSlotPhotoIds}
-          onSelectSlot={handleSelectLayoutSlot}
+        <View
+          style={[
+            styles.canvasFrame,
+            isConstrainedCanvasAspectRatio && styles.constrainedCanvasFrame,
+            {
+              height: canvasDimensions.height,
+              width: canvasDimensions.width,
+            },
+          ]}
         >
-          {emptyCanvasMessage ? (
-            <Text style={styles.emptyText}>{emptyCanvasMessage}</Text>
+          <RecapLayoutCanvas
+            backgroundColor={
+              mode === "layout" ? appColors.white : committedBackgroundColor
+            }
+            isEditing={mode === "layout"}
+            layout={visibleLayout}
+            photosById={photosById}
+            selectedSlotId={mode === "layout" ? selectedLayoutSlotId : null}
+            slotPhotoIds={visibleSlotPhotoIds}
+            onSelectSlot={handleSelectLayoutSlot}
+          >
+            {emptyCanvasMessage ? (
+              <Text style={styles.emptyText}>{emptyCanvasMessage}</Text>
+            ) : null}
+          </RecapLayoutCanvas>
+          {mode === "default" ? (
+            <>
+              <Pressable
+                accessibilityLabel="캔버스 빈 영역"
+                accessibilityRole="button"
+                style={styles.canvasDismissLayer}
+                onPress={() => handleSelectElement(null)}
+              />
+              <RecapCanvasElementStack
+                assets={stickers}
+                editingTextElementId={editingTextElementId}
+                editingWidgetElementId={editingWidgetElementId}
+                elements={committedElements}
+                monthKey={monthKey}
+                photosById={photosById}
+                selectedElementId={selectedElementId}
+                onChangeElement={handleChangeCanvasElement}
+                onChangeTextElement={handleChangeTextElement}
+                onEndTextEditing={() => setEditingTextElementId(null)}
+                onEndWidgetEditing={() => setEditingWidgetElementId(null)}
+                onLongPressElement={handleLongPressElement}
+                onRequestPhotoSelection={handleRequestPhotoSelection}
+                onSelectElement={handleSelectElement}
+                onStartTextEditing={handleStartTextEditing}
+                onStartWidgetEditing={handleStartWidgetEditing}
+              />
+            </>
           ) : null}
-        </RecapLayoutCanvas>
-        {mode === "default" ? (
-          <>
-            <Pressable
-              accessibilityLabel="캔버스 빈 영역"
-              accessibilityRole="button"
-              style={styles.canvasDismissLayer}
-              onPress={() => handleSelectElement(null)}
-            />
-            <RecapCanvasElementStack
-              assets={stickers}
-              editingTextElementId={editingTextElementId}
-              editingWidgetElementId={editingWidgetElementId}
-              elements={committedElements}
-              monthKey={monthKey}
-              photosById={photosById}
-              selectedElementId={selectedElementId}
-              onChangeElement={handleChangeCanvasElement}
-              onChangeTextElement={handleChangeTextElement}
-              onEndTextEditing={() => setEditingTextElementId(null)}
-              onEndWidgetEditing={() => setEditingWidgetElementId(null)}
-              onLongPressElement={handleLongPressElement}
-              onRequestPhotoSelection={handleRequestPhotoSelection}
-              onSelectElement={handleSelectElement}
-              onStartTextEditing={handleStartTextEditing}
-              onStartWidgetEditing={handleStartWidgetEditing}
-            />
-          </>
-        ) : null}
+        </View>
       </View>
       <AppSafeAreaView
         edges={["top"]}
@@ -867,25 +955,40 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
             />
           ) : (
             <View pointerEvents="box-none" style={styles.appBarActions}>
-              {isShareVisible ? (
-                <ShareCaptureMenu
-                  accessibilityLabel="리캡 공유 버튼"
-                  captureHeight={windowDimensions.height}
-                  captureRef={shareCaptureRef}
-                  captureWidth={windowDimensions.width}
-                  disabled={
-                    hasUnsavedDecoratingChanges ||
-                    isCanvasLoading ||
-                    isCanvasSaving
-                  }
-                  disabledMessage={
-                    hasUnsavedDecoratingChanges
-                      ? "공유하려면 먼저 꾸미기 완료를 눌러 저장해 주세요."
-                      : undefined
-                  }
-                  fileName={monthKey}
-                  isReady={hasCanvasContent && !hasUnsavedDecoratingChanges}
-                />
+              {mode === "default" ? (
+                <Menu
+                  accessibilityLabel="더보기"
+                  trigger={{ icon: "More" }}
+                  onOpenChange={handleMoreMenuOpenChange}
+                >
+                  <ShareCaptureMenu
+                    accessibilityLabel="리캡 공유 버튼"
+                    captureHeight={windowDimensions.height}
+                    captureRef={shareCaptureRef}
+                    captureWidth={windowDimensions.width}
+                    disabled={
+                      !hasCanvasContent ||
+                      hasUnsavedDecoratingChanges ||
+                      isCanvasLoading ||
+                      isCanvasSaving
+                    }
+                    disabledMessage={
+                      !hasCanvasContent
+                        ? "리캡을 만든 후 공유할 수 있어요."
+                        : hasUnsavedDecoratingChanges
+                          ? "공유하려면 먼저 꾸미기 완료를 눌러 저장해 주세요."
+                          : undefined
+                    }
+                    fileName={monthKey}
+                    isReady={hasCanvasContent && !hasUnsavedDecoratingChanges}
+                    presentation="menuItem"
+                  />
+                  <Menu.Item
+                    icon="AspectRatioSquare"
+                    label="캔버스 비율"
+                    onPress={handleOpenCanvasAspectRatioSheet}
+                  />
+                </Menu>
               ) : null}
               <AppBar.Action
                 accessibilityLabel="꾸미기 완료"
@@ -1048,6 +1151,17 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
         }
         onClose={() => setIsBackgroundColorSheetVisible(false)}
       />
+      <RecapCanvasAspectRatioSheet
+        required={requiresInitialAspectRatioSelection}
+        value={pendingAspectRatio ?? visibleAspectRatio}
+        visible={
+          isCanvasAspectRatioSheetVisible || requiresInitialAspectRatioSelection
+        }
+        onCancel={handleCancelCanvasAspectRatio}
+        onConfirm={handleConfirmCanvasAspectRatio}
+        onSelect={handleSelectCanvasAspectRatio}
+        onClose={handleCloseCanvasAspectRatioSheet}
+      />
       {hasCanvasContent ? (
         <View
           ref={shareCaptureRef}
@@ -1059,9 +1173,9 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
           style={[
             styles.shareCaptureCanvas,
             {
-              height: windowDimensions.height,
-              transform: [{ translateX: -(windowDimensions.width + 120) }],
-              width: windowDimensions.width,
+              height: canvasDimensions.height,
+              transform: [{ translateX: -(canvasDimensions.width + 120) }],
+              width: canvasDimensions.width,
             },
           ]}
         >
@@ -1104,12 +1218,25 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   canvasRegion: {
+    alignItems: "center",
     flex: 1,
+    justifyContent: "center",
     minHeight: 0,
     position: "relative",
   },
   canvasRegionWithPicker: {
     flex: 3,
+  },
+  canvasFrame: {
+    overflow: "hidden",
+    position: "relative",
+  },
+  constrainedCanvasFrame: {
+    borderColor: "rgba(0,0,0,0.12)",
+    borderWidth: 1,
+  },
+  constrainedCanvasRegion: {
+    backgroundColor: "rgba(18,18,18,0.65)",
   },
   canvasDismissLayer: {
     bottom: 0,

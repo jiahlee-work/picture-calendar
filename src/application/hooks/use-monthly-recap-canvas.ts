@@ -12,6 +12,8 @@ import type {
 
 type MonthlyRecapCanvasState = {
   canvas: MonthlyRecapCanvas | null;
+  entryCanvas: MonthlyRecapCanvas | null;
+  entryMonthKey: string | null;
   isLoading: boolean;
   isSaving: boolean;
 };
@@ -23,6 +25,8 @@ export function useMonthlyRecapCanvas(monthKey: string) {
   );
   const [state, setState] = useState<MonthlyRecapCanvasState>({
     canvas: null,
+    entryCanvas: null,
+    entryMonthKey: null,
     isLoading: true,
     isSaving: false,
   });
@@ -49,6 +53,8 @@ export function useMonthlyRecapCanvas(monthKey: string) {
           setState((current) => ({
             ...current,
             canvas,
+            entryCanvas: canvas,
+            entryMonthKey: monthKey,
             isLoading: false,
           }));
         }
