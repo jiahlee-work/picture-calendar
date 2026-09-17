@@ -268,6 +268,7 @@ function layoutIdValue(value: unknown): RecapCanvasLayoutId | null {
     value === RecapCanvasLayoutIdValue.twoRows ||
     value === RecapCanvasLayoutIdValue.threeRows ||
     value === RecapCanvasLayoutIdValue.fourGrid ||
+    value === RecapCanvasLayoutIdValue.sixGrid ||
     value === RecapCanvasLayoutIdValue.onePhoto
   ) {
     return value;

@@ -55,4 +55,14 @@ describe("recap canvas layout", () => {
       }),
     ).toBe(true);
   });
+
+  it("defines six equal photo slots in a two-column grid", () => {
+    const layout = getRecapCanvasLayoutDefinition(RecapCanvasLayoutId.sixGrid);
+
+    expect(layout.slotCount).toBe(6);
+    expect(layout.slots).toHaveLength(6);
+    expect(layout.lines).toHaveLength(3);
+    expect(layout.slots.every((slot) => slot.width === 0.5)).toBe(true);
+    expect(layout.slots.every((slot) => slot.height === 1 / 3)).toBe(true);
+  });
 });

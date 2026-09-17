@@ -115,6 +115,41 @@ export const RECAP_CANVAS_LAYOUTS: RecapCanvasLayoutDefinition[] = [
     ],
   },
   {
+    id: RecapCanvasLayoutId.sixGrid,
+    lines: [
+      {
+        endX: 0.5,
+        endY: 1,
+        id: "center-vertical",
+        startX: 0.5,
+        startY: 0,
+      },
+      {
+        endX: 1,
+        endY: 1 / 3,
+        id: "first-horizontal",
+        startX: 0,
+        startY: 1 / 3,
+      },
+      {
+        endX: 1,
+        endY: 2 / 3,
+        id: "second-horizontal",
+        startX: 0,
+        startY: 2 / 3,
+      },
+    ],
+    slotCount: 6,
+    slots: [
+      { height: 1 / 3, id: "top-left", width: 0.5, x: 0, y: 0 },
+      { height: 1 / 3, id: "top-right", width: 0.5, x: 0.5, y: 0 },
+      { height: 1 / 3, id: "middle-left", width: 0.5, x: 0, y: 1 / 3 },
+      { height: 1 / 3, id: "middle-right", width: 0.5, x: 0.5, y: 1 / 3 },
+      { height: 1 / 3, id: "bottom-left", width: 0.5, x: 0, y: 2 / 3 },
+      { height: 1 / 3, id: "bottom-right", width: 0.5, x: 0.5, y: 2 / 3 },
+    ],
+  },
+  {
     id: RecapCanvasLayoutId.onePhoto,
     lines: [],
     slotCount: 1,
