@@ -967,9 +967,9 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
                 >
                   <ShareCaptureMenu
                     accessibilityLabel="리캡 공유 버튼"
-                    captureHeight={windowDimensions.height}
+                    captureHeight={canvasDimensions.height}
                     captureRef={shareCaptureRef}
-                    captureWidth={windowDimensions.width}
+                    captureWidth={canvasDimensions.width}
                     disabled={
                       !hasCanvasContent ||
                       hasUnsavedDecoratingChanges ||
