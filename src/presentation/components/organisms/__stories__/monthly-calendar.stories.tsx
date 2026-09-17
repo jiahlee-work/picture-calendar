@@ -14,10 +14,11 @@ const SELECTION_MODE_DESCRIPTION =
 
 type MonthlyCalendarStoryProps = {
   hasPhoto?: boolean;
+  showTodayHighlight?: boolean;
 };
 
 function MonthlyCalendarStoryView(props: MonthlyCalendarStoryProps) {
-  const { hasPhoto = true } = props;
+  const { hasPhoto = true, showTodayHighlight = true } = props;
   const calendar = hasPhoto
     ? createStorybookCalendarMonth()
     : createEmptyStorybookCalendarMonth();
@@ -27,6 +28,7 @@ function MonthlyCalendarStoryView(props: MonthlyCalendarStoryProps) {
       calendar={calendar}
       canSwipeMonth={false}
       contentWidth={390}
+      showTodayHighlight={showTodayHighlight}
       onSelectDate={() => undefined}
     />
   );
@@ -40,6 +42,9 @@ const meta = {
         type: "radio",
       },
       options: [true, false],
+    },
+    showTodayHighlight: {
+      control: "boolean",
     },
   },
   component: MonthlyCalendarStoryView,
@@ -63,6 +68,14 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     hasPhoto: true,
+    showTodayHighlight: true,
+  },
+};
+
+export const Shared: Story = {
+  args: {
+    hasPhoto: true,
+    showTodayHighlight: false,
   },
 };
 

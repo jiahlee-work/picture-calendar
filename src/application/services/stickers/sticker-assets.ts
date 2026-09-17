@@ -20,6 +20,13 @@ export const WIDGET_ASSETS: WidgetAsset[] = [
     tags: ["polaroid", "photo"],
   },
   {
+    id: "widget-polaroid-frame-portrait",
+    source: "widget",
+    name: "세로형 폴라로이드 프레임",
+    variant: "polaroidFramePortrait",
+    tags: ["polaroid", "photo", "portrait"],
+  },
+  {
     id: "widget-speech-bubble",
     source: "widget",
     name: "말풍선",
@@ -35,4 +42,22 @@ export async function listStickerAssets(
   const userAssets = await repository.listUserAssets(userId);
 
   return [...WIDGET_ASSETS, ...userAssets];
+}
+
+export function partitionStickerAssets(assets: StickerAsset[]): {
+  stickers: Extract<StickerAsset, { source: "sticker" }>[];
+  widgets: Extract<StickerAsset, { source: "widget" }>[];
+} {
+  const stickers: Extract<StickerAsset, { source: "sticker" }>[] = [];
+  const widgets: Extract<StickerAsset, { source: "widget" }>[] = [];
+
+  for (const asset of assets) {
+    if (asset.source === "sticker") {
+      stickers.push(asset);
+    } else {
+      widgets.push(asset);
+    }
+  }
+
+  return { stickers, widgets };
 }

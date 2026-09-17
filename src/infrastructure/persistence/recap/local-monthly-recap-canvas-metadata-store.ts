@@ -5,10 +5,12 @@ import type {
   MonthlyRecapCanvasMetadataStore,
   RecapCanvasElement,
   RecapCanvasElementType,
+  RecapCanvasAspectRatio,
   RecapCanvasLayoutId,
   RecapCanvasLayoutState,
 } from "@/shared/recap/types";
 import { RecapCanvasLayoutId as RecapCanvasLayoutIdValue } from "@/shared/recap/types";
+import { parseRecapCanvasTextMetadata } from "@/infrastructure/persistence/recap/recap-canvas-text-metadata";
 
 const MONTHLY_RECAP_CANVASES_DIRECTORY_NAME = "monthly-recap-canvases";
 const METADATA_FILE_NAME = "metadata.json";
@@ -56,6 +58,18 @@ export function createLocalMonthlyRecapCanvasMetadataStore(): MonthlyRecapCanvas
   };
 }
 
+function aspectRatioValue(value: unknown): RecapCanvasAspectRatio | null {
+  if (
+    value === "device" ||
+    value === "portrait_4_5" ||
+    value === "portrait_9_16"
+  ) {
+    return value;
+  }
+
+  return null;
+}
+
 function isMonthlyRecapCanvas(
   canvas: MonthlyRecapCanvas | null,
 ): canvas is MonthlyRecapCanvas {
@@ -78,6 +92,8 @@ function toMonthlyRecapCanvas(value: unknown): MonthlyRecapCanvas | null {
   }
 
   return {
+    aspectRatio: aspectRatioValue(value.aspectRatio) ?? undefined,
+    backgroundColor: stringValue(value.backgroundColor) ?? undefined,
     id,
     userId,
     month,
@@ -133,7 +149,17 @@ function toRecapCanvasElement(value: unknown): RecapCanvasElement | null {
   if (base.type === "photo") {
     const photoId = stringValue(value.photoId);
 
-    return photoId ? { ...base, photoId, type: "photo" } : null;
+    return photoId
+      ? {
+          ...base,
+          crop: photoCropValue(value.crop) ?? undefined,
+          height: positiveNumberValue(value.height) ?? undefined,
+          imagePath: stringValue(value.imagePath) ?? undefined,
+          photoId,
+          type: "photo",
+          width: positiveNumberValue(value.width) ?? undefined,
+        }
+      : null;
   }
 
   if (base.type === "sticker") {
@@ -143,26 +169,7 @@ function toRecapCanvasElement(value: unknown): RecapCanvasElement | null {
   }
 
   if (base.type === "text") {
-    const content = stringValue(value.content);
-    const color = stringValue(value.color);
-    const fontSize = numberValue(value.fontSize);
-
-    if (!content || !color || fontSize === null) {
-      return null;
-    }
-
-    return {
-      ...base,
-      color,
-      content,
-      fontFamily: stringValue(value.fontFamily) ?? undefined,
-      fontSize,
-      fontStyle: fontStyleValue(value.fontStyle),
-      fontWeight: fontWeightValue(value.fontWeight),
-      textAlign: textAlignValue(value.textAlign),
-      textDecorationLine: textDecorationLineValue(value.textDecorationLine),
-      type: "text",
-    };
+    return parseRecapCanvasTextMetadata(value, base);
   }
 
   if (base.type === "widget") {
@@ -179,17 +186,41 @@ function toRecapCanvasElement(value: unknown): RecapCanvasElement | null {
       };
     }
 
-    if (value.variant === "polaroidFrame") {
+    if (
+      value.variant === "polaroidFrame" ||
+      value.variant === "polaroidFramePortrait"
+    ) {
       return {
         ...base,
         photoId: stringValue(value.photoId) ?? undefined,
         type: "widget",
-        variant: "polaroidFrame",
+        variant: value.variant,
       };
     }
   }
 
   return null;
+}
+
+function photoCropValue(value: unknown) {
+  if (!isObjectRecord(value)) {
+    return null;
+  }
+
+  const x = normalizedNumberValue(value.x);
+  const y = normalizedNumberValue(value.y);
+  const width = normalizedNumberValue(value.width);
+  const height = normalizedNumberValue(value.height);
+
+  if (x === null || y === null || width === null || height === null) {
+    return null;
+  }
+
+  if (x + width > 1 || y + height > 1 || width <= 0 || height <= 0) {
+    return null;
+  }
+
+  return { height, width, x, y };
 }
 
 function baseElementValue(value: Record<string, unknown>) {
@@ -225,12 +256,19 @@ function baseElementValue(value: Record<string, unknown>) {
   };
 }
 
+function positiveNumberValue(value: unknown): number | null {
+  const number = numberValue(value);
+
+  return number !== null && number > 0 ? number : null;
+}
+
 function layoutIdValue(value: unknown): RecapCanvasLayoutId | null {
   if (
     value === RecapCanvasLayoutIdValue.twoColumns ||
     value === RecapCanvasLayoutIdValue.twoRows ||
     value === RecapCanvasLayoutIdValue.threeRows ||
-    value === RecapCanvasLayoutIdValue.fourGrid
+    value === RecapCanvasLayoutIdValue.fourGrid ||
+    value === RecapCanvasLayoutIdValue.onePhoto
   ) {
     return value;
   }
@@ -263,24 +301,6 @@ function elementTypeValue(value: unknown): RecapCanvasElementType | null {
   return null;
 }
 
-function fontStyleValue(value: unknown) {
-  return value === "italic" || value === "normal" ? value : undefined;
-}
-
-function fontWeightValue(value: unknown) {
-  return value === "bold" || value === "normal" ? value : undefined;
-}
-
-function textAlignValue(value: unknown) {
-  return value === "center" || value === "left" || value === "right"
-    ? value
-    : undefined;
-}
-
-function textDecorationLineValue(value: unknown) {
-  return value === "none" || value === "underline" ? value : undefined;
-}
-
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -291,4 +311,10 @@ function stringValue(value: unknown): string | null {
 
 function numberValue(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function normalizedNumberValue(value: unknown): number | null {
+  const number = numberValue(value);
+
+  return number !== null && number >= 0 && number <= 1 ? number : null;
 }

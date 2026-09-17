@@ -3,16 +3,26 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import { SelectionCheckbox } from "@/presentation/components/atoms/selection-checkbox";
+import { appLayers } from "@/presentation/theme/layers";
 
 type RecapLayoutPhotoPickerProps = {
+  accessibilityLabel?: string;
   onSelectPhoto: (photoId: string | null) => void;
   photos: DailyPhoto[];
   selectedPhotoId: string | null;
+  toggleSelection?: boolean;
   visible: boolean;
 };
 
 export function RecapLayoutPhotoPicker(props: RecapLayoutPhotoPickerProps) {
-  const { onSelectPhoto, photos, selectedPhotoId, visible } = props;
+  const {
+    accessibilityLabel = "레이아웃 사진 선택",
+    onSelectPhoto,
+    photos,
+    selectedPhotoId,
+    toggleSelection = true,
+    visible,
+  } = props;
 
   if (!visible || photos.length === 0) {
     return null;
@@ -27,13 +37,13 @@ export function RecapLayoutPhotoPicker(props: RecapLayoutPhotoPickerProps) {
       >
         {photos.map((photo) => {
           const isSelected = photo.id === selectedPhotoId;
-          const nextPhotoId = isSelected ? null : photo.id;
+          const nextPhotoId = toggleSelection && isSelected ? null : photo.id;
 
           return (
             <Pressable
               key={photo.id}
               accessibilityRole="button"
-              accessibilityLabel="레이아웃 사진 선택"
+              accessibilityLabel={accessibilityLabel}
               accessibilityState={{ selected: isSelected }}
               style={({ pressed }) => [
                 styles.thumbnailButton,
@@ -48,7 +58,7 @@ export function RecapLayoutPhotoPicker(props: RecapLayoutPhotoPickerProps) {
                 style={styles.thumbnail}
               />
               <SelectionCheckbox
-                accessibilityLabel="선택한 레이아웃 사진"
+                accessibilityLabel={accessibilityLabel}
                 isSelected={isSelected}
                 size={24}
                 style={styles.selectionControl}
@@ -65,9 +75,11 @@ export function RecapLayoutPhotoPicker(props: RecapLayoutPhotoPickerProps) {
 const styles = StyleSheet.create({
   container: {
     bottom: 96,
+    elevation: appLayers.canvasElement + 2,
     left: 0,
     position: "absolute",
     right: 0,
+    zIndex: appLayers.canvasElement + 2,
   },
   content: {
     gap: 10,

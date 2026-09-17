@@ -1,0 +1,26 @@
+appId: com.jiahleework.pical
+name: E2E recap layout mode
+---
+- tapOn: "리캡으로 이동"
+- extendedWaitUntil:
+    visible: "Recap"
+    timeout: 30000
+- tapOn: "August recap"
+- extendedWaitUntil:
+    visible: "리캡 공유 버튼"
+    timeout: 30000
+- tapOn: "레이아웃 선택"
+- assertVisible: "레이아웃 선택 취소"
+- assertVisible: "2열 레이아웃 선택"
+- tapOn: "레이아웃 없음 선택"
+- tapOn: "레이아웃 선택 완료"
+- assertVisible: "텍스트 추가"
+- tapOn: "레이아웃 선택"
+- tapOn: "한 장 레이아웃 선택"
+- tapOn: "레이아웃 선택 취소"
+- assertVisible: "레이아웃 적용을 취소하시겠습니까?"
+- tapOn: "계속 편집"
+- assertVisible: "레이아웃 선택 취소"
+- tapOn: "레이아웃 선택 취소"
+- tapOn: "취소하기"
+- assertVisible: "텍스트 추가"

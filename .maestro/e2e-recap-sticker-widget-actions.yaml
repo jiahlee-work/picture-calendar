@@ -1,0 +1,41 @@
+appId: com.jiahleework.pical
+name: E2E recap sticker and widget actions
+---
+- tapOn: "리캡으로 이동"
+- extendedWaitUntil:
+    visible: "Recap"
+    timeout: 30000
+- tapOn: "August recap"
+- extendedWaitUntil:
+    visible: "리캡 공유 버튼"
+    timeout: 30000
+- tapOn: "라이브러리 열기"
+- extendedWaitUntil:
+    visible: "스티커 보기"
+    timeout: 5000
+- assertVisible: "위젯 보기"
+- tapOn: "스티커 등록 메뉴 열기"
+- assertVisible: "갤러리에서 등록"
+- assertVisible: "클립보드 붙여넣기"
+- tapOn:
+    point: "20%,62%"
+- tapOn: "위젯 보기"
+- assertVisible: "달력"
+- tapOn: "달력"
+- assertVisible: "위젯 보기"
+- tapOn: "말풍선"
+- extendedWaitUntil:
+    notVisible: "위젯 보기"
+    timeout: 5000
+- extendedWaitUntil:
+    visible: "말풍선 내용 편집"
+    timeout: 5000
+- tapOn:
+    point: "50%,15%"
+- assertNotVisible: "말풍선 내용 편집"
+- longPressOn: "위젯 선택"
+- extendedWaitUntil:
+    visible: "요소 삭제"
+    timeout: 5000
+- assertVisible: "요소 앞으로 이동"
+- assertVisible: "요소 뒤로 이동"

@@ -1,4 +1,6 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import { appColors } from "@/presentation/theme/colors";

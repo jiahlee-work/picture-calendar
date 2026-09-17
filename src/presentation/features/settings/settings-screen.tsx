@@ -1,4 +1,6 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import { useRecapNotificationSettings } from "@/application/hooks/use-recap-notification-settings";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";

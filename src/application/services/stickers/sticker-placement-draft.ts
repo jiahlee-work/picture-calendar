@@ -144,7 +144,8 @@ function cloneWidgetState(
 }
 
 function toInitialWidgetState(
-  variant: "calendar" | "polaroidFrame" | "speechBubble",
+  variant:
+    "calendar" | "polaroidFrame" | "polaroidFramePortrait" | "speechBubble",
   options: {
     date?: string;
     selectedImageId?: string;

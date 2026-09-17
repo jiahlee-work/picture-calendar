@@ -1,5 +1,6 @@
 export const RecapCanvasLayoutId = {
   fourGrid: "four_grid",
+  onePhoto: "one_photo",
   threeRows: "three_rows",
   twoColumns: "two_columns",
   twoRows: "two_rows",
@@ -12,6 +13,15 @@ export type RecapCanvasLayoutState = {
   layoutId: RecapCanvasLayoutId;
   slotPhotoIds: Record<string, string | null>;
 };
+
+export const RecapCanvasAspectRatio = {
+  device: "device",
+  portraitFourFive: "portrait_4_5",
+  portraitNineSixteen: "portrait_9_16",
+} as const;
+
+export type RecapCanvasAspectRatio =
+  (typeof RecapCanvasAspectRatio)[keyof typeof RecapCanvasAspectRatio];
 
 export type RecapCanvasElementType = "photo" | "sticker" | "text" | "widget";
 
@@ -27,8 +37,19 @@ export type RecapCanvasBaseElement = {
 };
 
 export type RecapCanvasPhotoElement = RecapCanvasBaseElement & {
+  crop?: RecapCanvasPhotoCrop;
+  imagePath?: string;
+  height?: number;
   photoId: string;
   type: "photo";
+  width?: number;
+};
+
+export type RecapCanvasPhotoCrop = {
+  height: number;
+  width: number;
+  x: number;
+  y: number;
 };
 
 export type RecapCanvasStickerElement = RecapCanvasBaseElement & {
@@ -63,6 +84,11 @@ export type RecapCanvasWidgetElement =
       photoId?: string;
       type: "widget";
       variant: "polaroidFrame";
+    })
+  | (RecapCanvasBaseElement & {
+      photoId?: string;
+      type: "widget";
+      variant: "polaroidFramePortrait";
     });
 
 export type RecapCanvasElement =
@@ -72,6 +98,8 @@ export type RecapCanvasElement =
   | RecapCanvasWidgetElement;
 
 export type MonthlyRecapCanvas = {
+  aspectRatio?: RecapCanvasAspectRatio;
+  backgroundColor?: string;
   createdAt: string;
   elements: RecapCanvasElement[];
   id: string;
@@ -82,6 +110,8 @@ export type MonthlyRecapCanvas = {
 };
 
 export type MonthlyRecapCanvasDraft = {
+  aspectRatio?: RecapCanvasAspectRatio;
+  backgroundColor?: string;
   elements: RecapCanvasElement[];
   layout: RecapCanvasLayoutState | null;
   month: string;

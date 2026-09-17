@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-native";
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import { CalendarWheelPickerSelector } from "@/presentation/components/organisms/calendar-wheel-picker-selector";
 import { appColors } from "@/presentation/theme/colors";

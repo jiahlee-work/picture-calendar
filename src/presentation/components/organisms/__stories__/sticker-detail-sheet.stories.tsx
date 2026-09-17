@@ -1,7 +1,9 @@
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import type { Meta, StoryObj } from "@storybook/react-native";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import { WIDGET_ASSETS } from "@/application/services/stickers/sticker-assets";
 import type { StickerAsset } from "@/application/services/stickers/types";

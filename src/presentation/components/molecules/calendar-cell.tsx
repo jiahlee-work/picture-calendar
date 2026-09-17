@@ -1,14 +1,23 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import type { CalendarGridCell } from "@/application/services/calendar/calendar-grid";
 import { DailyPhotoImage } from "@/presentation/components/atoms/daily-photo-image";
+import { SelectionCheckbox } from "@/presentation/components/atoms/selection-checkbox";
 import { appColors } from "@/presentation/theme/colors";
 
 type CalendarCellProps = {
   cellHeight: number;
   cellWidth: number;
   day: CalendarGridCell;
+  showTodayHighlight?: boolean;
   selectionOrder?: number | null;
+  selectionCheckbox?: {
+    accessibilityLabel: string;
+    isSelected: boolean;
+    onPress: () => void;
+  };
   onLongPressDate?: (dateKey: string) => void;
   onPressDate: (dateKey: string) => void;
 };
@@ -20,9 +29,11 @@ export function CalendarCell(props: CalendarCellProps) {
     day,
     onLongPressDate,
     onPressDate,
+    showTodayHighlight = true,
     selectionOrder = null,
+    selectionCheckbox,
   } = props;
-  const isToday = day?.isToday;
+  const isTodayHighlighted = showTodayHighlight && day?.isToday;
   const photo = day?.photo;
   const isSelected = typeof selectionOrder === "number";
 
@@ -40,20 +51,34 @@ export function CalendarCell(props: CalendarCellProps) {
 
   return (
     <Pressable
-      accessibilityState={isSelected ? { selected: true } : undefined}
+      accessibilityLabel={selectionCheckbox?.accessibilityLabel}
+      accessibilityState={
+        isSelected || selectionCheckbox?.isSelected
+          ? { selected: true }
+          : undefined
+      }
       style={[
         styles.cell,
         { height: cellHeight, width: cellWidth },
-        isToday && styles.todayCell,
+        isTodayHighlighted && styles.todayCell,
       ]}
       onLongPress={onLongPressDate ? () => onLongPressDate(day.key) : undefined}
       onPress={() => onPressDate(day.key)}
     >
-      {isToday && <View style={styles.todayMark} />}
+      {isTodayHighlighted && <View style={styles.todayMark} />}
       {photo && <DailyPhotoImage imagePath={photo.imagePath} />}
-      <Text style={[styles.dateText, isToday && styles.todayText]}>
+      <Text style={[styles.dateText, isTodayHighlighted && styles.todayText]}>
         {day.dayOfMonth}
       </Text>
+      {selectionCheckbox?.isSelected ? (
+        <SelectionCheckbox
+          accessibilityLabel={selectionCheckbox.accessibilityLabel}
+          isSelected={selectionCheckbox.isSelected}
+          size={24}
+          style={styles.selectionCheckbox}
+          onPress={selectionCheckbox.onPress}
+        />
+      ) : null}
       {isSelected && (
         <View pointerEvents="none" style={styles.selectedOverlay}>
           <View style={styles.selectionBadge}>
@@ -68,10 +93,6 @@ export function CalendarCell(props: CalendarCellProps) {
 const styles = StyleSheet.create({
   cell: {
     backgroundColor: appColors.background,
-    borderColor: "#f0f0f0",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderTopWidth: StyleSheet.hairlineWidth,
     overflow: "hidden",
     position: "relative",
   },
@@ -142,5 +163,12 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     lineHeight: 16,
     textAlign: "center",
+  },
+  selectionCheckbox: {
+    bottom: 4,
+    left: "50%",
+    position: "absolute",
+    transform: [{ translateX: -12 }],
+    zIndex: 4,
   },
 });

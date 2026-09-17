@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import { createLocalMonthlyRecapCanvasRepository } from "@/infrastructure/persistence/recap/local-monthly-recap-canvas-repository";
-import { RecapCanvasLayoutId } from "@/shared/recap/types";
+import {
+  RecapCanvasAspectRatio,
+  RecapCanvasLayoutId,
+} from "@/shared/recap/types";
 
 describe("createLocalMonthlyRecapCanvasRepository", () => {
   it("saves and restores a monthly recap canvas by user and month", async () => {
@@ -14,6 +17,8 @@ describe("createLocalMonthlyRecapCanvasRepository", () => {
     );
 
     const savedCanvas = await repository.save({
+      aspectRatio: RecapCanvasAspectRatio.portraitFourFive,
+      backgroundColor: "#FACC15",
       userId: "user-1",
       month: "2026-07",
       elements: [],
@@ -27,6 +32,8 @@ describe("createLocalMonthlyRecapCanvasRepository", () => {
     });
 
     expect(savedCanvas).toMatchObject({
+      aspectRatio: RecapCanvasAspectRatio.portraitFourFive,
+      backgroundColor: "#FACC15",
       id: "local-recap-canvas-2026-07",
       userId: "user-1",
       month: "2026-07",
@@ -40,6 +47,30 @@ describe("createLocalMonthlyRecapCanvasRepository", () => {
     });
     await expect(repository.getByMonth("user-1", "2026-07")).resolves.toEqual(
       savedCanvas,
+    );
+  });
+
+  it("updates the saved canvas aspect ratio", async () => {
+    const repository = createLocalMonthlyRecapCanvasRepository();
+
+    await repository.save({
+      aspectRatio: RecapCanvasAspectRatio.device,
+      userId: "user-1",
+      month: "2026-07",
+      elements: [],
+      layout: null,
+    });
+
+    const updatedCanvas = await repository.save({
+      aspectRatio: RecapCanvasAspectRatio.portraitNineSixteen,
+      userId: "user-1",
+      month: "2026-07",
+      elements: [],
+      layout: null,
+    });
+
+    expect(updatedCanvas.aspectRatio).toBe(
+      RecapCanvasAspectRatio.portraitNineSixteen,
     );
   });
 

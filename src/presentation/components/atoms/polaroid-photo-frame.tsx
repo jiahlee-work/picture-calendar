@@ -1,5 +1,11 @@
 import { Image } from "expo-image";
-import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 
 import { appColors } from "@/presentation/theme/colors";
 
@@ -7,12 +13,24 @@ export type PolaroidPhotoFrameOrientation = "landscape" | "portrait";
 
 type PolaroidPhotoFrameProps = {
   imagePath: string;
+  onPress?: () => void;
   orientation: PolaroidPhotoFrameOrientation;
   style?: StyleProp<ViewStyle>;
 };
 
 export function PolaroidPhotoFrame(props: PolaroidPhotoFrameProps) {
-  const { imagePath, orientation, style } = props;
+  const { imagePath, onPress, orientation, style } = props;
+
+  const imageMatte = (
+    <View style={styles.imageMatte}>
+      <Image
+        allowDownscaling={false}
+        contentFit="cover"
+        source={{ uri: imagePath }}
+        style={styles.fillImage}
+      />
+    </View>
+  );
 
   return (
     <View
@@ -22,13 +40,23 @@ export function PolaroidPhotoFrame(props: PolaroidPhotoFrameProps) {
         style,
       ]}
     >
-      <View style={styles.imageMatte}>
-        <Image
-          contentFit="cover"
-          source={{ uri: imagePath }}
-          style={styles.fillImage}
-        />
-      </View>
+      {onPress ? (
+        <Pressable
+          accessibilityLabel="폴라로이드 사진 변경"
+          accessibilityRole="button"
+          onPress={onPress}
+          style={styles.imageMatte}
+        >
+          <Image
+            allowDownscaling={false}
+            contentFit="cover"
+            source={{ uri: imagePath }}
+            style={styles.fillImage}
+          />
+        </Pressable>
+      ) : (
+        imageMatte
+      )}
     </View>
   );
 }

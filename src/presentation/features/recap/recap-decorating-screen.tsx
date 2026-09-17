@@ -1,57 +1,78 @@
 import { useCallback, useMemo, useRef, useState } from "react";
+import { useRouter } from "expo-router";
 import {
   ActivityIndicator,
   Alert,
+  Pressable,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from "react-native";
 
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
+
 import { useStickerLibrary } from "@/application/hooks/use-sticker-library";
 import { useMonthlyRecapCanvas } from "@/application/hooks/use-monthly-recap-canvas";
 import { useMonthlyRecapDetail } from "@/application/hooks/use-monthly-recap-detail";
+import { normalizeRecapCanvasBackgroundColor } from "@/application/services/recap/recap-canvas-background";
+import { hasRecapCanvasContent } from "@/application/services/recap/recap-canvas-content";
 import {
-  createRecapStickerElement,
   createRecapTextElement,
-  createRecapWidgetElement,
   deleteRecapCanvasElement,
+  getRecapCanvasElementLayerCapabilities,
   getNextRecapCanvasElementZIndex,
+  getRecapPhotoElementSize,
+  moveRecapCanvasElement,
   updateRecapCanvasTextElement,
   upsertRecapCanvasElement,
   type RecapCanvasTextElementUpdate,
 } from "@/application/services/recap/recap-canvas-elements";
+import { createRecapCanvasAssetInsertion } from "@/application/services/recap/recap-canvas-asset";
+import { cropImage } from "@/infrastructure/device/media/crop-image";
+import { insertRecapCanvasPhotoElements } from "@/application/services/recap/recap-canvas-photo";
+import { loadRecapPhotoElementSize } from "@/application/services/recap/recap-photo-element-size";
 import {
-  createEmptyRecapCanvasLayoutSlotPhotoMap,
-  getRecapCanvasLayoutDefinition,
-  isRecapCanvasLayoutPhotoSelectionComplete,
-  type RecapCanvasLayoutSlotPhotoMap,
-} from "@/application/services/recap/recap-canvas-layout";
+  DEFAULT_RECAP_TEXT_COLOR,
+  DEFAULT_RECAP_TEXT_FONT_SIZE,
+  normalizeRecapTextColor,
+  type RecapTextStyleUpdate,
+} from "@/application/services/recap/recap-canvas-text";
+import { getRecapCanvasLayoutDefinition } from "@/application/services/recap/recap-canvas-layout";
+import {
+  createRecapCanvasLayoutDraft,
+  getRecapCanvasLayoutDraftSlotPhotoIds,
+  isRecapCanvasLayoutDraftComplete,
+  selectRecapCanvasLayoutDraft,
+  toRecapCanvasLayoutState,
+  updateRecapCanvasLayoutDraftSlot,
+} from "@/application/services/recap/recap-canvas-layout-draft";
 import type { StickerAsset } from "@/application/services/stickers/types";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
-import { RecapCanvasStickerLayer } from "@/presentation/components/organisms/recap-canvas-sticker-layer";
-import { RecapCanvasTextLayer } from "@/presentation/components/organisms/recap-canvas-text-layer";
+import { RecapCanvasElementStack } from "@/presentation/components/organisms/recap-canvas-element-stack";
+import { RecapCanvasAspectRatioSheet } from "@/presentation/components/organisms/recap-canvas-aspect-ratio-sheet";
+import { RecapElementLayerToolbar } from "@/presentation/components/organisms/recap-element-layer-toolbar";
 import {
   RecapDecoratingToolbar,
-  type RecapDecoratingToolbarAction,
+  type RecapDecoratingToolbarActionId,
 } from "@/presentation/components/organisms/recap-decorating-toolbar";
 import { RecapLayoutCanvas } from "@/presentation/components/organisms/recap-layout-canvas";
-import { RecapLayoutPhotoPicker } from "@/presentation/components/organisms/recap-layout-photo-picker";
+import { RecapPhotoCalendarSheet } from "@/presentation/components/organisms/recap-photo-calendar-sheet";
 import { RecapLayoutToolbar } from "@/presentation/components/organisms/recap-layout-toolbar";
-import { RecapTextColorSheet } from "@/presentation/components/organisms/recap-text-color-sheet";
-import {
-  RecapTextToolbar,
-  type RecapTextStyleUpdate,
-} from "@/presentation/components/organisms/recap-text-toolbar";
+import { RecapColorSheet } from "@/presentation/components/organisms/recap-color-sheet";
+import { RecapTextToolbar } from "@/presentation/components/organisms/recap-text-toolbar";
 import { RecapTextTypographySheet } from "@/presentation/components/organisms/recap-text-typography-sheet";
 import { ShareCaptureMenu } from "@/presentation/components/organisms/share-capture-menu";
+import { Menu } from "@/presentation/components/molecules/menu";
 import { StickerPickerSheet } from "@/presentation/components/organisms/sticker-picker-sheet";
 import { useAppBottomNavigationHidden } from "@/presentation/providers/app-bottom-navigation-controller";
+import { getCanvasDimensions } from "@/presentation/helpers/canvas/canvas-aspect-ratio-layout";
 import { appColors } from "@/presentation/theme/colors";
 import { appLayers } from "@/presentation/theme/layers";
 import {
   RecapCanvasLayoutId,
+  RecapCanvasAspectRatio,
+  type RecapCanvasAspectRatio as RecapCanvasAspectRatioType,
   type RecapCanvasElement,
   type RecapCanvasLayoutId as RecapCanvasLayoutIdType,
   type RecapCanvasLayoutState,
@@ -65,37 +86,58 @@ type RecapDecoratingScreenProps = {
 };
 
 type RecapDecoratingMode = "default" | "layout";
-type LayoutDraftSlotPhotoIdsByLayoutId = Partial<
-  Record<RecapCanvasLayoutIdType, RecapCanvasLayoutSlotPhotoMap>
->;
-type EditedLayoutIds = Partial<Record<RecapCanvasLayoutIdType, true>>;
+type ActiveRecapTextSheet = "color" | "typography" | null;
 
 const DEFAULT_LAYOUT_ID = RecapCanvasLayoutId.twoColumns;
 
 export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   const { month, year } = props;
+  const router = useRouter();
   const windowDimensions = useWindowDimensions();
   const shareCaptureRef = useRef<View>(null);
+  const canvasElementSequenceRef = useRef(0);
+  const shouldOpenCanvasAspectRatioSheetRef = useRef(false);
   const monthKey = `${year}-${month}`;
   const { photos, status } = useMonthlyRecapDetail(monthKey);
-  const { stickers, registerFromClipboard, registerFromLibrary } =
-    useStickerLibrary();
+  const {
+    isLoading: isStickerLibraryLoading,
+    isSaving: isStickerLibrarySaving,
+    stickers,
+    registerFromClipboard,
+    registerFromLibrary,
+  } = useStickerLibrary();
   const {
     canvas: savedCanvas,
+    entryCanvas,
+    entryMonthKey,
     isLoading: isCanvasLoading,
     isSaving: isCanvasSaving,
     saveCanvas,
   } = useMonthlyRecapCanvas(monthKey);
   const [mode, setMode] = useState<RecapDecoratingMode>("default");
+  const [committedAspectRatioOverride, setCommittedAspectRatioOverride] =
+    useState<RecapCanvasAspectRatioType | undefined>(undefined);
+  const [pendingAspectRatio, setPendingAspectRatio] = useState<
+    RecapCanvasAspectRatioType | undefined
+  >(undefined);
+  const [isCanvasAspectRatioSheetVisible, setIsCanvasAspectRatioSheetVisible] =
+    useState(false);
   const [committedLayoutOverride, setCommittedLayoutOverride] = useState<
     RecapCanvasLayoutState | null | undefined
   >(undefined);
+  const [
+    committedBackgroundColorOverride,
+    setCommittedBackgroundColorOverride,
+  ] = useState<string | undefined>(undefined);
   const [committedElementsOverride, setCommittedElementsOverride] = useState<
     RecapCanvasElement[] | undefined
   >(undefined);
   const [selectedElementId, setSelectedElementId] = useState<string | null>(
     null,
   );
+  const [longPressedElementId, setLongPressedElementId] = useState<
+    string | null
+  >(null);
   const [editingTextElementId, setEditingTextElementId] = useState<
     string | null
   >(null);
@@ -103,42 +145,39 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     string | null
   >(null);
   const [isStickerPickerVisible, setIsStickerPickerVisible] = useState(false);
-  const [stickerPickerSnapIndex, setStickerPickerSnapIndex] = useState(1);
-  const [selectedStickerPickerAssetId, setSelectedStickerPickerAssetId] =
-    useState<string | null>(null);
-  const [isTextTypographySheetVisible, setIsTextTypographySheetVisible] =
+  const [stickerPickerSnapIndex, setStickerPickerSnapIndex] = useState(0);
+  const [isPolaroidPhotoPickerVisible, setIsPolaroidPhotoPickerVisible] =
     useState(false);
-  const [isTextColorSheetVisible, setIsTextColorSheetVisible] = useState(false);
+  const [isPhotoPickerVisible, setIsPhotoPickerVisible] = useState(false);
+  const [isAddingSelectedPhotos, setIsAddingSelectedPhotos] = useState(false);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<string[]>([]);
+  const [activeTextSheet, setActiveTextSheet] =
+    useState<ActiveRecapTextSheet>(null);
+  const [isBackgroundColorSheetVisible, setIsBackgroundColorSheetVisible] =
+    useState(false);
   const [textSheetElementId, setTextSheetElementId] = useState<string | null>(
     null,
   );
-  const [draftLayoutId, setDraftLayoutId] =
-    useState<RecapCanvasLayoutIdType | null>(DEFAULT_LAYOUT_ID);
-  const [draftSlotPhotoIds, setDraftSlotPhotoIds] =
-    useState<RecapCanvasLayoutSlotPhotoMap>(() =>
-      createEmptyRecapCanvasLayoutSlotPhotoMap(
-        getRecapCanvasLayoutDefinition(DEFAULT_LAYOUT_ID),
-      ),
-    );
+  const [layoutDraft, setLayoutDraft] = useState(() =>
+    createRecapCanvasLayoutDraft(null, DEFAULT_LAYOUT_ID),
+  );
   const [selectedLayoutSlotId, setSelectedLayoutSlotId] = useState<
     string | null
   >(null);
-  const [draftSlotPhotoIdsByLayoutId, setDraftSlotPhotoIdsByLayoutId] =
-    useState<LayoutDraftSlotPhotoIdsByLayoutId>({});
-  const [editedLayoutIds, setEditedLayoutIds] = useState<EditedLayoutIds>({});
-
+  const [pendingLayoutPhotoId, setPendingLayoutPhotoId] = useState<
+    string | null
+  >(null);
+  const [pendingPolaroidPhotoId, setPendingPolaroidPhotoId] = useState<
+    string | null
+  >(null);
   useAppBottomNavigationHidden(true);
 
-  const recapPhotos = useMemo(() => photos, [photos]);
   const photosById = useMemo(
-    () => Object.fromEntries(recapPhotos.map((photo) => [photo.id, photo])),
-    [recapPhotos],
+    () => Object.fromEntries(photos.map((photo) => [photo.id, photo])),
+    [photos],
   );
-  const draftLayout = useMemo(
-    () =>
-      draftLayoutId ? getRecapCanvasLayoutDefinition(draftLayoutId) : null,
-    [draftLayoutId],
-  );
+  const draftLayoutId = layoutDraft.layoutId;
+  const draftSlotPhotoIds = getRecapCanvasLayoutDraftSlotPhotoIds(layoutDraft);
   const committedLayout =
     committedLayoutOverride === undefined
       ? (savedCanvas?.layout ?? null)
@@ -151,6 +190,23 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       ? (savedCanvas?.elements ?? [])
       : committedElementsOverride;
   const committedLayoutId = committedLayout?.layoutId ?? null;
+  const savedAspectRatio = savedCanvas?.aspectRatio;
+  const committedAspectRatio =
+    committedAspectRatioOverride ?? savedAspectRatio ?? null;
+  const visibleAspectRatio =
+    committedAspectRatio ?? RecapCanvasAspectRatio.device;
+  const isConstrainedCanvasAspectRatio =
+    visibleAspectRatio !== RecapCanvasAspectRatio.device;
+  const canvasDimensions = useMemo(
+    () => getCanvasDimensions(visibleAspectRatio, windowDimensions),
+    [visibleAspectRatio, windowDimensions],
+  );
+  const savedBackgroundColor = normalizeRecapCanvasBackgroundColor(
+    savedCanvas?.backgroundColor,
+  );
+  const committedBackgroundColor = normalizeRecapCanvasBackgroundColor(
+    committedBackgroundColorOverride ?? savedBackgroundColor,
+  );
   const committedSlotPhotoIds = committedLayout?.slotPhotoIds ?? {};
   const visibleLayoutId = mode === "layout" ? draftLayoutId : committedLayoutId;
   const visibleLayout = visibleLayoutId
@@ -159,58 +215,77 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   const visibleSlotPhotoIds =
     mode === "layout" ? draftSlotPhotoIds : committedSlotPhotoIds;
   const isLayoutSelectionComplete =
-    mode === "layout" &&
-    (draftLayout
-      ? isRecapCanvasLayoutPhotoSelectionComplete({
-          layout: draftLayout,
-          slotPhotoIds: draftSlotPhotoIds,
-        })
-      : true);
+    mode === "layout" && isRecapCanvasLayoutDraftComplete(layoutDraft);
   const selectedTextElement =
     committedElements.find(
       (element): element is RecapCanvasTextElement =>
         element.id === selectedElementId && element.type === "text",
     ) ?? null;
+  const selectedTextLayerCapabilities = selectedTextElement
+    ? getRecapCanvasElementLayerCapabilities(
+        committedElements,
+        selectedTextElement.id,
+      )
+    : { canMoveBackward: false, canMoveForward: false };
   const textSheetElement =
     committedElements.find(
       (element): element is RecapCanvasTextElement =>
         element.id === textSheetElementId && element.type === "text",
     ) ?? null;
-  const selectedStickerOrWidgetElement =
+  const selectedCanvasElement =
     committedElements.find(
-      (element) =>
-        element.id === selectedElementId &&
-        (element.type === "sticker" || element.type === "widget"),
+      (element) => element.id === selectedElementId && element.type !== "text",
     ) ?? null;
+  const selectedCanvasElementLayerCapabilities = selectedCanvasElement
+    ? getRecapCanvasElementLayerCapabilities(
+        committedElements,
+        selectedCanvasElement.id,
+      )
+    : { canMoveBackward: false, canMoveForward: false };
   const selectedPolaroidWidgetElement =
     committedElements.find(
       (
         element,
       ): element is RecapCanvasWidgetElement & {
-        variant: "polaroidFrame";
+        variant: "polaroidFrame" | "polaroidFramePortrait";
       } =>
         element.id === selectedElementId &&
         element.type === "widget" &&
-        element.variant === "polaroidFrame",
+        (element.variant === "polaroidFrame" ||
+          element.variant === "polaroidFramePortrait"),
     ) ?? null;
+  const isPhotoCalendarVisible =
+    (mode === "layout" && Boolean(selectedLayoutSlotId)) ||
+    (mode === "default" && isPolaroidPhotoPickerVisible);
   const hasUnsavedDecoratingChanges =
     JSON.stringify({
+      aspectRatio: committedAspectRatio,
+      backgroundColor: committedBackgroundColor,
       elements: committedElements,
       layout: committedLayout,
     }) !==
     JSON.stringify({
+      aspectRatio: savedAspectRatio ?? null,
+      backgroundColor: savedBackgroundColor,
       elements: savedCanvas?.elements ?? [],
       layout: savedCanvas?.layout ?? null,
     });
-  const hasCanvasContent =
-    Boolean(committedLayout) || committedElements.length > 0;
-  const isShareVisible = mode === "default" && hasCanvasContent;
+  const hasCanvasContent = hasRecapCanvasContent({
+    backgroundColor: committedBackgroundColor,
+    elements: committedElements,
+    layout: committedLayout,
+  });
   const emptyCanvasMessage =
     mode === "layout" && !visibleLayout
       ? "레이아웃 미적용"
       : hasCanvasContent
         ? null
-        : "리캡 페이지를 직접 만들어보세요!";
+        : "한 달 동안의 기억을 한 장의 페이지로 만들어보세요.";
+  const requiresInitialAspectRatioSelection =
+    !isCanvasLoading &&
+    entryMonthKey === monthKey &&
+    entryCanvas === null &&
+    committedAspectRatioOverride === undefined;
 
   const handleCompletePress = async () => {
     if (!hasUnsavedDecoratingChanges || isCanvasSaving) {
@@ -219,16 +294,19 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
     try {
       await saveCanvas({
+        aspectRatio: visibleAspectRatio,
+        backgroundColor: committedBackgroundColor,
         elements: committedElements,
         layout: committedLayout,
       });
       setCommittedElementsOverride(undefined);
       setCommittedLayoutOverride(undefined);
+      setCommittedBackgroundColorOverride(undefined);
       setSelectedElementId(null);
       setEditingTextElementId(null);
       setEditingWidgetElementId(null);
-      setIsTextTypographySheetVisible(false);
-      setIsTextColorSheetVisible(false);
+      setActiveTextSheet(null);
+      setIsBackgroundColorSheetVisible(false);
       setTextSheetElementId(null);
     } catch {
       Alert.alert("저장 실패", "꾸민 내용을 저장하지 못했습니다.");
@@ -264,29 +342,85 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     );
   }, [hasUnsavedDecoratingChanges]);
 
-  const handleToolbarActionPress = (action: RecapDecoratingToolbarAction) => {
-    if (action.id === "layout") {
-      handleStartLayoutMode();
+  const clearSelectedCanvasElement = () => {
+    setSelectedElementId(null);
+    setLongPressedElementId(null);
+    setEditingTextElementId(null);
+    setEditingWidgetElementId(null);
+  };
+
+  const handleOpenCanvasAspectRatioSheet = () => {
+    setPendingAspectRatio(visibleAspectRatio);
+    shouldOpenCanvasAspectRatioSheetRef.current = true;
+  };
+
+  const handleMoreMenuOpenChange = (isOpen: boolean) => {
+    if (isOpen || !shouldOpenCanvasAspectRatioSheetRef.current) {
+      return;
     }
 
-    if (action.id === "text") {
-      handleAddTextElement();
+    shouldOpenCanvasAspectRatioSheetRef.current = false;
+    requestAnimationFrame(() => setIsCanvasAspectRatioSheetVisible(true));
+  };
+
+  const handleSelectCanvasAspectRatio = (
+    nextAspectRatio: RecapCanvasAspectRatioType,
+  ) => {
+    setPendingAspectRatio(nextAspectRatio);
+  };
+
+  const handleConfirmCanvasAspectRatio = () => {
+    setCommittedAspectRatioOverride(pendingAspectRatio ?? visibleAspectRatio);
+    setPendingAspectRatio(undefined);
+    setIsCanvasAspectRatioSheetVisible(false);
+  };
+
+  const handleCloseCanvasAspectRatioSheet = () => {
+    setPendingAspectRatio(undefined);
+    setIsCanvasAspectRatioSheetVisible(false);
+  };
+
+  const handleCancelCanvasAspectRatio = () => {
+    if (requiresInitialAspectRatioSelection) {
+      setPendingAspectRatio(undefined);
+      router.back();
+      return;
     }
 
-    if (action.id === "sticker") {
-      setIsStickerPickerVisible(true);
-      setStickerPickerSnapIndex(1);
-      setSelectedElementId(null);
-      setEditingTextElementId(null);
-      setEditingWidgetElementId(null);
+    handleCloseCanvasAspectRatioSheet();
+  };
+
+  const handleToolbarActionPress = (
+    actionId: RecapDecoratingToolbarActionId,
+  ) => {
+    switch (actionId) {
+      case "layout":
+        handleStartLayoutMode();
+        return;
+      case "text":
+        handleAddTextElement();
+        return;
+      case "background":
+        setIsBackgroundColorSheetVisible(true);
+        clearSelectedCanvasElement();
+        return;
+      case "sticker":
+        setIsStickerPickerVisible(true);
+        setStickerPickerSnapIndex(0);
+        clearSelectedCanvasElement();
+        return;
+      case "photo":
+        setSelectedPhotoIds([]);
+        setIsPhotoPickerVisible(true);
+        clearSelectedCanvasElement();
     }
   };
 
   const handleAddTextElement = () => {
     const nextTextElement = createRecapTextElement({
       id: `recap-text-${Date.now()}`,
-      x: Math.max(Math.round(windowDimensions.width / 2 - 178), 24),
-      y: Math.max(Math.round(windowDimensions.height / 2 - 28), 120),
+      x: Math.max(Math.round(canvasDimensions.width / 2 - 178), 24),
+      y: Math.max(Math.round(canvasDimensions.height / 2 - 28), 24),
       zIndex: getNextRecapCanvasElementZIndex(committedElements),
     });
     const nextElements = upsertRecapCanvasElement(
@@ -298,31 +432,48 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     setSelectedElementId(nextTextElement.id);
     setEditingTextElementId(null);
     setEditingWidgetElementId(null);
-    setIsTextTypographySheetVisible(false);
-    setIsTextColorSheetVisible(false);
+    setActiveTextSheet(null);
     setTextSheetElementId(null);
   };
 
   const handleSelectElement = (elementId: string | null) => {
     setSelectedElementId(elementId);
+    setLongPressedElementId(null);
     setEditingTextElementId(null);
     setEditingWidgetElementId(null);
+    setActiveTextSheet(null);
+    setTextSheetElementId(null);
+  };
+
+  const handleLongPressElement = (elementId: string) => {
+    setLongPressedElementId(elementId);
+  };
+
+  const handleRequestPhotoSelection = (elementId: string) => {
+    setSelectedElementId(elementId);
+    const element = committedElements.find((item) => item.id === elementId);
+    setPendingPolaroidPhotoId(
+      element?.type === "widget" && "photoId" in element
+        ? (element.photoId ?? null)
+        : null,
+    );
+    setIsPolaroidPhotoPickerVisible(true);
   };
 
   const handleStartTextEditing = (elementId: string) => {
     setSelectedElementId(elementId);
     setEditingTextElementId(elementId);
     setEditingWidgetElementId(null);
-    setIsTextTypographySheetVisible(false);
-    setIsTextColorSheetVisible(false);
+    setActiveTextSheet(null);
+    setTextSheetElementId(null);
   };
 
   const handleStartWidgetEditing = (elementId: string) => {
     setSelectedElementId(elementId);
     setEditingTextElementId(null);
     setEditingWidgetElementId(elementId);
-    setIsTextTypographySheetVisible(false);
-    setIsTextColorSheetVisible(false);
+    setActiveTextSheet(null);
+    setTextSheetElementId(null);
   };
 
   const handleChangeTextElement = (element: RecapCanvasTextElement) => {
@@ -340,11 +491,40 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   };
 
   const handleChangeCanvasElement = (
-    element: Exclude<RecapCanvasElement, { type: "text" | "photo" }>,
+    element: Exclude<RecapCanvasElement, { type: "text" }>,
   ) => {
     setCommittedElementsOverride(
       upsertRecapCanvasElement(committedElements, element),
     );
+  };
+
+  const handleTogglePhotoCrop = async (elementId: string) => {
+    const element = committedElements.find((item) => item.id === elementId);
+
+    if (element?.type !== "photo" || !photosById[element.photoId]) {
+      return;
+    }
+
+    try {
+      const result = await cropImage(
+        element.imagePath ?? photosById[element.photoId].imagePath,
+      );
+
+      if (!result) {
+        return;
+      }
+
+      const size = getRecapPhotoElementSize(result.width, result.height);
+      handleChangeCanvasElement({
+        ...element,
+        crop: undefined,
+        height: size.height,
+        imagePath: result.uri,
+        width: size.width,
+      });
+    } catch {
+      Alert.alert("크롭 실패", "사진을 크롭하지 못했습니다.");
+    }
   };
 
   const handleDeleteCanvasElement = (elementId: string) => {
@@ -352,6 +532,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       deleteRecapCanvasElement(committedElements, elementId),
     );
     setSelectedElementId(null);
+    setLongPressedElementId(null);
     setEditingTextElementId(null);
     setEditingWidgetElementId(null);
   };
@@ -365,8 +546,44 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     );
   };
 
+  const handleMoveCanvasElement = (
+    elementId: string,
+    direction: "backward" | "forward",
+  ) => {
+    setCommittedElementsOverride(
+      moveRecapCanvasElement(committedElements, elementId, direction),
+    );
+  };
+
   const handleUpdateSelectedTextStyle = (update: RecapTextStyleUpdate) => {
     handleUpdateSelectedText(update);
+  };
+
+  const handleOpenSelectedTextSheet = (
+    nextSheet: Exclude<ActiveRecapTextSheet, null>,
+  ) => {
+    if (!selectedTextElement) {
+      return;
+    }
+
+    setEditingTextElementId(null);
+    setTextSheetElementId(selectedTextElement.id);
+    setActiveTextSheet(nextSheet);
+  };
+
+  const handleUpdateTextSheetElement = (
+    update: RecapCanvasTextElementUpdate,
+  ) => {
+    if (!textSheetElement) {
+      return;
+    }
+
+    handleUpdateTextElement(textSheetElement.id, update);
+  };
+
+  const handleCloseTextSheet = () => {
+    setActiveTextSheet(null);
+    setTextSheetElementId(null);
   };
 
   const handleDeleteSelectedText = () => {
@@ -380,36 +597,31 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     setSelectedElementId(null);
     setEditingTextElementId(null);
     setEditingWidgetElementId(null);
-    setIsTextTypographySheetVisible(false);
-    setIsTextColorSheetVisible(false);
+    setActiveTextSheet(null);
     setTextSheetElementId(null);
   };
 
   const handleStartLayoutMode = () => {
-    const nextLayoutId = committedLayoutId ?? DEFAULT_LAYOUT_ID;
-    const nextLayout = getRecapCanvasLayoutDefinition(nextLayoutId);
-
-    setDraftLayoutId(nextLayoutId);
-    setDraftSlotPhotoIds(
-      committedLayoutId
-        ? committedSlotPhotoIds
-        : createEmptyRecapCanvasLayoutSlotPhotoMap(nextLayout),
+    setLayoutDraft(
+      createRecapCanvasLayoutDraft(committedLayout, DEFAULT_LAYOUT_ID),
     );
-    setSelectedLayoutSlotId(nextLayout.slots[0]?.id ?? null);
-    setDraftSlotPhotoIdsByLayoutId({});
-    setEditedLayoutIds({});
+    setSelectedLayoutSlotId(null);
+    setPendingLayoutPhotoId(null);
+    setIsPolaroidPhotoPickerVisible(false);
+    setActiveTextSheet(null);
+    setTextSheetElementId(null);
     setMode("layout");
   };
 
   const discardLayoutDraft = () => {
     setSelectedLayoutSlotId(null);
-    setDraftSlotPhotoIdsByLayoutId({});
-    setEditedLayoutIds({});
+    setPendingLayoutPhotoId(null);
+    setIsPolaroidPhotoPickerVisible(false);
     setSelectedElementId(null);
     setEditingTextElementId(null);
     setEditingWidgetElementId(null);
-    setIsTextTypographySheetVisible(false);
-    setIsTextColorSheetVisible(false);
+    setActiveTextSheet(null);
+    setTextSheetElementId(null);
     setMode("default");
   };
 
@@ -436,17 +648,9 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       return;
     }
 
-    setCommittedLayoutOverride(
-      draftLayoutId
-        ? {
-            layoutId: draftLayoutId,
-            slotPhotoIds: draftSlotPhotoIds,
-          }
-        : null,
-    );
+    setCommittedLayoutOverride(toRecapCanvasLayoutState(layoutDraft));
     setSelectedLayoutSlotId(null);
-    setDraftSlotPhotoIdsByLayoutId({});
-    setEditedLayoutIds({});
+    setPendingLayoutPhotoId(null);
     setMode("default");
   };
 
@@ -455,27 +659,11 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       return;
     }
 
-    if (!layoutId) {
-      setDraftLayoutId(null);
-      setDraftSlotPhotoIds({});
-      setSelectedLayoutSlotId(null);
-      return;
-    }
-
-    const nextLayout = getRecapCanvasLayoutDefinition(layoutId);
-    const cachedSlotPhotoIds = draftSlotPhotoIdsByLayoutId[layoutId];
-    const hasEditedOtherLayoutPhotos = Object.keys(editedLayoutIds).some(
-      (editedLayoutId) => editedLayoutId !== layoutId,
+    setLayoutDraft((current) =>
+      selectRecapCanvasLayoutDraft(current, layoutId),
     );
-    const nextSlotPhotoIds =
-      cachedSlotPhotoIds ??
-      (layoutId === committedLayoutId && !hasEditedOtherLayoutPhotos
-        ? committedSlotPhotoIds
-        : createEmptyRecapCanvasLayoutSlotPhotoMap(nextLayout));
-
-    setDraftLayoutId(layoutId);
-    setDraftSlotPhotoIds(nextSlotPhotoIds);
-    setSelectedLayoutSlotId(nextLayout.slots[0]?.id ?? null);
+    setSelectedLayoutSlotId(null);
+    setPendingLayoutPhotoId(null);
   };
 
   const handleSelectLayoutSlot = (slotId: string) => {
@@ -484,95 +672,135 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     }
 
     setSelectedLayoutSlotId(slotId);
+    setPendingLayoutPhotoId(draftSlotPhotoIds[slotId] ?? null);
   };
 
-  const handleSelectLayoutPhoto = (photoId: string | null) => {
-    if (!selectedLayoutSlotId) {
-      return;
-    }
-
-    if (!draftLayoutId) {
-      return;
-    }
-
-    const previousPhotoId = draftSlotPhotoIds[selectedLayoutSlotId] ?? null;
-
-    if (previousPhotoId === photoId) {
-      return;
-    }
-
-    const wasCurrentSlotEmpty = !previousPhotoId;
-    const nextSlotPhotoIds = {
-      ...draftSlotPhotoIds,
-      [selectedLayoutSlotId]: photoId,
-    };
-
-    setDraftSlotPhotoIds(nextSlotPhotoIds);
-    setDraftSlotPhotoIdsByLayoutId((current) => ({
-      ...current,
-      [draftLayoutId]: nextSlotPhotoIds,
-    }));
-    setEditedLayoutIds((current) => ({
-      ...current,
-      [draftLayoutId]: true,
-    }));
-
-    if (photoId && wasCurrentSlotEmpty && draftLayout) {
-      const currentSlotIndex = draftLayout.slots.findIndex(
-        (slot) => slot.id === selectedLayoutSlotId,
-      );
-      const nextEmptySlot = draftLayout.slots
-        .slice(currentSlotIndex + 1)
-        .find((slot) => !nextSlotPhotoIds[slot.id]);
-
-      if (nextEmptySlot) {
-        setSelectedLayoutSlotId(nextEmptySlot.id);
-      }
-    }
+  const handleSelectLayoutPhoto = (photoIds: string[]) => {
+    setPendingLayoutPhotoId(photoIds[0] ?? null);
   };
 
-  const handleSelectPolaroidPhoto = (photoId: string | null) => {
-    if (!selectedPolaroidWidgetElement) {
-      return;
-    }
+  const handleSelectPolaroidPhoto = (photoIds: string[]) => {
+    setPendingPolaroidPhotoId(photoIds[0] ?? null);
+  };
 
-    handleChangeCanvasElement({
+  const handleCompleteLayoutPhotoSelection = () => {
+    if (!selectedLayoutSlotId || !draftLayoutId) return;
+    setLayoutDraft((current) =>
+      updateRecapCanvasLayoutDraftSlot(
+        current,
+        selectedLayoutSlotId,
+        pendingLayoutPhotoId,
+      ),
+    );
+    setSelectedLayoutSlotId(null);
+    setPendingLayoutPhotoId(null);
+  };
+
+  const handleCompletePolaroidPhotoSelection = () => {
+    if (!selectedPolaroidWidgetElement) return;
+    const nextElement = {
       ...selectedPolaroidWidgetElement,
-      photoId: photoId ?? undefined,
-    });
-  };
-
-  const handleSelectStickerAsset = (asset: StickerAsset) => {
-    const nextElementId = `recap-${asset.source}-${Date.now()}`;
-    const elementPosition = {
-      x: Math.max(Math.round(windowDimensions.width / 2 - 66), 24),
-      y: Math.max(Math.round(windowDimensions.height / 2 - 66), 120),
-      zIndex: getNextRecapCanvasElementZIndex(committedElements),
+      photoId: pendingPolaroidPhotoId ?? undefined,
     };
-    const nextElement =
-      asset.source === "sticker"
-        ? createRecapStickerElement({
-            id: nextElementId,
-            stickerAssetId: asset.id,
-            ...elementPosition,
-          })
-        : createRecapWidgetElement({
-            id: nextElementId,
-            variant: asset.variant,
-            ...elementPosition,
-          });
-
-    setSelectedStickerPickerAssetId(asset.id);
     setCommittedElementsOverride(
       upsertRecapCanvasElement(committedElements, nextElement),
     );
-    setSelectedElementId(nextElement.id);
+    setPendingPolaroidPhotoId(null);
+    setIsPolaroidPhotoPickerVisible(false);
+  };
+
+  const handleCompletePhotoSelection = async () => {
+    if (selectedPhotoIds.length === 0 || isAddingSelectedPhotos) {
+      return;
+    }
+
+    setIsAddingSelectedPhotos(true);
+
+    try {
+      const photoIdsToAdd = [...selectedPhotoIds];
+      const measuredPhotos = await Promise.all(
+        photoIdsToAdd.map(async (photoId) => {
+          const photo = photosById[photoId];
+
+          if (!photo) {
+            return null;
+          }
+
+          const size = await loadRecapPhotoElementSize(photo.imagePath);
+
+          return size ? { photoId, ...size } : null;
+        }),
+      );
+      const selectedPhotosWithSize = measuredPhotos.filter(
+        (photo): photo is NonNullable<typeof photo> => photo !== null,
+      );
+
+      if (selectedPhotosWithSize.length === 0) {
+        Alert.alert(
+          "사진을 불러오지 못했어요",
+          "사진의 원본 크기를 확인한 뒤 다시 시도해 주세요.",
+        );
+        return;
+      }
+
+      canvasElementSequenceRef.current += 1;
+      const nextElements = insertRecapCanvasPhotoElements({
+        canvasHeight: canvasDimensions.height,
+        canvasWidth: canvasDimensions.width,
+        elementIdPrefix: `recap-photo-${Date.now()}-${canvasElementSequenceRef.current}`,
+        elements: committedElements,
+        photos: selectedPhotosWithSize,
+      });
+
+      setCommittedElementsOverride(nextElements);
+      setSelectedPhotoIds([]);
+      setIsPhotoPickerVisible(false);
+
+      if (selectedPhotosWithSize.length < photoIdsToAdd.length) {
+        Alert.alert(
+          "일부 사진을 불러오지 못했어요",
+          "크기를 확인할 수 있는 사진만 캔버스에 추가했습니다.",
+        );
+      }
+    } finally {
+      setIsAddingSelectedPhotos(false);
+    }
+  };
+
+  const handleClosePhotoPicker = () => {
+    if (isAddingSelectedPhotos) {
+      return;
+    }
+
+    setSelectedPhotoIds([]);
+    setIsPhotoPickerVisible(false);
+  };
+
+  const handleSelectStickerAsset = (asset: StickerAsset) => {
+    canvasElementSequenceRef.current += 1;
+    const insertion = createRecapCanvasAssetInsertion({
+      asset,
+      id: `recap-${asset.source}-${Date.now()}-${canvasElementSequenceRef.current}`,
+      x: Math.max(Math.round(canvasDimensions.width / 2 - 66), 24),
+      y: Math.max(Math.round(canvasDimensions.height / 2 - 66), 24),
+      zIndex: getNextRecapCanvasElementZIndex(committedElements),
+    });
+    const { element } = insertion;
+
+    setCommittedElementsOverride(
+      upsertRecapCanvasElement(committedElements, element),
+    );
+    setSelectedElementId(element.id);
+    setLongPressedElementId(null);
     setEditingTextElementId(null);
     setEditingWidgetElementId(
-      nextElement.type === "widget" && nextElement.variant === "speechBubble"
-        ? nextElement.id
-        : null,
+      insertion.shouldStartWidgetEditing ? element.id : null,
     );
+
+    if (insertion.shouldClosePicker) {
+      setIsStickerPickerVisible(false);
+      setStickerPickerSnapIndex(0);
+    }
   };
 
   const handleRegisterStickerFromLibrary = async () => {
@@ -636,44 +864,68 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
   return (
     <View style={styles.screen}>
-      <RecapLayoutCanvas
-        isEditing={mode === "layout"}
-        layout={visibleLayout}
-        photosById={photosById}
-        selectedSlotId={mode === "layout" ? selectedLayoutSlotId : null}
-        slotPhotoIds={visibleSlotPhotoIds}
-        onSelectSlot={handleSelectLayoutSlot}
+      <View
+        style={[
+          styles.canvasRegion,
+          isConstrainedCanvasAspectRatio && styles.constrainedCanvasRegion,
+          isPhotoCalendarVisible && styles.canvasRegionWithPicker,
+        ]}
       >
-        {emptyCanvasMessage ? (
-          <Text style={styles.emptyText}>{emptyCanvasMessage}</Text>
-        ) : null}
-      </RecapLayoutCanvas>
-      {mode === "default" ? (
-        <>
-          <RecapCanvasTextLayer
-            editingElementId={editingTextElementId}
-            elements={committedElements}
-            selectedElementId={selectedElementId}
-            onChangeTextElement={handleChangeTextElement}
-            onEndTextEditing={() => setEditingTextElementId(null)}
-            onSelectElement={handleSelectElement}
-            onStartTextEditing={handleStartTextEditing}
-          />
-          <RecapCanvasStickerLayer
-            assets={stickers}
-            editingWidgetElementId={editingWidgetElementId}
-            elements={committedElements}
-            monthKey={monthKey}
+        <View
+          style={[
+            styles.canvasFrame,
+            isConstrainedCanvasAspectRatio && styles.constrainedCanvasFrame,
+            {
+              height: canvasDimensions.height,
+              width: canvasDimensions.width,
+            },
+          ]}
+        >
+          <RecapLayoutCanvas
+            backgroundColor={
+              mode === "layout" ? appColors.white : committedBackgroundColor
+            }
+            isEditing={mode === "layout"}
+            layout={visibleLayout}
             photosById={photosById}
-            selectedElementId={selectedElementId}
-            onChangeElement={handleChangeCanvasElement}
-            onDeleteElement={handleDeleteCanvasElement}
-            onEndWidgetEditing={() => setEditingWidgetElementId(null)}
-            onSelectElement={handleSelectElement}
-            onStartWidgetEditing={handleStartWidgetEditing}
-          />
-        </>
-      ) : null}
+            selectedSlotId={mode === "layout" ? selectedLayoutSlotId : null}
+            slotPhotoIds={visibleSlotPhotoIds}
+            onSelectSlot={handleSelectLayoutSlot}
+          >
+            {emptyCanvasMessage ? (
+              <Text style={styles.emptyText}>{emptyCanvasMessage}</Text>
+            ) : null}
+          </RecapLayoutCanvas>
+          {mode === "default" ? (
+            <>
+              <Pressable
+                accessibilityLabel="캔버스 빈 영역"
+                accessibilityRole="button"
+                style={styles.canvasDismissLayer}
+                onPress={() => handleSelectElement(null)}
+              />
+              <RecapCanvasElementStack
+                assets={stickers}
+                editingTextElementId={editingTextElementId}
+                editingWidgetElementId={editingWidgetElementId}
+                elements={committedElements}
+                monthKey={monthKey}
+                photosById={photosById}
+                selectedElementId={selectedElementId}
+                onChangeElement={handleChangeCanvasElement}
+                onChangeTextElement={handleChangeTextElement}
+                onEndTextEditing={() => setEditingTextElementId(null)}
+                onEndWidgetEditing={() => setEditingWidgetElementId(null)}
+                onLongPressElement={handleLongPressElement}
+                onRequestPhotoSelection={handleRequestPhotoSelection}
+                onSelectElement={handleSelectElement}
+                onStartTextEditing={handleStartTextEditing}
+                onStartWidgetEditing={handleStartWidgetEditing}
+              />
+            </>
+          ) : null}
+        </View>
+      </View>
       <AppSafeAreaView
         edges={["top"]}
         pointerEvents="box-none"
@@ -703,25 +955,40 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
             />
           ) : (
             <View pointerEvents="box-none" style={styles.appBarActions}>
-              {isShareVisible ? (
-                <ShareCaptureMenu
-                  accessibilityLabel="리캡 공유 버튼"
-                  captureHeight={windowDimensions.height}
-                  captureRef={shareCaptureRef}
-                  captureWidth={windowDimensions.width}
-                  disabled={
-                    hasUnsavedDecoratingChanges ||
-                    isCanvasLoading ||
-                    isCanvasSaving
-                  }
-                  disabledMessage={
-                    hasUnsavedDecoratingChanges
-                      ? "공유하려면 먼저 꾸미기 완료를 눌러 저장해 주세요."
-                      : undefined
-                  }
-                  fileName={monthKey}
-                  isReady={hasCanvasContent && !hasUnsavedDecoratingChanges}
-                />
+              {mode === "default" ? (
+                <Menu
+                  accessibilityLabel="더보기"
+                  trigger={{ icon: "More" }}
+                  onOpenChange={handleMoreMenuOpenChange}
+                >
+                  <ShareCaptureMenu
+                    accessibilityLabel="리캡 공유 버튼"
+                    captureHeight={windowDimensions.height}
+                    captureRef={shareCaptureRef}
+                    captureWidth={windowDimensions.width}
+                    disabled={
+                      !hasCanvasContent ||
+                      hasUnsavedDecoratingChanges ||
+                      isCanvasLoading ||
+                      isCanvasSaving
+                    }
+                    disabledMessage={
+                      !hasCanvasContent
+                        ? "리캡을 만든 후 공유할 수 있어요."
+                        : hasUnsavedDecoratingChanges
+                          ? "공유하려면 먼저 꾸미기 완료를 눌러 저장해 주세요."
+                          : undefined
+                    }
+                    fileName={monthKey}
+                    isReady={hasCanvasContent && !hasUnsavedDecoratingChanges}
+                    presentation="menuItem"
+                  />
+                  <Menu.Item
+                    icon="AspectRatioSquare"
+                    label="캔버스 비율"
+                    onPress={handleOpenCanvasAspectRatioSheet}
+                  />
+                </Menu>
               ) : null}
               <AppBar.Action
                 accessibilityLabel="꾸미기 완료"
@@ -745,45 +1012,102 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
           />
         ) : selectedTextElement ? (
           <RecapTextToolbar
+            canMoveBackward={selectedTextLayerCapabilities.canMoveBackward}
+            canMoveForward={selectedTextLayerCapabilities.canMoveForward}
             textElement={selectedTextElement}
             onDelete={handleDeleteSelectedText}
-            onOpenColorPicker={() => {
-              setTextSheetElementId(selectedTextElement.id);
-              setIsTextColorSheetVisible(true);
-            }}
-            onOpenTypographyPicker={() => {
-              setTextSheetElementId(selectedTextElement.id);
-              setIsTextTypographySheetVisible(true);
-            }}
+            onOpenColorPicker={() => handleOpenSelectedTextSheet("color")}
+            onOpenTypographyPicker={() =>
+              handleOpenSelectedTextSheet("typography")
+            }
+            onMoveBackward={() =>
+              handleMoveCanvasElement(selectedTextElement.id, "backward")
+            }
+            onMoveForward={() =>
+              handleMoveCanvasElement(selectedTextElement.id, "forward")
+            }
             onUpdateTextStyle={handleUpdateSelectedTextStyle}
           />
-        ) : selectedStickerOrWidgetElement ? null : (
+        ) : selectedCanvasElement &&
+          (selectedCanvasElement.type === "photo" ||
+            longPressedElementId === selectedCanvasElement.id) ? (
+          <RecapElementLayerToolbar
+            canMoveBackward={
+              selectedCanvasElementLayerCapabilities.canMoveBackward
+            }
+            canMoveForward={
+              selectedCanvasElementLayerCapabilities.canMoveForward
+            }
+            onDelete={() => handleDeleteCanvasElement(selectedCanvasElement.id)}
+            onCrop={
+              selectedCanvasElement.type === "photo"
+                ? () => handleTogglePhotoCrop(selectedCanvasElement.id)
+                : undefined
+            }
+            onMoveBackward={() =>
+              handleMoveCanvasElement(selectedCanvasElement.id, "backward")
+            }
+            onMoveForward={() =>
+              handleMoveCanvasElement(selectedCanvasElement.id, "forward")
+            }
+          />
+        ) : (
           <RecapDecoratingToolbar onSelectAction={handleToolbarActionPress} />
         )}
       </View>
-      <RecapLayoutPhotoPicker
-        photos={recapPhotos}
-        selectedPhotoId={
-          selectedLayoutSlotId
-            ? (draftSlotPhotoIds[selectedLayoutSlotId] ?? null)
-            : null
+      <RecapPhotoCalendarSheet
+        monthKey={monthKey}
+        photos={photos}
+        selectedPhotoIds={
+          mode === "layout"
+            ? pendingLayoutPhotoId
+              ? [pendingLayoutPhotoId]
+              : []
+            : pendingPolaroidPhotoId
+              ? [pendingPolaroidPhotoId]
+              : []
         }
-        visible={mode === "layout" && Boolean(selectedLayoutSlotId)}
-        onSelectPhoto={handleSelectLayoutPhoto}
+        visible={isPhotoCalendarVisible}
+        onClose={() => {
+          setSelectedLayoutSlotId(null);
+          setIsPolaroidPhotoPickerVisible(false);
+          setPendingLayoutPhotoId(null);
+          setPendingPolaroidPhotoId(null);
+        }}
+        onChangeSelectedPhotoIds={
+          mode === "layout"
+            ? handleSelectLayoutPhoto
+            : handleSelectPolaroidPhoto
+        }
+        onComplete={
+          mode === "layout"
+            ? handleCompleteLayoutPhotoSelection
+            : handleCompletePolaroidPhotoSelection
+        }
       />
-      <RecapLayoutPhotoPicker
-        photos={recapPhotos}
-        selectedPhotoId={selectedPolaroidWidgetElement?.photoId ?? null}
-        visible={mode === "default" && Boolean(selectedPolaroidWidgetElement)}
-        onSelectPhoto={handleSelectPolaroidPhoto}
+      <RecapPhotoCalendarSheet
+        isCompleting={isAddingSelectedPhotos}
+        monthKey={monthKey}
+        multiple
+        photos={photos}
+        selectedPhotoIds={selectedPhotoIds}
+        visible={isPhotoPickerVisible}
+        onClose={handleClosePhotoPicker}
+        onChangeSelectedPhotoIds={setSelectedPhotoIds}
+        onComplete={handleCompletePhotoSelection}
       />
       {isStickerPickerVisible ? (
         <StickerPickerSheet
-          selectedAssetId={selectedStickerPickerAssetId}
+          isLoading={isStickerLibraryLoading}
+          isRegistering={isStickerLibrarySaving}
           snapIndex={stickerPickerSnapIndex}
           stickers={stickers}
           visible={isStickerPickerVisible}
           onChangeSnapIndex={setStickerPickerSnapIndex}
+          onClose={() => {
+            setIsStickerPickerVisible(false);
+            setStickerPickerSnapIndex(0);
+          }}
           onRegisterFromClipboard={() => {
             void handleRegisterStickerFromClipboard();
           }}
@@ -794,48 +1118,49 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
         />
       ) : null}
       <RecapTextTypographySheet
-        fontFamily={
-          textSheetElement?.fontFamily ?? selectedTextElement?.fontFamily
+        fontFamily={textSheetElement?.fontFamily}
+        fontSize={textSheetElement?.fontSize ?? DEFAULT_RECAP_TEXT_FONT_SIZE}
+        visible={activeTextSheet === "typography"}
+        onChangeFontFamily={(fontFamily) =>
+          handleUpdateTextSheetElement({ fontFamily })
         }
-        fontSize={
-          textSheetElement?.fontSize ?? selectedTextElement?.fontSize ?? 24
+        onChangeFontSize={(fontSize) =>
+          handleUpdateTextSheetElement({ fontSize })
         }
-        visible={isTextTypographySheetVisible}
-        onChangeFontFamily={(fontFamily) => {
-          const targetElementId = textSheetElementId ?? selectedTextElement?.id;
-
-          if (targetElementId) {
-            handleUpdateTextElement(targetElementId, { fontFamily });
-          }
-        }}
-        onChangeFontSize={(fontSize) => {
-          const targetElementId = textSheetElementId ?? selectedTextElement?.id;
-
-          if (targetElementId) {
-            handleUpdateTextElement(targetElementId, { fontSize });
-          }
-        }}
-        onClose={() => {
-          setIsTextTypographySheetVisible(false);
-          setTextSheetElementId(null);
-        }}
+        onClose={handleCloseTextSheet}
       />
-      <RecapTextColorSheet
-        value={
-          textSheetElement?.color ?? selectedTextElement?.color ?? "#121212"
+      <RecapColorSheet
+        title="텍스트 색상"
+        value={textSheetElement?.color ?? DEFAULT_RECAP_TEXT_COLOR}
+        visible={activeTextSheet === "color"}
+        onChangeColor={(color) =>
+          handleUpdateTextSheetElement({
+            color: normalizeRecapTextColor(color),
+          })
         }
-        visible={isTextColorSheetVisible}
-        onChangeColor={(color) => {
-          const targetElementId = textSheetElementId ?? selectedTextElement?.id;
-
-          if (targetElementId) {
-            handleUpdateTextElement(targetElementId, { color });
-          }
-        }}
-        onClose={() => {
-          setIsTextColorSheetVisible(false);
-          setTextSheetElementId(null);
-        }}
+        onClose={handleCloseTextSheet}
+      />
+      <RecapColorSheet
+        title="배경색"
+        value={committedBackgroundColor}
+        visible={isBackgroundColorSheetVisible}
+        onChangeColor={(color) =>
+          setCommittedBackgroundColorOverride(
+            normalizeRecapCanvasBackgroundColor(color),
+          )
+        }
+        onClose={() => setIsBackgroundColorSheetVisible(false)}
+      />
+      <RecapCanvasAspectRatioSheet
+        required={requiresInitialAspectRatioSelection}
+        value={pendingAspectRatio ?? visibleAspectRatio}
+        visible={
+          isCanvasAspectRatioSheetVisible || requiresInitialAspectRatioSelection
+        }
+        onCancel={handleCancelCanvasAspectRatio}
+        onConfirm={handleConfirmCanvasAspectRatio}
+        onSelect={handleSelectCanvasAspectRatio}
+        onClose={handleCloseCanvasAspectRatioSheet}
       />
       {hasCanvasContent ? (
         <View
@@ -848,13 +1173,14 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
           style={[
             styles.shareCaptureCanvas,
             {
-              height: windowDimensions.height,
-              transform: [{ translateX: -(windowDimensions.width + 120) }],
-              width: windowDimensions.width,
+              height: canvasDimensions.height,
+              transform: [{ translateX: -(canvasDimensions.width + 120) }],
+              width: canvasDimensions.width,
             },
           ]}
         >
           <RecapLayoutCanvas
+            backgroundColor={committedBackgroundColor}
             isEditing={false}
             layout={committedLayoutDefinition}
             photosById={photosById}
@@ -862,27 +1188,23 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
             slotPhotoIds={committedSlotPhotoIds}
             onSelectSlot={() => {}}
           />
-          <RecapCanvasStickerLayer
+          <RecapCanvasElementStack
             assets={stickers}
+            editingTextElementId={null}
             editingWidgetElementId={null}
             elements={committedElements}
             monthKey={monthKey}
             photosById={photosById}
             selectedElementId={null}
             onChangeElement={() => {}}
-            onDeleteElement={() => {}}
-            onEndWidgetEditing={() => {}}
-            onSelectElement={() => {}}
-            onStartWidgetEditing={() => {}}
-          />
-          <RecapCanvasTextLayer
-            editingElementId={null}
-            elements={committedElements}
-            selectedElementId={null}
             onChangeTextElement={() => {}}
             onEndTextEditing={() => {}}
+            onEndWidgetEditing={() => {}}
+            onLongPressElement={() => {}}
+            onRequestPhotoSelection={() => {}}
             onSelectElement={() => {}}
             onStartTextEditing={() => {}}
+            onStartWidgetEditing={() => {}}
           />
         </View>
       ) : null}
@@ -894,6 +1216,35 @@ const styles = StyleSheet.create({
   appBarActions: {
     flexDirection: "row",
     gap: 10,
+  },
+  canvasRegion: {
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "center",
+    minHeight: 0,
+    position: "relative",
+  },
+  canvasRegionWithPicker: {
+    flex: 3,
+  },
+  canvasFrame: {
+    overflow: "hidden",
+    position: "relative",
+  },
+  constrainedCanvasFrame: {
+    borderColor: "rgba(0,0,0,0.12)",
+    borderWidth: 1,
+  },
+  constrainedCanvasRegion: {
+    backgroundColor: "rgba(18,18,18,0.65)",
+  },
+  canvasDismissLayer: {
+    bottom: 0,
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 0,
+    zIndex: appLayers.canvasElement - 1,
   },
   emptyText: {
     color: "#8C8C8C",

@@ -5,15 +5,15 @@ import { getStickerLibraryGridLayout } from "@/presentation/helpers/stickers/sti
 describe("sticker library layout", () => {
   it("calculates a three-column card width below the wide breakpoint", () => {
     expect(getStickerLibraryGridLayout(390, 24)).toEqual({
-      cardGap: 22,
-      cardWidth: 99,
+      cardGap: 12,
+      cardWidth: 106,
     });
   });
 
   it("calculates a four-column card width at the wide breakpoint", () => {
     expect(getStickerLibraryGridLayout(768, 24)).toEqual({
-      cardGap: 22,
-      cardWidth: 163,
+      cardGap: 12,
+      cardWidth: 171,
     });
   });
 });

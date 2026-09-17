@@ -1,6 +1,8 @@
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { useEffect, useRef } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, View } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type {

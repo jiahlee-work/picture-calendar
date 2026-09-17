@@ -3,10 +3,11 @@ import {
   type LayoutChangeEvent,
   PanResponder,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import type { CalendarMonth } from "@/application/services/calendar/calendar-grid";
 import { CalendarCell } from "@/presentation/components/molecules/calendar-cell";
@@ -19,6 +20,15 @@ type MonthlyCalendarProps = {
   calendar: CalendarMonth;
   canSwipeMonth?: boolean;
   contentWidth?: number;
+  showTodayHighlight?: boolean;
+  selectionCheckboxByDateKey?: Record<
+    string,
+    {
+      accessibilityLabel: string;
+      isSelected: boolean;
+      onPress: () => void;
+    }
+  >;
   selectedDateKeys?: string[];
   onLongPressDate?: (dateKey: string) => void;
   onNextMonth?: () => void;
@@ -36,6 +46,8 @@ export function MonthlyCalendar(props: MonthlyCalendarProps) {
     onPreviousMonth,
     onSelectDate,
     selectedDateKeys = [],
+    selectionCheckboxByDateKey = {},
+    showTodayHighlight = true,
   } = props;
   const { width: windowWidth } = useWindowDimensions();
   const [gridHeight, setGridHeight] = useState(0);
@@ -94,8 +106,12 @@ export function MonthlyCalendar(props: MonthlyCalendarProps) {
             cellHeight={cellHeight}
             cellWidth={cellWidth}
             day={day}
+            showTodayHighlight={showTodayHighlight}
             selectionOrder={
               day ? (selectionOrderByDateKey.get(day.key) ?? null) : null
+            }
+            selectionCheckbox={
+              day ? selectionCheckboxByDateKey[day.key] : undefined
             }
             onLongPressDate={onLongPressDate}
             onPressDate={onSelectDate}

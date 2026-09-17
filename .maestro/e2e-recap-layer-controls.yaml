@@ -1,0 +1,35 @@
+appId: com.jiahleework.pical
+name: E2E recap layer controls
+---
+- tapOn: "리캡으로 이동"
+- extendedWaitUntil:
+    visible: "Recap"
+    timeout: 30000
+- tapOn: "August recap"
+- extendedWaitUntil:
+    visible: "리캡 공유 버튼"
+    timeout: 30000
+- tapOn: "라이브러리 열기"
+- waitForAnimationToEnd
+- tapOn:
+    point: "22%,16%"
+- waitForAnimationToEnd
+- tapOn:
+    point: "18%,27%"
+- waitForAnimationToEnd
+- tapOn:
+    point: "50%,27%"
+- waitForAnimationToEnd
+- tapOn:
+    point: "83%,27%"
+- waitForAnimationToEnd
+- swipe:
+    start: "50%,15%"
+    end: "50%,85%"
+    duration: 500
+- longPressOn: "위젯 선택"
+- extendedWaitUntil:
+    visible: "요소 앞으로 이동"
+    timeout: 5000
+- tapOn: "요소 앞으로 이동"
+- tapOn: "요소 뒤로 이동"

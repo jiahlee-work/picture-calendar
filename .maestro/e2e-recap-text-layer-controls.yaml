@@ -1,0 +1,63 @@
+appId: com.jiahleework.pical
+name: E2E recap text layer controls
+---
+- tapOn: "리캡으로 이동"
+- extendedWaitUntil:
+    visible: "Recap"
+    timeout: 30000
+- tapOn: "August recap"
+- extendedWaitUntil:
+    visible: "리캡 공유 버튼"
+    timeout: 30000
+- tapOn: "텍스트 추가"
+- waitForAnimationToEnd
+- tapOn:
+    point: "50%,15%"
+- assertVisible: "텍스트 추가"
+- tapOn: "텍스트 추가"
+- waitForAnimationToEnd
+- tapOn: "텍스트 스타일 선택"
+- extendedWaitUntil:
+    visible: "굵게"
+    timeout: 5000
+- tapOn: "굵게"
+- tapOn: "텍스트 정렬 선택"
+- extendedWaitUntil:
+    visible: "가운데 정렬"
+    timeout: 5000
+- tapOn: "가운데 정렬"
+- waitForAnimationToEnd
+- assertVisible: "텍스트 레이어 순서 선택"
+- tapOn: "텍스트 레이어 순서 선택"
+- extendedWaitUntil:
+    visible: "뒤로"
+    timeout: 5000
+- tapOn: "뒤로"
+- waitForAnimationToEnd
+- assertVisible: "텍스트 레이어 순서 선택"
+- tapOn: "텍스트 레이어 순서 선택"
+- extendedWaitUntil:
+    visible: "앞으로"
+    timeout: 5000
+- tapOn: "앞으로"
+- waitForAnimationToEnd
+- tapOn: "서체와 글자 크기 선택"
+- extendedWaitUntil:
+    visible: "Bottom Sheet"
+    timeout: 5000
+- tapOn:
+    point: "50%,20%"
+- assertNotVisible: "Bottom Sheet"
+- tapOn: "텍스트 색상 선택"
+- extendedWaitUntil:
+    visible: "Bottom Sheet"
+    timeout: 5000
+- tapOn:
+    point: "40%,78%"
+- tapOn:
+    point: "50%,20%"
+- assertNotVisible: "Bottom Sheet"
+- tapOn:
+    point: "50%,15%"
+- assertNotVisible: "텍스트 레이어 순서 선택"
+- assertVisible: "텍스트 추가"

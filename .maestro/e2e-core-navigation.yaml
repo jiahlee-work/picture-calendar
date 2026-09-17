@@ -12,6 +12,11 @@ name: E2E core app navigation
 - extendedWaitUntil:
     visible: "Library"
     timeout: 30000
+- tapOn: "스티커 등록 메뉴 열기"
+- assertVisible: "갤러리에서 등록"
+- assertVisible: "클립보드 붙여넣기"
+- tapOn:
+    point: "20%,15%"
 - tapOn:
     point: "78%,94%"
 - extendedWaitUntil:
