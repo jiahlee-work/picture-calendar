@@ -45,7 +45,8 @@
         }
       ],
       "expo-sharing",
-      "./plugins/with-reicon-menu-assets"
+      "./plugins/with-reicon-menu-assets",
+      "./plugins/with-remove-ios-push-entitlement"
     ],
     "experiments": {
       "typedRoutes": true
