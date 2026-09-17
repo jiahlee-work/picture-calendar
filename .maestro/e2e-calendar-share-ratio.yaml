@@ -1,0 +1,31 @@
+appId: com.jiahleework.pical
+name: E2E calendar share aspect ratio
+---
+- openLink: "exp+pical://expo-development-client/?url=http%3A%2F%2F${DEV_SERVER_HOST}%3A8081"
+- extendedWaitUntil:
+    visible: "캘린더 공유 버튼"
+    timeout: 30000
+- tapOn: "캘린더 공유 버튼"
+- assertVisible: "Bottom Sheet"
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: "Bottom sheet backdrop"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - assertVisible: "캔버스 비율 선택"
+      - assertVisible: "현재 화면 비율"
+      - assertVisible: "세로형 4:5"
+      - assertVisible: "세로형 9:16"
+      - assertVisible: "취소"
+      - assertVisible: "선택 완료"
+      - tapOn: "세로형 4:5"
+      - tapOn: "선택 완료"
+      - extendedWaitUntil:
+          visible: "내보내기"
+          timeout: 10000
+      - assertVisible: "이미지 저장"
+      - assertVisible: "공유하기"
