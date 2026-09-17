@@ -29,14 +29,13 @@ export const RECAP_TEXT_FONT_FAMILY_IDS = [
   "PretendardLight",
   "PretendardRegular",
   "YoonChildfundkoreaManSeh",
+  "Georgia",
+  "Avenir Next",
+  "Menlo",
 ] as const;
 
 export type RecapTextFontFamily = (typeof RECAP_TEXT_FONT_FAMILY_IDS)[number];
 
 export const RECAP_TEXT_FONT_FAMILIES = new Set<string>([
   ...RECAP_TEXT_FONT_FAMILY_IDS,
-  // Keep normalizing fonts from older saved recap data.
-  "Georgia",
-  "Avenir Next",
-  "Menlo",
 ]);
