@@ -192,6 +192,7 @@ export function MonthlyCalendarScreen() {
         <AppBar>
           <AppBar.Title
             accessibilityLabel="연월 선택 열기"
+            variant="large"
             onPress={handleOpenYearMonthPicker}
           >
             {calendar.title}
@@ -236,7 +237,7 @@ export function MonthlyCalendarScreen() {
         >
           <View style={styles.shareCalendarContent}>
             <AppBar>
-              <AppBar.Title>{calendar.title}</AppBar.Title>
+              <AppBar.Title variant="large">{calendar.title}</AppBar.Title>
             </AppBar>
             <View style={styles.content}>
               <MonthlyCalendar

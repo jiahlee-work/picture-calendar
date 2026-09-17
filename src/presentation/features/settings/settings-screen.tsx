@@ -25,7 +25,7 @@ export function SettingsScreen() {
   return (
     <AppSafeAreaView>
       <AppBar>
-        <AppBar.Title>Settings</AppBar.Title>
+        <AppBar.Title variant="large">Settings</AppBar.Title>
       </AppBar>
       <ScrollView
         contentContainerStyle={styles.content}
