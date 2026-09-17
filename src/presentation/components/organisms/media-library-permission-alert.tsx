@@ -1,4 +1,6 @@
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, StyleSheet, View } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import { toMediaLibraryPermissionMessage } from "@/presentation/helpers/permissions/media-library-permission-message";
 import { appColors } from "@/presentation/theme/colors";

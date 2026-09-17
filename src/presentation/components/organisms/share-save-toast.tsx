@@ -1,5 +1,7 @@
 import { useEffect } from "react";
-import { ActivityIndicator, Modal, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Modal, StyleSheet, View } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import {

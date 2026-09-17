@@ -7,13 +7,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 import Animated, {
   Easing,
   FadeOut,

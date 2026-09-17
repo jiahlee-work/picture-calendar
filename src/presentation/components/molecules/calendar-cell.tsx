@@ -1,4 +1,6 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import type { CalendarGridCell } from "@/application/services/calendar/calendar-grid";
 import { DailyPhotoImage } from "@/presentation/components/atoms/daily-photo-image";
@@ -9,6 +11,7 @@ type CalendarCellProps = {
   cellHeight: number;
   cellWidth: number;
   day: CalendarGridCell;
+  showTodayHighlight?: boolean;
   selectionOrder?: number | null;
   selectionCheckbox?: {
     accessibilityLabel: string;
@@ -26,10 +29,11 @@ export function CalendarCell(props: CalendarCellProps) {
     day,
     onLongPressDate,
     onPressDate,
+    showTodayHighlight = true,
     selectionOrder = null,
     selectionCheckbox,
   } = props;
-  const isToday = day?.isToday;
+  const isTodayHighlighted = showTodayHighlight && day?.isToday;
   const photo = day?.photo;
   const isSelected = typeof selectionOrder === "number";
 
@@ -56,14 +60,14 @@ export function CalendarCell(props: CalendarCellProps) {
       style={[
         styles.cell,
         { height: cellHeight, width: cellWidth },
-        isToday && styles.todayCell,
+        isTodayHighlighted && styles.todayCell,
       ]}
       onLongPress={onLongPressDate ? () => onLongPressDate(day.key) : undefined}
       onPress={() => onPressDate(day.key)}
     >
-      {isToday && <View style={styles.todayMark} />}
+      {isTodayHighlighted && <View style={styles.todayMark} />}
       {photo && <DailyPhotoImage imagePath={photo.imagePath} />}
-      <Text style={[styles.dateText, isToday && styles.todayText]}>
+      <Text style={[styles.dateText, isTodayHighlighted && styles.todayText]}>
         {day.dayOfMonth}
       </Text>
       {selectionCheckbox?.isSelected ? (

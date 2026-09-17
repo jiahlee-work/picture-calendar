@@ -12,12 +12,13 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
   type StyleProp,
   type TextStyle,
 } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppBottomSheetBackdrop } from "@/presentation/components/atoms/app-bottom-sheet-backdrop";

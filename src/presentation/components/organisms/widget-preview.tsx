@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import { buildCalendarMonth } from "@/application/services/calendar/calendar-grid";
 import type { WidgetAsset } from "@/application/services/stickers/types";

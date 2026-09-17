@@ -2,12 +2,13 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import {
   StyleSheet,
-  Text,
   type StyleProp,
   type TextStyle,
   View,
   type ViewStyle,
 } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 import Svg, { Path } from "react-native-svg";
 
 import { appColors } from "@/presentation/theme/colors";

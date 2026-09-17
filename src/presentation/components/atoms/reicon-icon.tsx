@@ -6,6 +6,7 @@ import AddIcon from "reicon-react-native/icons/Add";
 import AlertCircleIcon from "reicon-react-native/icons/AlertCircle";
 import AngleRightIcon from "reicon-react-native/icons/AngleRight";
 import ArrowRightIcon from "reicon-react-native/icons/ArrowRight";
+import AspectRatioSquareIcon from "reicon-react-native/icons/AspectRatioSquare";
 import BoldIcon from "reicon-react-native/icons/Bold";
 import CalendarIcon from "reicon-react-native/icons/Calendar";
 import ChartBarIcon from "reicon-react-native/icons/ChartBar";
@@ -27,7 +28,10 @@ import Grid3Icon from "reicon-react-native/icons/Grid3";
 import ImageIcon from "reicon-react-native/icons/Image";
 import LayersIcon from "reicon-react-native/icons/Layers";
 import MenuIcon from "reicon-react-native/icons/Menu";
+import MoreIcon from "reicon-react-native/icons/More";
+import PaintbucketIcon from "reicon-react-native/icons/Paintbucket";
 import ShareIcon from "reicon-react-native/icons/Share";
+import SmallcapsIcon from "reicon-react-native/icons/Smallcaps";
 import StarIcon from "reicon-react-native/icons/Star";
 import StickerSmileIcon from "reicon-react-native/icons/StickerSmile";
 import TagIcon from "reicon-react-native/icons/Tag";
@@ -47,6 +51,7 @@ const REICON_COMPONENTS = {
   AlertCircle: AlertCircleIcon,
   ArrowRight: ArrowRightIcon,
   AngleRight: AngleRightIcon,
+  AspectRatioSquare: AspectRatioSquareIcon,
   Bold: BoldIcon,
   Calendar: CalendarIcon,
   ChartBar: ChartBarIcon,
@@ -71,7 +76,10 @@ const REICON_COMPONENTS = {
   LayersArrowDown: LayersArrowDownIcon,
   LayersArrowUp: LayersArrowUpIcon,
   Menu: MenuIcon,
+  More: MoreIcon,
+  Paintbucket: PaintbucketIcon,
   Share: ShareIcon,
+  Smallcaps: SmallcapsIcon,
   Star: StarIcon,
   StickerSmile: StickerSmileIcon,
   Tag: TagIcon,

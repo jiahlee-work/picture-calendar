@@ -1,4 +1,6 @@
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, Pressable, StyleSheet, View } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import type { DailyPhotoPolicyDialogState } from "@/application/hooks/use-today-photo-flow";
 import { appColors } from "@/presentation/theme/colors";

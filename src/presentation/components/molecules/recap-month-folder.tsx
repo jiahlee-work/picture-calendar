@@ -6,10 +6,11 @@ import {
   Pressable,
   StyleSheet,
   type StyleProp,
-  Text,
   View,
   type ViewStyle,
 } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 import Svg, { G, Path, Rect } from "react-native-svg";
 
 import {

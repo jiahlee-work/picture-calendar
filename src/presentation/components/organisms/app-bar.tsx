@@ -5,11 +5,12 @@ import {
   Pressable,
   StyleSheet,
   type StyleProp,
-  Text,
   type TextStyle,
   View,
   type ViewProps,
 } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import {
   ReiconIcon,

@@ -5,10 +5,11 @@ import {
   Pressable,
   StatusBar as NativeStatusBar,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { DailyPhoto } from "@/application/services/daily-photo/types";

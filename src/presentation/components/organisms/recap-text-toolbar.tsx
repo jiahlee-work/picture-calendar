@@ -17,7 +17,6 @@ import {
   type RecapTextStyleUpdate,
 } from "@/application/services/recap/recap-canvas-text";
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
-import { TextFormatIcon } from "@/presentation/components/atoms/text-format-icon";
 import { TextStyleIcon } from "@/presentation/components/atoms/text-style-icon";
 import { RecapTextMenuButton } from "@/presentation/components/molecules/recap-text-menu-button";
 import type { RecapTextMenuIconName } from "@/presentation/components/molecules/recap-text-menu-button.types";
@@ -75,7 +74,6 @@ const STYLE_ACTIONS: StyleAction[] = [
 
 const TEXT_TOOLBAR_WIDTH = 320;
 const TEXT_TOOLBAR_ICON_SIZE = 24;
-const TEXT_TOOLBAR_TEXT_FORMAT_ICON_SIZE = 28;
 const TEXT_TOOLBAR_TEXT_STYLE_ICON_SIZE = 28;
 const TEXT_TOOLBAR_BUTTON_PADDING = 10;
 const TEXT_TOOLBAR_HORIZONTAL_PADDING = 10;
@@ -193,9 +191,10 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
           accessibilityLabel="서체와 글자 크기 선택"
           onPress={onOpenTypographyPicker}
         >
-          <TextFormatIcon
+          <ReiconIcon
             color={appColors.black}
-            size={TEXT_TOOLBAR_TEXT_FORMAT_ICON_SIZE}
+            name="Smallcaps"
+            size={TEXT_TOOLBAR_ICON_SIZE}
           />
         </ToolbarButton>
         <RecapTextMenuButton

@@ -2,12 +2,15 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   Pressable,
   StyleSheet,
-  Text,
-  TextInput,
   type NativeSyntheticEvent,
   type TextStyle,
   type TextInputSubmitEditingEventData,
 } from "react-native";
+
+import {
+  AppText as Text,
+  AppTextInput as TextInput,
+} from "@/presentation/components/atoms/app-text";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,

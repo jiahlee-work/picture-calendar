@@ -7,7 +7,10 @@ import {
   RNHostView,
   Text,
 } from "@expo/ui/swift-ui";
+import { font as fontModifier } from "@expo/ui/swift-ui/modifiers";
 import type { ReactNode } from "react";
+
+import { appNativeFontFamily } from "@/presentation/theme/app-typography";
 
 type StickerRegistrationMenuProps = {
   children: ReactNode;
@@ -42,13 +45,17 @@ export function StickerRegistrationMenu(props: StickerRegistrationMenuProps) {
         <Button onPress={onRegisterFromClipboard}>
           <HStack spacing={8}>
             <Image assetName="PicalClipboard" size={ICON_SIZE} />
-            <Text>클립보드 붙여넣기</Text>
+            <Text modifiers={[fontModifier({ family: appNativeFontFamily })]}>
+              클립보드 붙여넣기
+            </Text>
           </HStack>
         </Button>
         <Button onPress={onRegisterFromLibrary}>
           <HStack spacing={8}>
             <Image assetName="PicalGallery" size={ICON_SIZE} />
-            <Text>갤러리에서 등록</Text>
+            <Text modifiers={[fontModifier({ family: appNativeFontFamily })]}>
+              갤러리에서 등록
+            </Text>
           </HStack>
         </Button>
       </Menu>

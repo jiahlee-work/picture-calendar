@@ -7,15 +7,20 @@ import {
   RNHostView,
   Text,
 } from "@expo/ui/swift-ui";
-import { disabled as disabledModifier } from "@expo/ui/swift-ui/modifiers";
+import {
+  disabled as disabledModifier,
+  font as fontModifier,
+} from "@expo/ui/swift-ui/modifiers";
 import { StyleSheet, View } from "react-native";
 
 import type {
   RecapTextMenuButtonProps,
   RecapTextMenuIconName,
 } from "@/presentation/components/molecules/recap-text-menu-button.types";
+import { appNativeFontFamily } from "@/presentation/theme/app-typography";
 
-const IOS_MENU_ICON_SIZE = 20;
+const IOS_MENU_ICON_SIZE = 16;
+const IOS_TEXT_STYLE_MENU_ICON_SIZE = 12;
 const iosMenuIconAssetNames: Record<RecapTextMenuIconName, string> = {
   alignCenter: "PicalAlignCenter",
   alignLeft: "PicalAlignLeft",
@@ -54,9 +59,11 @@ export function RecapTextMenuButton(props: RecapTextMenuButtonProps) {
             <HStack spacing={8}>
               <Image
                 assetName={iosMenuIconAssetNames[action.icon]}
-                size={IOS_MENU_ICON_SIZE}
+                size={getIosMenuIconSize(action.icon)}
               />
-              <Text>{action.title}</Text>
+              <Text modifiers={[fontModifier({ family: appNativeFontFamily })]}>
+                {action.title}
+              </Text>
               {action.selected ? (
                 <Image systemName="checkmark" size={14} />
               ) : null}
@@ -66,6 +73,14 @@ export function RecapTextMenuButton(props: RecapTextMenuButtonProps) {
       </Menu>
     </Host>
   );
+}
+
+function getIosMenuIconSize(icon: RecapTextMenuIconName) {
+  if (icon === "bold" || icon === "italic" || icon === "underline") {
+    return IOS_TEXT_STYLE_MENU_ICON_SIZE;
+  }
+
+  return IOS_MENU_ICON_SIZE;
 }
 
 const styles = StyleSheet.create({

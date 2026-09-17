@@ -9,10 +9,11 @@ import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from "react-native";
+
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
 import Animated, {
   Extrapolation,
   interpolate,

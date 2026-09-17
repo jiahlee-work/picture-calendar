@@ -24,7 +24,7 @@ const RECAP_DECORATING_TOOLBAR_ACTIONS = [
   },
   {
     accessibilityLabel: "배경색 선택",
-    icon: "ColorsSquare",
+    icon: "Paintbucket",
     id: "background",
   },
   {
