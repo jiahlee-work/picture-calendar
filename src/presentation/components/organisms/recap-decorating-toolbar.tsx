@@ -47,11 +47,12 @@ const RECAP_DECORATING_TOOLBAR_ACTIONS = [
 const RECAP_DECORATING_TOOLBAR_ICON_SIZE = 24;
 
 type RecapDecoratingToolbarProps = {
+  disabledActionIds?: readonly RecapDecoratingToolbarActionId[];
   onSelectAction: (actionId: RecapDecoratingToolbarActionId) => void;
 };
 
 export function RecapDecoratingToolbar(props: RecapDecoratingToolbarProps) {
-  const { onSelectAction } = props;
+  const { disabledActionIds = [], onSelectAction } = props;
 
   return (
     <Animated.View
@@ -59,25 +60,32 @@ export function RecapDecoratingToolbar(props: RecapDecoratingToolbarProps) {
       exiting={FadeOutDown.duration(140)}
       style={styles.toolbar}
     >
-      {RECAP_DECORATING_TOOLBAR_ACTIONS.map((action) => (
-        <Pressable
-          key={action.id}
-          accessibilityRole="button"
-          accessibilityLabel={action.accessibilityLabel}
-          hitSlop={10}
-          style={({ pressed }) => [
-            styles.toolbarButton,
-            pressed && styles.toolbarButtonPressed,
-          ]}
-          onPress={() => onSelectAction(action.id)}
-        >
-          <ReiconIcon
-            color={appColors.black}
-            name={action.icon}
-            size={RECAP_DECORATING_TOOLBAR_ICON_SIZE}
-          />
-        </Pressable>
-      ))}
+      {RECAP_DECORATING_TOOLBAR_ACTIONS.map((action) => {
+        const isDisabled = disabledActionIds.includes(action.id);
+
+        return (
+          <Pressable
+            key={action.id}
+            accessibilityRole="button"
+            accessibilityLabel={action.accessibilityLabel}
+            accessibilityState={{ disabled: isDisabled }}
+            disabled={isDisabled}
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.toolbarButton,
+              isDisabled && styles.toolbarButtonDisabled,
+              pressed && styles.toolbarButtonPressed,
+            ]}
+            onPress={() => onSelectAction(action.id)}
+          >
+            <ReiconIcon
+              color={appColors.black}
+              name={action.icon}
+              size={RECAP_DECORATING_TOOLBAR_ICON_SIZE}
+            />
+          </Pressable>
+        );
+      })}
     </Animated.View>
   );
 }
@@ -110,5 +118,8 @@ const styles = StyleSheet.create({
   },
   toolbarButtonPressed: {
     opacity: 0.5,
+  },
+  toolbarButtonDisabled: {
+    opacity: 0.32,
   },
 });

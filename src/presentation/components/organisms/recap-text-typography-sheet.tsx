@@ -86,6 +86,9 @@ const RECAP_TEXT_FONT_OPTIONS: RecapTextFontOption[] = [
   createFontOption("Mona12Regular", "Mona12 Regular"),
   createFontOption("Mona12Bold", "Mona12 Bold"),
   createFontOption("YoonChildfundkoreaManSeh", "윤초록우산어린이 만세"),
+  createFontOption("Georgia", "Georgia"),
+  createFontOption("Avenir Next", "Avenir Next"),
+  createFontOption("Menlo", "Menlo"),
 ];
 
 const RECAP_TEXT_FONT_SIZE_OPTIONS = [

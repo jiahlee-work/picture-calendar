@@ -12,7 +12,7 @@ export const recapFonts = {
   GmarketSansRegular: require("../../../assets/fonts/GmarketSans-Regular.otf"),
   GriunFromsol: require("../../../assets/fonts/Griun_Fromsol-Rg.ttf"),
   GriunXHangeulOchungiKim: require("../../../assets/fonts/GriunXHangeul_OCHUNGI.KIM-Rg.ttf"),
-  Isayoon: require("../../../assets/fonts/이서윤체.ttf"),
+  Isayoon: require("../../../assets/fonts/이서윤체.ttf"),
   Jalnan2: require("../../../assets/fonts/Jalnan2.otf"),
   Jejudoldam: require("../../../assets/fonts/jejudoldam.otf"),
   KimWildgagBold: require("../../../assets/fonts/[KIM]WILDgag-Bold.ttf"),

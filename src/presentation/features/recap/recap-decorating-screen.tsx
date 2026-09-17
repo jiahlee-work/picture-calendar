@@ -401,6 +401,10 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
         handleAddTextElement();
         return;
       case "background":
+        if (committedLayoutId) {
+          return;
+        }
+
         setIsBackgroundColorSheetVisible(true);
         clearSelectedCanvasElement();
         return;
@@ -1052,7 +1056,10 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
             }
           />
         ) : (
-          <RecapDecoratingToolbar onSelectAction={handleToolbarActionPress} />
+          <RecapDecoratingToolbar
+            disabledActionIds={committedLayoutId ? ["background"] : []}
+            onSelectAction={handleToolbarActionPress}
+          />
         )}
       </View>
       <RecapPhotoCalendarSheet

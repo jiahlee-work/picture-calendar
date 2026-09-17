@@ -7,6 +7,7 @@ import { OnePhotoLayoutIcon } from "@/presentation/components/atoms/one-photo-la
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import { ThreeRowLayoutIcon } from "@/presentation/components/atoms/three-row-layout-icon";
 import { TwoRowLayoutIcon } from "@/presentation/components/atoms/two-row-layout-icon";
+import { SixGridLayoutIcon } from "@/presentation/components/atoms/six-grid-layout-icon";
 import { appColors } from "@/presentation/theme/colors";
 import type { RecapCanvasLayoutId as RecapCanvasLayoutIdType } from "@/shared/recap/types";
 
@@ -58,6 +59,11 @@ const RECAP_LAYOUT_TOOLBAR_ACTIONS: RecapLayoutToolbarAction[] = [
     accessibilityLabel: "4칸 레이아웃 선택",
     iconName: "Grid3",
     id: RecapCanvasLayoutId.fourGrid,
+  },
+  {
+    accessibilityLabel: "6칸 레이아웃 선택",
+    id: RecapCanvasLayoutId.sixGrid,
+    renderIcon: (props) => <SixGridLayoutIcon {...props} />,
   },
 ];
 

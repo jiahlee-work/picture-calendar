@@ -1,5 +1,6 @@
 export const RecapCanvasLayoutId = {
   fourGrid: "four_grid",
+  sixGrid: "six_grid",
   onePhoto: "one_photo",
   threeRows: "three_rows",
   twoColumns: "two_columns",
