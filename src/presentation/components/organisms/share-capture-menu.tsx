@@ -13,8 +13,10 @@ import {
 } from "@/application/hooks/use-share-capture";
 import { openDeviceAppSettings } from "@/application/services/device/open-device-app-settings";
 import { runtimePlatform } from "@/infrastructure/device/runtime-platform";
+import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import { SymbolIconButton } from "@/presentation/components/atoms/symbol-icon-button";
-import { Menu } from "@/presentation/components/molecules/menu";
+import { NativeActionMenu } from "@/presentation/components/molecules/native-action-menu";
+import type { NativeActionMenuAction } from "@/presentation/components/molecules/native-action-menu.types";
 import { MediaLibraryPermissionAlert } from "@/presentation/components/organisms/media-library-permission-alert";
 import { ShareSaveToast } from "@/presentation/components/organisms/share-save-toast";
 import {
@@ -33,7 +35,7 @@ type ShareCaptureMenuProps = {
   fileName: string;
   isReady: boolean;
   onPress?: () => void;
-  presentation?: "button" | "menuItem";
+  presentation?: "button" | "controller";
 };
 
 export type ShareCaptureMenuHandle = {
@@ -45,6 +47,19 @@ type PermissionAlertState = {
   canAskAgain: boolean;
   visible: boolean;
 };
+
+const SHARE_MENU_ACTIONS = [
+  {
+    icon: "download",
+    id: "save",
+    title: "이미지 저장",
+  },
+  {
+    icon: "share",
+    id: "share",
+    title: "공유하기",
+  },
+] satisfies NativeActionMenuAction[];
 
 export const ShareCaptureMenu = forwardRef<
   ShareCaptureMenuHandle,
@@ -169,26 +184,22 @@ export const ShareCaptureMenu = forwardRef<
 
   const shouldShowActionMenu = runtimePlatform === "android";
 
-  if (presentation === "menuItem") {
-    return (
-      <View style={styles.root}>
-        <Menu.Item
-          disabled={disabled || isProcessing}
-          icon="Share"
-          label="공유하기"
-          onPress={handleShareImage}
-        />
-        <MediaLibraryPermissionAlert
-          canAskAgain={permissionAlert.canAskAgain}
-          visible={permissionAlert.visible}
-          onClose={handleClosePermissionAlert}
-          onOpenSettings={() => {
-            void openDeviceAppSettings();
-          }}
-        />
-        <ShareSaveToast state={saveToastState} onDone={handleHideSaveToast} />
-      </View>
-    );
+  const feedback = (
+    <>
+      <MediaLibraryPermissionAlert
+        canAskAgain={permissionAlert.canAskAgain}
+        visible={permissionAlert.visible}
+        onClose={handleClosePermissionAlert}
+        onOpenSettings={() => {
+          void openDeviceAppSettings();
+        }}
+      />
+      <ShareSaveToast state={saveToastState} onDone={handleHideSaveToast} />
+    </>
+  );
+
+  if (presentation === "controller") {
+    return <View style={styles.root}>{feedback}</View>;
   }
 
   return (
@@ -202,18 +213,27 @@ export const ShareCaptureMenu = forwardRef<
           onPress={handleTriggerPress}
         />
       ) : shouldShowActionMenu && !isBlockedWithMessage ? (
-        <Menu
+        <NativeActionMenu
           accessibilityLabel={accessibilityLabel}
-          disabled={disabled}
-          trigger={{ icon: "Share" }}
+          actions={SHARE_MENU_ACTIONS.map((action) => ({
+            ...action,
+            disabled: isProcessing,
+          }))}
+          onPressAction={(actionId) => {
+            if (actionId === "save") {
+              void handleSaveImage();
+              return;
+            }
+
+            if (actionId === "share") {
+              void handleShareImage();
+            }
+          }}
         >
-          <Menu.Item
-            icon="Download"
-            label="이미지 저장"
-            onPress={handleSaveImage}
-          />
-          <Menu.Item icon="Share" label="공유하기" onPress={handleShareImage} />
-        </Menu>
+          <View style={styles.nativeMenuTrigger}>
+            <ReiconIcon color="#FFFFFF" name="Share" size={24} />
+          </View>
+        </NativeActionMenu>
       ) : (
         <SymbolIconButton
           accessibilityLabel={accessibilityLabel}
@@ -223,15 +243,7 @@ export const ShareCaptureMenu = forwardRef<
           onPress={handleShareImage}
         />
       )}
-      <MediaLibraryPermissionAlert
-        canAskAgain={permissionAlert.canAskAgain}
-        visible={permissionAlert.visible}
-        onClose={handleClosePermissionAlert}
-        onOpenSettings={() => {
-          void openDeviceAppSettings();
-        }}
-      />
-      <ShareSaveToast state={saveToastState} onDone={handleHideSaveToast} />
+      {feedback}
     </View>
   );
 });
@@ -240,5 +252,13 @@ const styles = StyleSheet.create({
   root: {
     flexShrink: 0,
     position: "relative",
+  },
+  nativeMenuTrigger: {
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.26)",
+    borderRadius: 20,
+    height: 40,
+    justifyContent: "center",
+    width: 40,
   },
 });

@@ -12,26 +12,23 @@ import {
   font as fontModifier,
 } from "@expo/ui/swift-ui/modifiers";
 import { StyleSheet, View } from "react-native";
+import type { SFSymbol } from "sf-symbols-typescript";
 
 import type {
-  RecapTextMenuButtonProps,
-  RecapTextMenuIconName,
-} from "@/presentation/components/molecules/recap-text-menu-button.types";
+  NativeActionMenuAction,
+  NativeActionMenuProps,
+} from "@/presentation/components/molecules/native-action-menu.types";
 import { appNativeFontFamily } from "@/presentation/theme/app-typography";
 
+const IOS_MENU_ICON_SIZE = 16;
 const IOS_MENU_TEXT_SIZE = 16;
-const iosMenuIconAssetNames: Record<RecapTextMenuIconName, string> = {
-  alignCenter: "PicalAlignCenter",
-  alignLeft: "PicalAlignLeft",
-  alignRight: "PicalAlignRight",
-  bold: "PicalBold",
-  italic: "PicalItalic",
-  layerBackward: "PicalLayersArrowDown",
-  layerForward: "PicalLayersArrowUp",
-  underline: "PicalUnderline",
+const iosMenuIconNames: Record<NativeActionMenuAction["icon"], SFSymbol> = {
+  aspectRatio: "aspectratio",
+  download: "arrow.down.to.line",
+  share: "square.and.arrow.up",
 };
 
-export function RecapTextMenuButton(props: RecapTextMenuButtonProps) {
+export function NativeActionMenu(props: NativeActionMenuProps) {
   const { accessibilityLabel, actions, children, onPressAction } = props;
   const trigger = (
     <RNHostView matchContents>
@@ -56,7 +53,10 @@ export function RecapTextMenuButton(props: RecapTextMenuButtonProps) {
             onPress={() => onPressAction(action.id)}
           >
             <HStack spacing={8}>
-              <Image assetName={iosMenuIconAssetNames[action.icon]} />
+              <Image
+                systemName={iosMenuIconNames[action.icon]}
+                size={IOS_MENU_ICON_SIZE}
+              />
               <Text
                 modifiers={[
                   fontModifier({
@@ -67,9 +67,6 @@ export function RecapTextMenuButton(props: RecapTextMenuButtonProps) {
               >
                 {action.title}
               </Text>
-              {action.selected ? (
-                <Image systemName="checkmark" size={14} />
-              ) : null}
             </HStack>
           </Button>
         ))}
@@ -81,9 +78,9 @@ export function RecapTextMenuButton(props: RecapTextMenuButtonProps) {
 const styles = StyleSheet.create({
   trigger: {
     alignItems: "center",
-    borderRadius: 21,
-    height: 42,
+    borderRadius: 20,
+    height: 40,
     justifyContent: "center",
-    paddingHorizontal: 10,
+    width: 40,
   },
 });

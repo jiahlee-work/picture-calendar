@@ -7,7 +7,7 @@ import {
   RNHostView,
   Text,
 } from "@expo/ui/swift-ui";
-import { font as fontModifier } from "@expo/ui/swift-ui/modifiers";
+import { font as fontModifier, scaleEffect } from "@expo/ui/swift-ui/modifiers";
 import type { ReactNode } from "react";
 
 import { appNativeFontFamily } from "@/presentation/theme/app-typography";
@@ -19,7 +19,9 @@ type StickerRegistrationMenuProps = {
   onRegisterFromLibrary: () => void;
 };
 
-const ICON_SIZE = 20;
+const ICON_SIZE = 16;
+const MENU_TEXT_SIZE = 16;
+const ASSET_ICON_VIEWBOX_SIZE = 24;
 
 export function StickerRegistrationMenu(props: StickerRegistrationMenuProps) {
   const {
@@ -44,16 +46,36 @@ export function StickerRegistrationMenu(props: StickerRegistrationMenuProps) {
       <Menu label={trigger}>
         <Button onPress={onRegisterFromClipboard}>
           <HStack spacing={8}>
-            <Image assetName="PicalClipboard" size={ICON_SIZE} />
-            <Text modifiers={[fontModifier({ family: appNativeFontFamily })]}>
+            <Image
+              assetName="PicalClipboard"
+              modifiers={[scaleEffect(ICON_SIZE / ASSET_ICON_VIEWBOX_SIZE)]}
+            />
+            <Text
+              modifiers={[
+                fontModifier({
+                  family: appNativeFontFamily,
+                  size: MENU_TEXT_SIZE,
+                }),
+              ]}
+            >
               클립보드 붙여넣기
             </Text>
           </HStack>
         </Button>
         <Button onPress={onRegisterFromLibrary}>
           <HStack spacing={8}>
-            <Image assetName="PicalGallery" size={ICON_SIZE} />
-            <Text modifiers={[fontModifier({ family: appNativeFontFamily })]}>
+            <Image
+              assetName="PicalGallery"
+              modifiers={[scaleEffect(ICON_SIZE / ASSET_ICON_VIEWBOX_SIZE)]}
+            />
+            <Text
+              modifiers={[
+                fontModifier({
+                  family: appNativeFontFamily,
+                  size: MENU_TEXT_SIZE,
+                }),
+              ]}
+            >
               갤러리에서 등록
             </Text>
           </HStack>

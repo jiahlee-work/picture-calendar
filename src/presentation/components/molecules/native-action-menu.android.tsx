@@ -9,26 +9,19 @@ import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 import type {
-  RecapTextMenuButtonProps,
-  RecapTextMenuIconName,
-} from "@/presentation/components/molecules/recap-text-menu-button.types";
-import { appNativeFontFamily } from "@/presentation/theme/app-typography";
+  NativeActionMenuAction,
+  NativeActionMenuProps,
+} from "@/presentation/components/molecules/native-action-menu.types";
 
 const ANDROID_MENU_ICON_SIZE = 16;
-const ANDROID_TEXT_STYLE_MENU_ICON_SIZE = 10;
 const ANDROID_MENU_TEXT_SIZE = 16;
-const androidMenuIcons: Record<RecapTextMenuIconName, number> = {
-  alignCenter: require("@/presentation/assets/reicon-menu-icons/align-center.xml"),
-  alignLeft: require("@/presentation/assets/reicon-menu-icons/align-left.xml"),
-  alignRight: require("@/presentation/assets/reicon-menu-icons/align-right.xml"),
-  bold: require("@/presentation/assets/reicon-menu-icons/bold.xml"),
-  italic: require("@/presentation/assets/reicon-menu-icons/italic.xml"),
-  layerBackward: require("@/presentation/assets/reicon-menu-icons/layers-arrow-down.xml"),
-  layerForward: require("@/presentation/assets/reicon-menu-icons/layers-arrow-up.xml"),
-  underline: require("@/presentation/assets/reicon-menu-icons/underline.xml"),
-};
+const androidMenuIconSources = {
+  aspectRatio: require("@/presentation/assets/reicon-menu-icons/aspect-ratio.xml"),
+  download: require("@/presentation/assets/reicon-menu-icons/download.xml"),
+  share: require("@/presentation/assets/reicon-menu-icons/share.xml"),
+} satisfies Record<NativeActionMenuAction["icon"], number>;
 
-export function RecapTextMenuButton(props: RecapTextMenuButtonProps) {
+export function NativeActionMenu(props: NativeActionMenuProps) {
   const { accessibilityLabel, actions, children, onPressAction } = props;
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -62,21 +55,13 @@ export function RecapTextMenuButton(props: RecapTextMenuButtonProps) {
             >
               <DropdownMenuItem.LeadingIcon>
                 <Icon
-                  source={androidMenuIcons[action.icon]}
-                  size={getAndroidMenuIconSize(action.icon)}
+                  source={androidMenuIconSources[action.icon]}
+                  size={ANDROID_MENU_ICON_SIZE}
                 />
               </DropdownMenuItem.LeadingIcon>
               <DropdownMenuItem.Text>
                 <Text style={styles.menuText}>{action.title}</Text>
               </DropdownMenuItem.Text>
-              {action.selected ? (
-                <DropdownMenuItem.TrailingIcon>
-                  <Icon
-                    source={require("@/presentation/assets/reicon-menu-icons/checkmark.xml")}
-                    size={ANDROID_MENU_ICON_SIZE}
-                  />
-                </DropdownMenuItem.TrailingIcon>
-              ) : null}
             </DropdownMenuItem>
           ))}
         </DropdownMenu.Items>
@@ -85,24 +70,15 @@ export function RecapTextMenuButton(props: RecapTextMenuButtonProps) {
   );
 }
 
-function getAndroidMenuIconSize(icon: RecapTextMenuIconName) {
-  if (icon === "bold" || icon === "italic" || icon === "underline") {
-    return ANDROID_TEXT_STYLE_MENU_ICON_SIZE;
-  }
-
-  return ANDROID_MENU_ICON_SIZE;
-}
-
 const styles = StyleSheet.create({
   menuText: {
-    fontFamily: appNativeFontFamily,
     fontSize: ANDROID_MENU_TEXT_SIZE,
   },
   trigger: {
     alignItems: "center",
-    borderRadius: 21,
-    height: 42,
+    borderRadius: 20,
+    height: 40,
     justifyContent: "center",
-    paddingHorizontal: 10,
+    width: 40,
   },
 });
