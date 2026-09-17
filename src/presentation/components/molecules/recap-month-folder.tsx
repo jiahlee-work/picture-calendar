@@ -68,16 +68,16 @@ const PREVIEW_SLOTS_BY_COUNT = {
   ],
   2: [
     {
-      centerX: 70,
-      centerY: 77,
+      centerX: 44,
+      centerY: 80,
       rotate: "-9deg",
       scaleX: 0.42,
       scaleY: 0.46,
       zIndex: 1,
     },
     {
-      centerX: 110,
-      centerY: 76,
+      centerX: 100,
+      centerY: 78,
       rotate: "12deg",
       scaleX: 0.41,
       scaleY: 0.45,
@@ -134,7 +134,7 @@ export function RecapMonthFolder(props: RecapMonthFolderProps) {
     MAX_FOLDER_PREVIEW_PHOTOS,
   );
   const previewSlots = getPreviewSlots(visiblePreviewPhotos.length);
-  const shouldShowPreview = previewSlots.length > 0;
+  const shouldShowPreview = !isLocked && previewSlots.length > 0;
 
   return (
     <Pressable
@@ -165,8 +165,6 @@ export function RecapMonthFolder(props: RecapMonthFolderProps) {
             <View style={styles.folder}>
               {isDisabledEmpty ? (
                 <DisabledFolderIcon />
-              ) : isLocked ? (
-                <LockedFolderIcon />
               ) : (
                 <>
                   <OpenFolderBack />
@@ -191,7 +189,7 @@ export function RecapMonthFolder(props: RecapMonthFolderProps) {
                       slots={previewSlots}
                     />
                   )}
-                  <OpenFolderFront />
+                  {isLocked ? <LockedFolderFront /> : <OpenFolderFront />}
                 </>
               )}
             </View>
@@ -361,18 +359,14 @@ function DisabledFolderIcon() {
   );
 }
 
-function LockedFolderIcon() {
+function LockedFolderFront() {
   return (
-    <View pointerEvents="none" style={styles.folderShadow}>
-      <FolderSvg>
-        <G transform="translate(12 0)">
+    <View pointerEvents="none" style={styles.frontShadow}>
+      <FolderSvg zIndex={10}>
+        <G transform="translate(52 62)">
+          <Rect fill="#9BDCFF" height={88} rx={6} width={152} />
           <Path
-            d="M113.726 46.7662C114.832 48.4711 116.727 49.5 118.759 49.5H186C189.314 49.5 192 52.1863 192 55.5V144C192 147.314 189.314 150 186 150H46C42.6863 150 40 147.314 40 144V42C40 38.6863 42.6863 36 46 36H103.48C105.513 36 107.407 37.0289 108.513 38.7338L113.726 46.7662Z"
-            fill="#7BD1FF"
-          />
-          <Rect fill="#9BDCFF" height={88} rx={6} width={152} x={40} y={62} />
-          <Path
-            d="M116 87C121.523 87 126 91.4772 126 97C126 100.985 123.669 104.424 120.296 106.031V120.852C120.296 123.142 118.439 125 116.148 125C113.857 125 112 123.143 112 120.852V106.165C108.469 104.622 106 101.1 106 97C106 91.4772 110.477 87 116 87Z"
+            d="M76 25C81.5228 25 86 29.4772 86 35C86 38.9849 83.6686 42.4241 80.2959 44.0312V58.8516C80.2959 61.1424 78.4393 62.9998 76.1484 63C73.8575 63 72 61.1425 72 58.8516V44.165C68.4688 42.6217 66 39.1002 66 35C66 29.4772 70.4772 25 76 25Z"
             fill={appColors.white}
           />
         </G>
