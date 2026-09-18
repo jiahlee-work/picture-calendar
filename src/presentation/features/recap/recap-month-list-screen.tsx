@@ -6,6 +6,8 @@ import {
   View,
 } from "react-native";
 
+import { AppText as Text } from "@/presentation/components/atoms/app-text";
+
 import { useRecapMonthList } from "@/application/hooks/use-recap-month-list";
 import {
   RecapMonthStatus,
@@ -47,23 +49,30 @@ export function RecapMonthListScreen() {
 
   return (
     <AppSafeAreaView>
-      <AppBar>
-        <AppBar.Title variant="large">Recap</AppBar.Title>
-      </AppBar>
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.grid}>
-          {months.map((month) => (
-            <RecapMonthFolder
-              key={month.month}
-              folderWidth={monthFolderItemWidth}
-              month={month}
-              style={{ width: monthFolderItemWidth }}
-              onPress={handlePressMonth}
-            />
-          ))}
+        <AppBar>
+          <View style={styles.headerCopy}>
+            <AppBar.Title variant="large">Recap</AppBar.Title>
+            <Text style={styles.description}>
+              한 달의 기억을 한 장에 담는 리캡을 만들어보세요.
+            </Text>
+          </View>
+        </AppBar>
+        <View style={styles.gridContent}>
+          <View style={styles.grid}>
+            {months.map((month) => (
+              <RecapMonthFolder
+                key={month.month}
+                folderWidth={monthFolderItemWidth}
+                month={month}
+                style={{ width: monthFolderItemWidth }}
+                onPress={handlePressMonth}
+              />
+            ))}
+          </View>
         </View>
       </ScrollView>
     </AppSafeAreaView>
@@ -73,6 +82,14 @@ export function RecapMonthListScreen() {
 const styles = StyleSheet.create({
   content: {
     paddingBottom: appSpacing.screenContentBottomPadding,
+  },
+  description: {
+    color: "rgba(18,18,18,0.54)",
+    fontSize: 14,
+    fontWeight: "500",
+    lineHeight: 20,
+  },
+  gridContent: {
     paddingHorizontal: appSpacing.screenHorizontalPadding,
     paddingTop: appSpacing.screenContentTopPadding,
   },
@@ -80,5 +97,9 @@ const styles = StyleSheet.create({
     columnGap: RECAP_MONTH_GRID_COLUMN_GAP,
     flexDirection: "row",
     flexWrap: "wrap",
+  },
+  headerCopy: {
+    flex: 1,
+    gap: 2,
   },
 });

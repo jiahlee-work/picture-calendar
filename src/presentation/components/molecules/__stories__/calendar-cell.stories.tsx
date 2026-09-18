@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-native";
+import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 import type { CalendarDay } from "@/application/services/calendar/calendar-grid";
@@ -31,6 +32,28 @@ function CalendarCellStoryPreview(props: CalendarCellStoryPreviewProps) {
         photo: hasPhoto ? photoDay.photo : null,
       }}
       onPressDate={() => undefined}
+    />
+  );
+}
+
+function CalendarCellSelectionStoryPreview() {
+  const [isSelected, setIsSelected] = useState(false);
+
+  const handleToggleSelection = () => {
+    setIsSelected((current) => !current);
+  };
+
+  return (
+    <CalendarCell
+      cellHeight={132}
+      cellWidth={72}
+      day={photoDay}
+      selectionCheckbox={{
+        accessibilityLabel: "22일 사진 선택",
+        isSelected,
+        onPress: handleToggleSelection,
+      }}
+      onPressDate={handleToggleSelection}
     />
   );
 }
@@ -72,6 +95,15 @@ export const Default: Story = {
     hasPhoto: true,
     isToday: false,
   },
+};
+
+export const PhotoSelection: Story = {
+  args: {
+    hasPhoto: true,
+    isToday: false,
+  },
+  name: "Photo Selection",
+  render: () => <CalendarCellSelectionStoryPreview />,
 };
 
 const styles = StyleSheet.create({

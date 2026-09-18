@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     gap: 6,
-    maxWidth: "100%",
+    width: "100%",
   },
   title: {
     color: appColors.black,

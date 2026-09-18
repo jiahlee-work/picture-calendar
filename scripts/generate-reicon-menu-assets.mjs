@@ -33,6 +33,7 @@ const menuIcons = [
   {
     assetName: "PicalBold",
     fileName: "bold",
+    iosSize: 19,
     sourceFile: path.join(reiconRoot, "icons", "Bold.js"),
   },
   {
@@ -48,6 +49,7 @@ const menuIcons = [
   {
     assetName: "PicalItalic",
     fileName: "italic",
+    iosSize: 19,
     sourceFile: path.join(reiconRoot, "icons", "Italic.js"),
   },
   {
@@ -79,6 +81,7 @@ const menuIcons = [
   {
     assetName: "PicalUnderline",
     fileName: "underline",
+    iosSize: 21,
     sourceFile: path.join(reiconRoot, "icons", "Underline.js"),
   },
 ];
@@ -90,7 +93,7 @@ for (const icon of menuIcons) {
   const markup = readOutlineMarkup(icon.sourceFile);
 
   writeAndroidVectorDrawable(icon.fileName, markup);
-  writeIosImageSet(icon.assetName, icon.fileName, markup);
+  writeIosImageSet(icon.assetName, icon.fileName, markup, icon.iosSize);
   fs.rmSync(path.join(androidAssetDirectory, `${icon.fileName}.png`), {
     force: true,
   });
@@ -173,14 +176,14 @@ function writeAndroidVectorDrawable(fileName, markup) {
   );
 }
 
-function writeIosImageSet(assetName, fileName, markup) {
+function writeIosImageSet(assetName, fileName, markup, size = 24) {
   const imageSetDirectory = path.join(
     iosAssetDirectory,
     `${assetName}.imageset`,
   );
   const svgFileName = `${fileName}.svg`;
   const svg = [
-    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">',
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none">`,
     markup.replaceAll("currentColor", "#000000"),
     "</svg>",
     "",

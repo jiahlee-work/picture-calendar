@@ -1,0 +1,29 @@
+import type { Meta, StoryObj } from "@storybook/react-native";
+import { View } from "react-native";
+
+import { PhotoStorageNoticeBanner } from "@/presentation/components/molecules/photo-storage-notice-banner";
+
+const meta = {
+  component: PhotoStorageNoticeBanner,
+  decorators: [
+    (Story) => (
+      <View style={{ padding: 16, width: "100%" }}>
+        <Story />
+      </View>
+    ),
+  ],
+  title: "Components/Molecules/Photo Storage Notice Banner",
+} satisfies Meta<typeof PhotoStorageNoticeBanner>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+export const Default: Story = {};
+export const Narrow: Story = {
+  decorators: [
+    (Story) => (
+      <View style={{ maxWidth: "100%", width: 288 }}>
+        <Story />
+      </View>
+    ),
+  ],
+};

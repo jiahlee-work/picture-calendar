@@ -48,6 +48,7 @@ import {
 } from "@/application/services/recap/recap-canvas-layout-draft";
 import type { StickerAsset } from "@/application/services/stickers/types";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
+import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { RecapCanvasElementStack } from "@/presentation/components/organisms/recap-canvas-element-stack";
 import { RecapCanvasAspectRatioSheet } from "@/presentation/components/organisms/recap-canvas-aspect-ratio-sheet";
@@ -62,8 +63,12 @@ import { RecapLayoutToolbar } from "@/presentation/components/organisms/recap-la
 import { RecapColorSheet } from "@/presentation/components/organisms/recap-color-sheet";
 import { RecapTextToolbar } from "@/presentation/components/organisms/recap-text-toolbar";
 import { RecapTextTypographySheet } from "@/presentation/components/organisms/recap-text-typography-sheet";
-import { ShareCaptureMenu } from "@/presentation/components/organisms/share-capture-menu";
-import { Menu } from "@/presentation/components/molecules/menu";
+import { NativeActionMenu } from "@/presentation/components/molecules/native-action-menu";
+import type { NativeActionMenuAction } from "@/presentation/components/molecules/native-action-menu.types";
+import {
+  ShareCaptureMenu,
+  type ShareCaptureMenuHandle,
+} from "@/presentation/components/organisms/share-capture-menu";
 import { StickerPickerSheet } from "@/presentation/components/organisms/sticker-picker-sheet";
 import { useAppBottomNavigationHidden } from "@/presentation/providers/app-bottom-navigation-controller";
 import { getCanvasDimensions } from "@/presentation/helpers/canvas/canvas-aspect-ratio-layout";
@@ -89,14 +94,26 @@ type RecapDecoratingMode = "default" | "layout";
 type ActiveRecapTextSheet = "color" | "typography" | null;
 
 const DEFAULT_LAYOUT_ID = RecapCanvasLayoutId.twoColumns;
+const RECAP_MENU_ACTIONS = [
+  {
+    icon: "share",
+    id: "share",
+    title: "공유하기",
+  },
+  {
+    icon: "aspectRatio",
+    id: "aspectRatio",
+    title: "캔버스 비율",
+  },
+] satisfies NativeActionMenuAction[];
 
 export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   const { month, year } = props;
   const router = useRouter();
   const windowDimensions = useWindowDimensions();
   const shareCaptureRef = useRef<View>(null);
+  const shareCaptureMenuRef = useRef<ShareCaptureMenuHandle>(null);
   const canvasElementSequenceRef = useRef(0);
-  const shouldOpenCanvasAspectRatioSheetRef = useRef(false);
   const monthKey = `${year}-${month}`;
   const { photos, status } = useMonthlyRecapDetail(monthKey);
   const {
@@ -351,15 +368,6 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
   const handleOpenCanvasAspectRatioSheet = () => {
     setPendingAspectRatio(visibleAspectRatio);
-    shouldOpenCanvasAspectRatioSheetRef.current = true;
-  };
-
-  const handleMoreMenuOpenChange = (isOpen: boolean) => {
-    if (isOpen || !shouldOpenCanvasAspectRatioSheetRef.current) {
-      return;
-    }
-
-    shouldOpenCanvasAspectRatioSheetRef.current = false;
     requestAnimationFrame(() => setIsCanvasAspectRatioSheetVisible(true));
   };
 
@@ -960,12 +968,9 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
           ) : (
             <View pointerEvents="box-none" style={styles.appBarActions}>
               {mode === "default" ? (
-                <Menu
-                  accessibilityLabel="더보기"
-                  trigger={{ icon: "More" }}
-                  onOpenChange={handleMoreMenuOpenChange}
-                >
+                <>
                   <ShareCaptureMenu
+                    ref={shareCaptureMenuRef}
                     accessibilityLabel="리캡 공유 버튼"
                     captureHeight={canvasDimensions.height}
                     captureRef={shareCaptureRef}
@@ -985,14 +990,39 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
                     }
                     fileName={monthKey}
                     isReady={hasCanvasContent && !hasUnsavedDecoratingChanges}
-                    presentation="menuItem"
+                    presentation="controller"
                   />
-                  <Menu.Item
-                    icon="AspectRatioSquare"
-                    label="캔버스 비율"
-                    onPress={handleOpenCanvasAspectRatioSheet}
-                  />
-                </Menu>
+                  <NativeActionMenu
+                    accessibilityLabel="더보기"
+                    actions={RECAP_MENU_ACTIONS.map((action) => ({
+                      ...action,
+                      disabled:
+                        action.id === "share" &&
+                        (!hasCanvasContent ||
+                          hasUnsavedDecoratingChanges ||
+                          isCanvasLoading ||
+                          isCanvasSaving),
+                    }))}
+                    onPressAction={(actionId) => {
+                      if (actionId === "share") {
+                        shareCaptureMenuRef.current?.shareImage();
+                        return;
+                      }
+
+                      if (actionId === "aspectRatio") {
+                        handleOpenCanvasAspectRatioSheet();
+                      }
+                    }}
+                  >
+                    <View style={styles.moreMenuTrigger}>
+                      <ReiconIcon
+                        color={appColors.white}
+                        name="More"
+                        size={24}
+                      />
+                    </View>
+                  </NativeActionMenu>
+                </>
               ) : null}
               <AppBar.Action
                 accessibilityLabel="꾸미기 완료"
@@ -1223,6 +1253,14 @@ const styles = StyleSheet.create({
   appBarActions: {
     flexDirection: "row",
     gap: 10,
+  },
+  moreMenuTrigger: {
+    alignItems: "center",
+    backgroundColor: appColors.blackOverlay26,
+    borderRadius: 20,
+    height: 40,
+    justifyContent: "center",
+    width: 40,
   },
   canvasRegion: {
     alignItems: "center",

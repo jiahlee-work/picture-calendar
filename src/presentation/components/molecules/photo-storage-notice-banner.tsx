@@ -1,38 +1,58 @@
+import { useId } from "react";
 import { StyleSheet, View } from "react-native";
+import Svg, { ClipPath, Defs, Image, Path, Rect } from "react-native-svg";
 
-import { AppText as Text } from "@/presentation/components/atoms/app-text";
-
-import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
-import { appColors } from "@/presentation/theme/colors";
+import { AppText } from "@/presentation/components/atoms/app-text";
 
 export function PhotoStorageNoticeBanner() {
+  const clipId = useId().replace(/\W/g, "");
+
   return (
-    <View style={styles.banner}>
-      <View
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        style={styles.bannerArt}
+    <View
+      accessible
+      accessibilityLabel="사진은 이 기기에만 저장돼요. 앱 캐시나 데이터를 삭제하면 업로드한 사진과 스티커가 사라져요."
+      style={styles.banner}
+    >
+      <Svg
+        accessible={false}
+        pointerEvents="none"
+        style={StyleSheet.absoluteFill}
+        viewBox="0 0 2172 724"
       >
-        <View style={[styles.photoCard, styles.backPhotoCard]} />
-        <View style={[styles.photoCard, styles.frontPhotoCard]}>
-          <ReiconIcon color={appColors.white} name="Image" size={27} />
-        </View>
-        <View style={styles.warningBadge}>
-          <ReiconIcon color={appColors.white} name="AlertCircle" size={15} />
-        </View>
-      </View>
-      <View style={styles.bannerCopy}>
-        <Text
+        <Defs>
+          <ClipPath id={`gradient-${clipId}`}>
+            <Rect height={724} width={1360} />
+          </ClipPath>
+          <ClipPath id={`artwork-${clipId}`}>
+            <Path d="M1360 0H2172V724H1440V190H1360Z" />
+          </ClipPath>
+        </Defs>
+        <Image
+          clipPath={`url(#gradient-${clipId})`}
+          height={724}
+          href={require("../../../../assets/images/photo-storage-notice.png")}
+          preserveAspectRatio="none"
+          width={2172}
+        />
+        {/* Show the original artwork without regenerating it or its embedded text. */}
+        <Image
+          clipPath={`url(#artwork-${clipId})`}
+          height={724}
+          href={require("../../../../assets/images/photo-storage-notice-original.png")}
+          width={2172}
+        />
+      </Svg>
+      <AppText adjustsFontSizeToFit numberOfLines={1} style={styles.title}>
+        사진은 이 기기에만 저장돼요
+      </AppText>
+      <View style={styles.descriptionContainer}>
+        <AppText
           adjustsFontSizeToFit
-          minimumFontScale={0.8}
-          numberOfLines={1}
-          style={styles.bannerTitle}
+          numberOfLines={2}
+          style={styles.description}
         >
-          사진은 이 기기에 저장돼요
-        </Text>
-        <Text style={styles.bannerBody}>
-          앱 캐시나 데이터를 삭제하면 캘린더에 등록한 사진이 사라져요.
-        </Text>
+          {"앱 캐시나 데이터를 삭제하면\n업로드한 사진과 스티커가 사라져요."}
+        </AppText>
       </View>
     </View>
   );
@@ -40,76 +60,33 @@ export function PhotoStorageNoticeBanner() {
 
 const styles = StyleSheet.create({
   banner: {
-    alignItems: "center",
-    backgroundColor: appColors.white,
-    borderColor: "#F0F4F8",
+    aspectRatio: 3,
+    backgroundColor: "#000000",
     borderCurve: "continuous",
-    borderRadius: 30,
-    borderWidth: StyleSheet.hairlineWidth,
-    boxShadow:
-      "0 10px 24px rgba(18, 18, 18, 0.08), inset 0 -74px 54px rgba(225, 241, 255, 0.64)",
-    flexDirection: "row",
-    gap: 10,
-    minHeight: 140,
+    borderRadius: 20,
     overflow: "hidden",
-    padding: 16,
+    width: "100%",
   },
-  bannerCopy: {
-    flex: 1,
-    gap: 10,
-    minWidth: 0,
-    zIndex: 1,
-  },
-  bannerTitle: {
-    color: appColors.black,
+  title: {
+    color: "#FFFFFF",
     fontSize: 20,
-    fontWeight: "900",
-    lineHeight: 24,
-  },
-  bannerBody: {
-    color: "#5F6670",
-    fontSize: 14,
     fontWeight: "700",
-    lineHeight: 21,
-  },
-  bannerArt: {
-    height: 96,
-    justifyContent: "center",
-    position: "relative",
-    width: 88,
-  },
-  photoCard: {
-    alignItems: "center",
-    borderCurve: "continuous",
-    borderRadius: 18,
-    height: 70,
-    justifyContent: "center",
+    left: "5.5%",
+    lineHeight: 24,
     position: "absolute",
-    width: 52,
+    top: "25%",
+    width: "62%",
   },
-  backPhotoCard: {
-    backgroundColor: "#C7DCF4",
-    left: 7,
-    top: 13,
-    transform: [{ rotate: "-12deg" }],
-  },
-  frontPhotoCard: {
-    backgroundColor: "#6B9AE4",
-    left: 25,
-    top: 22,
-    transform: [{ rotate: "10deg" }],
-  },
-  warningBadge: {
-    alignItems: "center",
-    backgroundColor: "#121212",
-    borderColor: appColors.white,
-    borderRadius: 16,
-    borderWidth: 3,
-    bottom: 9,
-    height: 32,
-    justifyContent: "center",
-    left: 56,
+  descriptionContainer: {
+    left: "5.5%",
+    paddingLeft: 2,
     position: "absolute",
-    width: 32,
+    top: "51%",
+    width: "62%",
+  },
+  description: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    lineHeight: 17,
   },
 });
