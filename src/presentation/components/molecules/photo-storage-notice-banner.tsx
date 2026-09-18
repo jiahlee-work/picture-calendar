@@ -1,47 +1,23 @@
-import { useId } from "react";
+import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
-import Svg, { ClipPath, Defs, Image, Path, Rect } from "react-native-svg";
 
 import { AppText } from "@/presentation/components/atoms/app-text";
 
 export function PhotoStorageNoticeBanner() {
-  const clipId = useId().replace(/\W/g, "");
-
   return (
     <View
       accessible
       accessibilityLabel="사진은 이 기기에만 저장돼요. 앱 캐시나 데이터를 삭제하면 업로드한 사진과 스티커가 사라져요."
       style={styles.banner}
     >
-      <Svg
+      <Image
         accessible={false}
+        contentFit="fill"
         pointerEvents="none"
+        priority="high"
+        source={require("../../../../assets/images/photo-storage-notice.png")}
         style={StyleSheet.absoluteFill}
-        viewBox="0 0 2172 724"
-      >
-        <Defs>
-          <ClipPath id={`gradient-${clipId}`}>
-            <Rect height={724} width={1360} />
-          </ClipPath>
-          <ClipPath id={`artwork-${clipId}`}>
-            <Path d="M1360 0H2172V724H1440V190H1360Z" />
-          </ClipPath>
-        </Defs>
-        <Image
-          clipPath={`url(#gradient-${clipId})`}
-          height={724}
-          href={require("../../../../assets/images/photo-storage-notice.png")}
-          preserveAspectRatio="none"
-          width={2172}
-        />
-        {/* Show the original artwork without regenerating it or its embedded text. */}
-        <Image
-          clipPath={`url(#artwork-${clipId})`}
-          height={724}
-          href={require("../../../../assets/images/photo-storage-notice-original.png")}
-          width={2172}
-        />
-      </Svg>
+      />
       <AppText adjustsFontSizeToFit numberOfLines={1} style={styles.title}>
         사진은 이 기기에만 저장돼요
       </AppText>
