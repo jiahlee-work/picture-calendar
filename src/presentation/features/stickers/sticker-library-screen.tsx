@@ -51,7 +51,7 @@ const ACTION_BAR_ENTERING = FadeInDown.duration(350)
   .easing(Easing.bezier(0.22, 1, 0.36, 1))
   .withInitialValues({
     opacity: 0,
-    transform: [{ translateY: 16 }, { scale: 0.97 }],
+    transform: [{ translateY: 16 }],
   });
 const ACTION_BAR_EXITING = FadeOutDown.duration(250).easing(
   Easing.bezier(0.22, 1, 0.36, 1),

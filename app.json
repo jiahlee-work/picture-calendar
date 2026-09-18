@@ -46,7 +46,10 @@
       ],
       "expo-sharing",
       "./plugins/with-reicon-menu-assets",
-      "./plugins/with-remove-ios-push-entitlement"
+      "./plugins/with-remove-ios-push-entitlement",
+      "expo-font",
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
