@@ -70,7 +70,7 @@ export function CalendarCell(props: CalendarCellProps) {
       <Text style={[styles.dateText, isTodayHighlighted && styles.todayText]}>
         {day.dayOfMonth}
       </Text>
-      {selectionCheckbox?.isSelected ? (
+      {selectionCheckbox ? (
         <SelectionCheckbox
           accessibilityLabel={selectionCheckbox.accessibilityLabel}
           isSelected={selectionCheckbox.isSelected}
