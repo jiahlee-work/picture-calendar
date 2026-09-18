@@ -1,5 +1,7 @@
 import ImageCropPicker from "react-native-image-crop-picker";
 
+import { loadImageDimensions } from "@/infrastructure/device/media/load-image-dimensions";
+
 export type CropImageResult = {
   height: number;
   uri: string;
@@ -10,11 +12,20 @@ export async function cropImage(
   imagePath: string,
 ): Promise<CropImageResult | null> {
   try {
+    const dimensions = await loadImageDimensions(imagePath);
+
+    if (!dimensions) {
+      throw new Error("Unable to load image dimensions before cropping.");
+    }
+
     const result = await ImageCropPicker.openCropper({
       avoidEmptySpaceAroundImage: true,
+      compressImageQuality: 1,
       freeStyleCropEnabled: true,
+      height: Math.round(dimensions.height),
       mediaType: "photo",
       path: imagePath,
+      width: Math.round(dimensions.width),
     });
 
     return {
