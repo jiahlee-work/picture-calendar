@@ -140,7 +140,7 @@ export function StickerPickerSheet(props: StickerPickerSheetProps) {
               accessibilityState={{ disabled: isRegistering }}
               style={[
                 styles.assetTypeButton,
-                styles.assetTypeButtonSelected,
+                styles.assetActionButton,
                 isRegistering && styles.assetTypeButtonDisabled,
               ]}
             >
@@ -196,7 +196,7 @@ function StickerPickerGrid(props: {
 
   if (isLoading) {
     return (
-      <View style={styles.emptyPanel}>
+      <View style={styles.loadingState}>
         <ActivityIndicator color={appColors.black} size="small" />
         <Text style={styles.emptyText}>스티커를 불러오는 중이에요.</Text>
       </View>
@@ -204,11 +204,7 @@ function StickerPickerGrid(props: {
   }
 
   if (assets.length === 0) {
-    return (
-      <View style={styles.emptyPanel}>
-        <Text style={styles.emptyText}>{emptyText}</Text>
-      </View>
-    );
+    return <Text style={styles.emptyText}>{emptyText}</Text>;
   }
 
   return (
@@ -243,12 +239,18 @@ function AssetTypeButton(props: {
       hitSlop={8}
       style={({ pressed }) => [
         styles.assetTypeButton,
-        isSelected && styles.assetTypeButtonSelected,
+        isSelected
+          ? styles.assetTypeButtonSelected
+          : styles.assetTypeButtonInactive,
         pressed && styles.assetTypeButtonPressed,
       ]}
       onPress={onPress}
     >
-      <ReiconIcon color={appColors.black} name={icon} size={24} />
+      <ReiconIcon
+        color={isSelected ? appColors.white : appColors.black}
+        name={icon}
+        size={24}
+      />
     </Pressable>
   );
 }
@@ -318,20 +320,19 @@ const styles = StyleSheet.create({
     paddingBottom: 34,
     paddingHorizontal: appSpacing.screenHorizontalPadding,
   },
-  emptyPanel: {
+  loadingState: {
     alignItems: "center",
-    backgroundColor: "rgba(18,18,18,0.04)",
-    borderCurve: "continuous",
-    borderRadius: 12,
-    minHeight: 120,
+    gap: 8,
     justifyContent: "center",
-    paddingHorizontal: 18,
+    paddingVertical: 36,
   },
   emptyText: {
     color: appColors.blackOverlay34,
     fontSize: 13,
     fontWeight: "700",
     lineHeight: 18,
+    paddingVertical: 36,
+    textAlign: "center",
   },
   handleIndicator: {
     backgroundColor: "#dddddd",
@@ -364,8 +365,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: 40,
   },
+  assetActionButton: {
+    backgroundColor: appColors.blackOverlay08,
+  },
+  assetTypeButtonInactive: {
+    backgroundColor: appColors.white,
+    borderColor: "#E8E8E8",
+    borderWidth: StyleSheet.hairlineWidth,
+  },
   assetTypeButtonSelected: {
-    backgroundColor: "rgba(18,18,18,0.08)",
+    backgroundColor: appColors.black,
+    borderColor: appColors.black,
+    borderWidth: 1,
   },
   assetTypeButtonPressed: {
     opacity: 0.5,
