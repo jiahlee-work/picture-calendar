@@ -9,6 +9,7 @@ import { useState, type ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { appNativeFontFamily } from "@/presentation/theme/app-typography";
+import { translate } from "@/application/services/localization/app-i18n";
 
 type StickerRegistrationMenuProps = {
   children: ReactNode;
@@ -64,7 +65,9 @@ export function StickerRegistrationMenu(props: StickerRegistrationMenuProps) {
               />
             </DropdownMenuItem.LeadingIcon>
             <DropdownMenuItem.Text>
-              <Text style={styles.menuText}>갤러리에서 등록</Text>
+              <Text style={styles.menuText}>
+                {translate("stickers.registerFromGallery")}
+              </Text>
             </DropdownMenuItem.Text>
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -80,7 +83,9 @@ export function StickerRegistrationMenu(props: StickerRegistrationMenuProps) {
               />
             </DropdownMenuItem.LeadingIcon>
             <DropdownMenuItem.Text>
-              <Text style={styles.menuText}>클립보드 붙여넣기</Text>
+              <Text style={styles.menuText}>
+                {translate("stickers.registerFromClipboard")}
+              </Text>
             </DropdownMenuItem.Text>
           </DropdownMenuItem>
         </DropdownMenu.Items>

@@ -3,6 +3,7 @@ import {
   saveToLibraryAsync,
 } from "expo-media-library/legacy";
 import * as Sharing from "expo-sharing";
+
 import { File, Paths } from "expo-file-system";
 
 import { toSharePngFileName } from "@/infrastructure/device/media/share-file-name";
@@ -66,6 +67,7 @@ export async function prepareImageFileForShare(
 export async function shareImageFile(
   fileUri: string,
   fileName: string,
+  dialogTitle: string,
 ): Promise<ShareImageFileResult> {
   const isAvailable = await Sharing.isAvailableAsync();
 
@@ -76,7 +78,7 @@ export async function shareImageFile(
   const sharedFileUri = await prepareImageFileForShare(fileUri, fileName);
 
   await Sharing.shareAsync(sharedFileUri, {
-    dialogTitle: "이미지 공유하기",
+    dialogTitle,
     mimeType: "image/png",
     UTI: toSharePngFileName(fileName),
   });

@@ -5,6 +5,7 @@ import {
   dailyPhotoMessages,
   getDailyPhotoSelectionAction,
 } from "@/application/services/daily-photo/daily-photo-policy";
+import { translate } from "@/application/services/localization/app-i18n";
 import { toPhotosByDate } from "@/application/services/daily-photo/daily-photo-records";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import { LOCAL_USER_ID } from "@/application/services/local-user";
@@ -101,7 +102,7 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
     if (selectionAction === "showUnavailable") {
       setPolicyDialog({
         type: "info",
-        title: "사진 추가 불가",
+        title: translate("photo.addUnavailable"),
         message: dailyPhotoMessages.unavailable,
       });
       return;
@@ -255,7 +256,7 @@ export function useTodayPhotoFlow(activeMonth: Date, today = dayjs().toDate()) {
       logger.error("Failed to save today's photo", { dateKey, error });
       setPolicyDialog({
         type: "info",
-        title: "저장 실패",
+        title: translate("photo.saveFailed"),
         message: dailyPhotoMessages.saveFailed,
       });
       return false;

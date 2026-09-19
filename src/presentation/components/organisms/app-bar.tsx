@@ -12,6 +12,8 @@ import {
 
 import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
+import { translate } from "@/application/services/localization/app-i18n";
+
 import {
   ReiconIcon,
   type ReiconName,
@@ -157,7 +159,7 @@ function AppBarAction(props: AppBarActionProps) {
 function AppBarBackAction(props: AppBarBackActionProps) {
   const router = useRouter();
   const {
-    accessibilityLabel = "뒤로가기",
+    accessibilityLabel = translate("common.back"),
     disabled = false,
     fallbackHref = "/",
     onBeforeBack,

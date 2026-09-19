@@ -3,6 +3,7 @@ import { useEffect, useRef, type ComponentRef } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { translate } from "@/application/services/localization/app-i18n";
 import { AppBottomSheetBackdrop } from "@/presentation/components/atoms/app-bottom-sheet-backdrop";
 import { AppText as Text } from "@/presentation/components/atoms/app-text";
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
@@ -53,10 +54,18 @@ export function ShareExportActionSheet(props: ShareExportActionSheetProps) {
       <BottomSheetView
         style={[styles.content, { paddingBottom: Math.max(insets.bottom, 18) }]}
       >
-        <Text style={styles.title}>내보내기</Text>
+        <Text style={styles.title}>{translate("sharing.export")}</Text>
         <View style={styles.actions}>
-          <ExportAction icon="Download" label="이미지 저장" onPress={onSave} />
-          <ExportAction icon="Share" label="공유하기" onPress={onShare} />
+          <ExportAction
+            icon="Download"
+            label={translate("common.saveImage")}
+            onPress={onSave}
+          />
+          <ExportAction
+            icon="Share"
+            label={translate("common.shareAction")}
+            onPress={onShare}
+          />
         </View>
       </BottomSheetView>
     </BottomSheetModal>

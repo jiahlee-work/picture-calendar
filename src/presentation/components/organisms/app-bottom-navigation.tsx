@@ -19,6 +19,7 @@ import {
   ReiconIcon,
   type ReiconName,
 } from "@/presentation/components/atoms/reicon-icon";
+import { translate } from "@/application/services/localization/app-i18n";
 import {
   type AppBottomNavigationItemLayout,
   getAppBottomNavigationActiveIndex,
@@ -43,29 +44,37 @@ type AppBottomNavigationProps = {
   onNavigate: (route: AppBottomNavigationRoute) => void;
 };
 
-const NAVIGATION_ITEMS: NavigationItem[] = [
-  {
-    accessibilityLabel: "캘린더로 이동",
-    icon: "Calendar",
-    route: "/",
-  },
-  {
-    accessibilityLabel: "리캡으로 이동",
-    icon: "Folder",
-    route: "/recap",
-  },
-  {
-    accessibilityLabel: "스티커로 이동",
-    icon: "StickerSmile",
-    route: "/stickers",
-  },
-  {
-    accessibilityLabel: "설정으로 이동",
-    icon: "Gear",
-    route: "/settings",
-  },
+const NAVIGATION_ITEM_ROUTES: AppBottomNavigationRoute[] = [
+  "/",
+  "/recap",
+  "/stickers",
+  "/settings",
 ];
-const NAVIGATION_ITEM_ROUTES = NAVIGATION_ITEMS.map((item) => item.route);
+
+function createNavigationItems(): NavigationItem[] {
+  return [
+    {
+      accessibilityLabel: translate("navigation.calendar"),
+      icon: "Calendar",
+      route: "/",
+    },
+    {
+      accessibilityLabel: translate("navigation.recap"),
+      icon: "Folder",
+      route: "/recap",
+    },
+    {
+      accessibilityLabel: translate("navigation.stickers"),
+      icon: "StickerSmile",
+      route: "/stickers",
+    },
+    {
+      accessibilityLabel: translate("navigation.settings"),
+      icon: "Gear",
+      route: "/settings",
+    },
+  ];
+}
 
 const NAVIGATION_ANIMATION_MIN_DURATION_MS = 140;
 const NAVIGATION_ANIMATION_STEP_DURATION_MS = 42;
@@ -78,6 +87,7 @@ const NAVIGATION_ITEM_TOP = 5;
 
 export function AppBottomNavigation(props: AppBottomNavigationProps) {
   const { activeRoute, bottomOffset = 8, onNavigate } = props;
+  const navigationItems = createNavigationItems();
   const activeIndex = getAppBottomNavigationActiveIndex(
     NAVIGATION_ITEM_ROUTES,
     activeRoute,
@@ -92,7 +102,7 @@ export function AppBottomNavigation(props: AppBottomNavigationProps) {
   const [visualActiveRoute, setVisualActiveRoute] = useState(activeRoute);
   const [itemLayouts, setItemLayouts] = useState<
     (AppBottomNavigationItemLayout | null)[]
-  >(() => NAVIGATION_ITEMS.map(() => null));
+  >(() => NAVIGATION_ITEM_ROUTES.map(() => null));
   const [isReduceMotionEnabled, setIsReduceMotionEnabled] = useState(false);
   const activeItemLayout = getAppBottomNavigationItemLayout(
     itemLayouts,
@@ -247,7 +257,7 @@ export function AppBottomNavigation(props: AppBottomNavigationProps) {
             ]}
           />
         )}
-        {NAVIGATION_ITEMS.map((item, itemIndex) => {
+        {navigationItems.map((item, itemIndex) => {
           const isActive = item.route === activeRoute;
           const isVisuallyActive = item.route === visualActiveRoute;
 

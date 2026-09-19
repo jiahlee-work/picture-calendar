@@ -10,10 +10,10 @@ import {
 import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import type { CalendarMonth } from "@/application/services/calendar/calendar-grid";
+import { formatAppWeekdayLabels } from "@/application/services/localization/app-i18n";
 import { CalendarCell } from "@/presentation/components/molecules/calendar-cell";
 import { appColors } from "@/presentation/theme/colors";
 
-const WEEK_DAYS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 const CALENDAR_CELL_ASPECT_RATIO = 0.58;
 
 type MonthlyCalendarProps = {
@@ -50,6 +50,7 @@ export function MonthlyCalendar(props: MonthlyCalendarProps) {
     showTodayHighlight = true,
   } = props;
   const { width: windowWidth } = useWindowDimensions();
+  const weekDays = formatAppWeekdayLabels();
   const [gridHeight, setGridHeight] = useState(0);
   const rowCount = Math.max(1, calendar.days.length / 7);
   const cellWidth = (contentWidth ?? windowWidth) / 7;
@@ -92,8 +93,8 @@ export function MonthlyCalendar(props: MonthlyCalendarProps) {
   return (
     <View style={styles.card} {...swipeResponder.panHandlers}>
       <View style={styles.weekHeader}>
-        {WEEK_DAYS.map((day) => (
-          <Text key={day} style={styles.weekday}>
+        {weekDays.map((day, index) => (
+          <Text key={`${index}-${day}`} style={styles.weekday}>
             {day}
           </Text>
         ))}

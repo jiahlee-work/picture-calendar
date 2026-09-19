@@ -15,6 +15,7 @@ import type {
   StickerAsset,
   UserStickerAsset,
 } from "@/application/services/stickers/types";
+import { translate } from "@/application/services/localization/app-i18n";
 import { AppBottomSheetBackdrop } from "@/presentation/components/atoms/app-bottom-sheet-backdrop";
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import { StickerAssetPreview } from "@/presentation/components/organisms/sticker-asset-preview";
@@ -106,28 +107,32 @@ function StickerDetailSheetContent(props: {
       return;
     }
 
-    Alert.alert("스티커 삭제", "이 스티커를 삭제할까요?", [
-      {
-        text: "취소",
-        style: "cancel",
-      },
-      {
-        text: "삭제",
-        style: "destructive",
-        onPress: () => {
-          setIsDeleting(true);
-          void onDeleteUserSticker(asset)
-            .then((wasDeleted) => {
-              if (wasDeleted) {
-                onClose();
-              }
-            })
-            .finally(() => {
-              setIsDeleting(false);
-            });
+    Alert.alert(
+      translate("stickers.deleteTitle"),
+      translate("stickers.deleteOneMessage"),
+      [
+        {
+          text: translate("common.cancel"),
+          style: "cancel",
         },
-      },
-    ]);
+        {
+          text: translate("common.delete"),
+          style: "destructive",
+          onPress: () => {
+            setIsDeleting(true);
+            void onDeleteUserSticker(asset)
+              .then((wasDeleted) => {
+                if (wasDeleted) {
+                  onClose();
+                }
+              })
+              .finally(() => {
+                setIsDeleting(false);
+              });
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -139,7 +144,7 @@ function StickerDetailSheetContent(props: {
         {asset.source === "sticker" && (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="스티커 삭제"
+            accessibilityLabel={translate("stickers.deleteTitle")}
             accessibilityState={{ busy: isDeleting, disabled: isActionPending }}
             disabled={isActionPending}
             hitSlop={6}

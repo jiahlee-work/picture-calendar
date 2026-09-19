@@ -1,4 +1,8 @@
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
+import {
+  formatAppMonthNameShort,
+  formatAppMonthYearShort,
+} from "@/application/services/localization/app-i18n";
 import { toDateKey } from "@/shared/date/date-key";
 import { dayjs } from "@/shared/date/dayjs";
 
@@ -19,21 +23,6 @@ export type CalendarMonth = {
   monthName: string;
   days: CalendarGridCell[];
 };
-
-const MONTH_NAMES = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
 
 export type CalendarPhotoMap = Record<string, DailyPhoto>;
 
@@ -72,8 +61,8 @@ export function buildCalendarMonth(
   return {
     year,
     monthIndex,
-    title: `${MONTH_NAMES[monthIndex]} ${year}`,
-    monthName: MONTH_NAMES[monthIndex],
+    title: formatAppMonthYearShort(month.toDate()),
+    monthName: formatAppMonthNameShort(month.toDate()),
     days: [
       ...cells,
       ...Array.from<null>({ length: trailingEmptyCells }).fill(null),

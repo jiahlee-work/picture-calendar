@@ -9,6 +9,10 @@ import {
   createNavigableCalendarMonth,
 } from "@/application/services/calendar/calendar-month-navigation";
 import {
+  formatAppMonthName,
+  translate,
+} from "@/application/services/localization/app-i18n";
+import {
   WheelPickerColumn,
   WHEEL_PICKER_HEIGHT,
   WHEEL_PICKER_ITEM_HEIGHT,
@@ -34,13 +38,15 @@ export function CalendarWheelPickerSelector(
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(valueMonthIndex);
   const yearOptions = useMemo(() => {
     return createCalendarYearOptions(value).map((year) => ({
-      label: `${year}년`,
+      label: translate("calendar.year", { year }),
       value: year,
     }));
   }, [value]);
   const monthOptions = useMemo(() => {
     return createCalendarMonthOptions(selectedYear).map((month) => ({
-      label: month.label,
+      label: formatAppMonthName(
+        dayjs().year(selectedYear).month(month.monthIndex).date(1).toDate(),
+      ),
       value: month.monthIndex,
     }));
   }, [selectedYear]);
@@ -80,14 +86,18 @@ export function CalendarWheelPickerSelector(
           style={[styles.actionButton, styles.cancelButton]}
           onPress={onCancel}
         >
-          <Text style={[styles.actionText, styles.cancelText]}>취소</Text>
+          <Text style={[styles.actionText, styles.cancelText]}>
+            {translate("common.cancel")}
+          </Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
           style={[styles.actionButton, styles.confirmButton]}
           onPress={handleConfirm}
         >
-          <Text style={[styles.actionText, styles.confirmText]}>확인</Text>
+          <Text style={[styles.actionText, styles.confirmText]}>
+            {translate("common.confirm")}
+          </Text>
         </Pressable>
       </View>
     </View>

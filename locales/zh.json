@@ -1,0 +1,10 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Pical",
+    "NSPhotoLibraryAddUsageDescription": "请允许访问照片，以便将分享的图片保存到相册。",
+    "NSPhotoLibraryUsageDescription": "请允许访问照片，以便从相册选择和保存照片。"
+  },
+  "android": {
+    "app_name": "Pical"
+  }
+}

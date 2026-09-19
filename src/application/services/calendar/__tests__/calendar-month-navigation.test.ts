@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   addNavigableCalendarMonths,
@@ -8,11 +8,17 @@ import {
   createCalendarMonthOptions,
   createCalendarYearOptions,
   createNavigableCalendarMonth,
+  formatCalendarPageTitle,
 } from "@/application/services/calendar/calendar-month-navigation";
 import { toMonthKey } from "@/shared/date/date-key";
 import { dayjs } from "@/shared/date/dayjs";
+import { configureAppLocale } from "@/application/services/localization/app-i18n";
 
 describe("calendar month navigation", () => {
+  beforeEach(() => {
+    configureAppLocale("ko");
+  });
+
   it("clamps months before the calendar start month", () => {
     const clampedMonth = clampCalendarMonth(dayjs("2025-12-01").toDate());
 
@@ -61,6 +67,17 @@ describe("calendar month navigation", () => {
     expect(monthOptions[0]).toEqual({ label: "1월", monthIndex: 0 });
     expect(monthOptions).toHaveLength(12);
   });
+
+  it.each(["ko", "en", "ja", "zh"] as const)(
+    "keeps the calendar page title in English for %s",
+    (locale) => {
+      configureAppLocale(locale);
+
+      expect(formatCalendarPageTitle(dayjs("2026-09-01").toDate())).toBe(
+        "Sep 2026",
+      );
+    },
+  );
 
   it("creates a clamped month from selected year and month", () => {
     const selectedMonth = createNavigableCalendarMonth(2025, 11);

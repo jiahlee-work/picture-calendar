@@ -17,6 +17,7 @@ import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import { buildCalendarMonth } from "@/application/services/calendar/calendar-grid";
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
+import { translate } from "@/application/services/localization/app-i18n";
 import { MonthlyCalendar } from "@/presentation/components/organisms/monthly-calendar";
 import { appColors } from "@/presentation/theme/colors";
 import { appLayers } from "@/presentation/theme/layers";
@@ -71,7 +72,9 @@ export function RecapPhotoCalendarSheet(props: RecapPhotoCalendarSheetProps) {
             [
               day.key,
               {
-                accessibilityLabel: `${day.dayOfMonth}일 사진 선택`,
+                accessibilityLabel: translate("photoPicker.selectDay", {
+                  day: day.dayOfMonth,
+                }),
                 isSelected: selectedPhotoIds.includes(photo.id),
                 onPress: () => {
                   if (isCompleting) {
@@ -131,7 +134,9 @@ export function RecapPhotoCalendarSheet(props: RecapPhotoCalendarSheetProps) {
             }}
             accessibilityRole="button"
             accessibilityLabel={
-              isCompleting ? "사진 추가 중" : "사진 선택 완료"
+              isCompleting
+                ? translate("photoPicker.adding")
+                : translate("photoPicker.complete")
             }
             style={({ pressed }) => [
               styles.completeButton,
@@ -144,7 +149,9 @@ export function RecapPhotoCalendarSheet(props: RecapPhotoCalendarSheetProps) {
             {isCompleting ? (
               <ActivityIndicator color={appColors.white} size="small" />
             ) : (
-              <Text style={styles.completeButtonText}>완료</Text>
+              <Text style={styles.completeButtonText}>
+                {translate("common.done")}
+              </Text>
             )}
           </Pressable>
         </View>
@@ -251,7 +258,7 @@ function PhotoCalendarSheetBackdrop(
 
   return (
     <Pressable
-      accessibilityLabel="사진 선택창 닫기"
+      accessibilityLabel={translate("photoPicker.close")}
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       disabled={disabled}

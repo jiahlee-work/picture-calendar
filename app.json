@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.jiahleework.pical"
+      "bundleIdentifier": "com.jiahleework.pical",
+      "infoPlist": {
+        "CFBundleAllowMixedLocalizations": true
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -49,8 +52,20 @@
       "./plugins/with-remove-ios-push-entitlement",
       "expo-font",
       "expo-status-bar",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-localization",
+        {
+          "supportedLocales": ["ko", "en", "ja", "zh"]
+        }
+      ]
     ],
+    "locales": {
+      "ko": "./locales/ko.json",
+      "en": "./locales/en.json",
+      "ja": "./locales/ja.json",
+      "zh": "./locales/zh.json"
+    },
     "experiments": {
       "typedRoutes": true
     }

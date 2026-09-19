@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { translate } from "@/application/services/localization/app-i18n";
 import { createDailyPhotoRepositoryForRuntime } from "@/application/services/daily-photo/daily-photo-repository-factory";
 import { LOCAL_USER_ID } from "@/application/services/local-user";
 import { createLocalNotificationAdapterForRuntime } from "@/application/services/notifications/local-notification-adapter-factory";
@@ -75,7 +76,7 @@ export function useRecapNotificationSettings() {
       logger.error("Failed to refresh recap notification settings", { error });
       setState((current) => ({
         ...current,
-        errorMessage: "리캡 알림 상태를 불러오지 못했습니다.",
+        errorMessage: translate("notifications.loadFailed"),
         isLoading: false,
       }));
     }
@@ -148,7 +149,7 @@ export function useRecapNotificationSettings() {
         });
         setState((current) => ({
           ...current,
-          errorMessage: "리캡 알림 설정을 저장하지 못했습니다.",
+          errorMessage: translate("notifications.saveFailed"),
           isLoading: false,
         }));
       }

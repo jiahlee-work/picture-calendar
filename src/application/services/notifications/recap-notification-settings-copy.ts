@@ -2,6 +2,7 @@ import {
   LocalNotificationPermissionStatus,
   type LocalNotificationPermissionStatus as LocalNotificationPermissionStatusType,
 } from "@/shared/notifications/types";
+import { translate } from "@/application/services/localization/app-i18n";
 
 export function toRecapNotificationStatusCopy({
   isSupported,
@@ -14,18 +15,18 @@ export function toRecapNotificationStatusCopy({
     !isSupported ||
     permissionStatus === LocalNotificationPermissionStatus.unsupported
   ) {
-    return "이 플랫폼에서는 지원되지 않음";
+    return translate("notifications.unsupported");
   }
 
   if (permissionStatus === LocalNotificationPermissionStatus.granted) {
-    return "권한 허용됨";
+    return translate("notifications.granted");
   }
 
   if (permissionStatus === LocalNotificationPermissionStatus.denied) {
-    return "권한 필요";
+    return translate("notifications.permissionRequired");
   }
 
-  return "권한 확인 전";
+  return translate("notifications.statusUnknown");
 }
 
 export function toRecapNotificationHelperCopy({
@@ -41,19 +42,19 @@ export function toRecapNotificationHelperCopy({
     !isSupported ||
     permissionStatus === LocalNotificationPermissionStatus.unsupported
   ) {
-    return "모바일 앱에서 매월 1일 오전 9시에 받을 수 있어요.";
+    return translate("notifications.unsupportedHelper");
   }
 
   if (permissionStatus === LocalNotificationPermissionStatus.denied) {
-    return "기기 설정에서 알림 권한을 허용하면 사용할 수 있어요.";
+    return translate("notifications.deniedHelper");
   }
 
   if (
     isEnabled &&
     permissionStatus === LocalNotificationPermissionStatus.granted
   ) {
-    return "전월 사진이 있으면 다음 리캡 알림을 예약해요.";
+    return translate("notifications.enabledHelper");
   }
 
-  return "켜면 알림 권한을 확인해요.";
+  return translate("notifications.enableHelper");
 }

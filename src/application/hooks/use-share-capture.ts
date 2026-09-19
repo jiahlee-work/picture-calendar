@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 
+import { translate } from "@/application/services/localization/app-i18n";
 import {
   MediaLibraryWritePermissionType,
   requestPhotoLibraryWritePermission,
@@ -131,7 +132,11 @@ export function useShareCapture(options: UseShareCaptureOptions) {
         return ShareCapturedImageResult.notReady;
       }
 
-      const result = await shareImageFile(uri, fileName);
+      const result = await shareImageFile(
+        uri,
+        fileName,
+        translate("common.shareAction"),
+      );
 
       return result === ShareImageFileResult.unavailable
         ? ShareCapturedImageResult.unavailable

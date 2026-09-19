@@ -11,7 +11,9 @@ import { useTodayPhotoFlow } from "@/application/hooks/use-today-photo-flow";
 import {
   addNavigableCalendarMonths,
   clampCalendarMonth,
+  formatCalendarPageTitle,
 } from "@/application/services/calendar/calendar-month-navigation";
+import { translate } from "@/application/services/localization/app-i18n";
 import { runtimePlatform } from "@/infrastructure/device/runtime-platform";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
 import { DailyPhotoPolicyDialog } from "@/presentation/components/organisms/daily-photo-policy-dialog";
@@ -77,6 +79,7 @@ export function MonthlyCalendarScreen() {
       ? styles.compactCalendarTitle
       : undefined;
   const isShareReady = calendar.days.length > 0;
+  const calendarTitle = formatCalendarPageTitle(activeMonth);
   const shareFileName = dayjs(activeMonth).format("YYYY-MM");
   const shareCanvasDimensions = shareContentLayout
     ? getCanvasDimensions(shareAspectRatio, shareContentLayout)
@@ -181,15 +184,15 @@ export function MonthlyCalendarScreen() {
 
   const handleRequestDeletePhoto = () => {
     Alert.alert(
-      "사진 삭제",
-      "정말 삭제하시겠습니까? 삭제된 사진은 복구되지 않습니다",
+      translate("calendar.deleteTitle"),
+      translate("calendar.deleteMessage"),
       [
         {
-          text: "취소",
+          text: translate("common.cancel"),
           style: "cancel",
         },
         {
-          text: "확인",
+          text: translate("common.confirm"),
           style: "destructive",
           onPress: () => {
             void handleDeleteSelectedPhoto();
@@ -204,18 +207,18 @@ export function MonthlyCalendarScreen() {
       <View style={styles.container} onLayout={handleContainerLayout}>
         <AppBar>
           <AppBar.Title
-            accessibilityLabel="연월 선택 열기"
+            accessibilityLabel={translate("calendar.openMonthPicker")}
             shouldTruncate={false}
             style={calendarTitleStyle}
             variant="large"
             onPress={handleOpenYearMonthPicker}
           >
-            {calendar.title}
+            {calendarTitle}
           </AppBar.Title>
           <View style={styles.appBarActions}>
             <ShareCaptureMenu
               ref={shareCaptureMenuRef}
-              accessibilityLabel="캘린더 공유 버튼"
+              accessibilityLabel={translate("calendar.shareButton")}
               captureHeight={shareCanvasDimensions?.height}
               captureRef={shareCaptureRef}
               captureWidth={shareCanvasDimensions?.width}
@@ -257,7 +260,7 @@ export function MonthlyCalendarScreen() {
                 style={calendarTitleStyle}
                 variant="large"
               >
-                {calendar.title}
+                {calendarTitle}
               </AppBar.Title>
             </AppBar>
             <View style={styles.content}>
@@ -274,11 +277,9 @@ export function MonthlyCalendarScreen() {
       )}
       <DailyPhotoPolicyDialog dialog={policyDialog} onCancel={dismissDialog} />
       <RecapCanvasAspectRatioSheet
-        confirmLabel="공유"
-        subtitle={
-          "이번 달 캘린더를 원하는 비율의 이미지로 공유할 수 있어요.\n공유할 비율을 선택해 주세요."
-        }
-        title="캘린더 이미지 공유"
+        confirmLabel={translate("common.share")}
+        subtitle={translate("calendar.shareDescription")}
+        title={translate("calendar.shareTitle")}
         value={pendingShareAspectRatio}
         visible={isShareAspectRatioSheetVisible}
         onCancel={handleCancelShareAspectRatio}

@@ -1,8 +1,10 @@
 import { Alert } from "react-native";
 
+import { translate } from "@/application/services/localization/app-i18n";
+
 export function showCaptureNotReadyAlert() {
   Alert.alert(
-    "공유할 수 없음",
-    "이미지를 만들 콘텐츠가 아직 준비되지 않았어요.",
+    translate("sharing.notReadyTitle"),
+    translate("sharing.notReadyMessage"),
   );
 }

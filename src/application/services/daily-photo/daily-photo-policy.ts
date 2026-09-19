@@ -1,12 +1,17 @@
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import { isDisplayableDailyPhoto } from "@/application/services/daily-photo/daily-photo-records";
+import { translate } from "@/application/services/localization/app-i18n";
 
 export type DailyPhotoSelectionAction =
   "openDetail" | "openPicker" | "showUnavailable";
 
 export const dailyPhotoMessages = {
-  saveFailed: "사진을 저장하지 못했어요. 잠시 후 다시 시도해주세요.",
-  unavailable: "과거·미래 날짜에는 사진을 추가할 수 없어요.",
+  get saveFailed() {
+    return translate("photo.saveFailedMessage");
+  },
+  get unavailable() {
+    return translate("photo.unavailableMessage");
+  },
 } as const;
 
 export function canEditDailyPhoto(dateKey: string, todayKey: string): boolean {

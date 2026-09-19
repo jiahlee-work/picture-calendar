@@ -4,6 +4,7 @@ import { StyleSheet, View } from "react-native";
 import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import { buildCalendarMonth } from "@/application/services/calendar/calendar-grid";
+import { translate } from "@/application/services/localization/app-i18n";
 import type { WidgetAsset } from "@/application/services/stickers/types";
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import { MessageRecapBubble } from "@/presentation/components/molecules/message-recap-bubble";
@@ -44,7 +45,7 @@ export function WidgetPreview(props: WidgetPreviewProps) {
     return (
       <MessageRecapBubble
         tailScale={size === "tile" ? 0.65 : 1}
-        text="안녕하세요"
+        text={translate("widgets.greeting")}
         style={[
           styles.speechBubblePreview,
           size === "tile" && styles.tileSpeechBubblePreview,

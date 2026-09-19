@@ -3,6 +3,7 @@ import { Modal, Pressable, StyleSheet, View } from "react-native";
 import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import type { DailyPhotoPolicyDialogState } from "@/application/hooks/use-today-photo-flow";
+import { translate } from "@/application/services/localization/app-i18n";
 import { appColors } from "@/presentation/theme/colors";
 
 type DailyPhotoPolicyDialogProps = {
@@ -20,7 +21,7 @@ export function DailyPhotoPolicyDialog(props: DailyPhotoPolicyDialogProps) {
   return (
     <Modal animationType="fade" transparent visible onRequestClose={onCancel}>
       <Pressable
-        accessibilityLabel="안내 닫기"
+        accessibilityLabel={translate("photo.closeNotice")}
         style={styles.backdrop}
         onPress={onCancel}
       >
@@ -32,7 +33,9 @@ export function DailyPhotoPolicyDialog(props: DailyPhotoPolicyDialogProps) {
           <Text style={styles.message}>{dialog.message}</Text>
           <View style={styles.actions}>
             <Pressable style={styles.primaryButton} onPress={onCancel}>
-              <Text style={styles.primaryButtonText}>확인</Text>
+              <Text style={styles.primaryButtonText}>
+                {translate("common.confirm")}
+              </Text>
             </Pressable>
           </View>
         </Pressable>

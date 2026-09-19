@@ -1,6 +1,8 @@
+import { translate } from "@/application/services/localization/app-i18n";
+
 export function toDefaultStickerName(fileName: string | null): string {
   if (!fileName) {
-    return "클립보드 이미지";
+    return translate("photo.clipboardImage");
   }
 
   const decodedFileName = decodeFileName(fileName);

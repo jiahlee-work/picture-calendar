@@ -13,6 +13,7 @@ import {
   AppBottomNavigationController,
   AppBottomNavigationVisibilityProvider,
 } from "@/presentation/providers/app-bottom-navigation-controller";
+import { AppLocalizationProvider } from "@/presentation/providers/app-localization-provider";
 import { AppRuntimeEffects } from "@/presentation/providers/app-runtime-effects";
 import { APP_OVERLAY_PORTAL_HOST_NAME } from "@/presentation/helpers/overlays/app-portal";
 import { recapFonts } from "@/presentation/theme/recap-fonts";
@@ -26,33 +27,35 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <SafeAreaProvider>
-        <BottomSheetModalProvider>
-          {!isStorybookRoute ? <AppRuntimeEffects /> : null}
-          <AppBottomNavigationVisibilityProvider>
-            <View style={styles.content}>
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen
-                  name="index"
-                  options={{ gestureEnabled: false }}
-                />
-                <Stack.Screen name="recap" />
-                <Stack.Screen name="recap/[year]/[month]" />
-                <Stack.Screen name="stickers" />
-                <Stack.Screen name="settings" />
-                <Stack.Screen
-                  name="storybook"
-                  options={{ gestureEnabled: false }}
-                />
-              </Stack>
-              {!isStorybookRoute ? <AppBottomNavigationController /> : null}
-            </View>
-          </AppBottomNavigationVisibilityProvider>
-          <PortalHost name={APP_OVERLAY_PORTAL_HOST_NAME} />
-          <NavigationBar hidden={false} style="light" />
-          <StatusBar hidden={false} style="dark" />
-        </BottomSheetModalProvider>
-      </SafeAreaProvider>
+      <AppLocalizationProvider>
+        <SafeAreaProvider>
+          <BottomSheetModalProvider>
+            {!isStorybookRoute ? <AppRuntimeEffects /> : null}
+            <AppBottomNavigationVisibilityProvider>
+              <View style={styles.content}>
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen
+                    name="index"
+                    options={{ gestureEnabled: false }}
+                  />
+                  <Stack.Screen name="recap" />
+                  <Stack.Screen name="recap/[year]/[month]" />
+                  <Stack.Screen name="stickers" />
+                  <Stack.Screen name="settings" />
+                  <Stack.Screen
+                    name="storybook"
+                    options={{ gestureEnabled: false }}
+                  />
+                </Stack>
+                {!isStorybookRoute ? <AppBottomNavigationController /> : null}
+              </View>
+            </AppBottomNavigationVisibilityProvider>
+            <PortalHost name={APP_OVERLAY_PORTAL_HOST_NAME} />
+            <NavigationBar hidden={false} style="light" />
+            <StatusBar hidden={false} style="dark" />
+          </BottomSheetModalProvider>
+        </SafeAreaProvider>
+      </AppLocalizationProvider>
     </GestureHandlerRootView>
   );
 }

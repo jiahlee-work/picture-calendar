@@ -18,6 +18,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useStickerLibrary } from "@/application/hooks/use-sticker-library";
+import { translate } from "@/application/services/localization/app-i18n";
 import type {
   StickerAsset,
   UserStickerAsset,
@@ -114,7 +115,10 @@ export function StickerLibraryScreen() {
     const result = await registerFromLibrary();
 
     if (result === "failed") {
-      Alert.alert("등록 실패", "스티커 이미지를 저장하지 못했어요.");
+      Alert.alert(
+        translate("stickers.registerFailedTitle"),
+        translate("stickers.registerFailedMessage"),
+      );
     }
   };
 
@@ -123,30 +127,33 @@ export function StickerLibraryScreen() {
 
     if (result === "empty") {
       Alert.alert(
-        "이미지 없음",
-        "기기 클립보드에서 붙여넣을 이미지를 찾지 못했어요.",
+        translate("stickers.imageMissingTitle"),
+        translate("stickers.clipboardMissingMessage"),
       );
       return;
     }
 
     if (result === "denied") {
       Alert.alert(
-        "권한 필요",
-        "클립보드 이미지를 읽을 수 있도록 붙여넣기 권한을 허용해 주세요.",
+        translate("stickers.permissionTitle"),
+        translate("stickers.clipboardDeniedMessage"),
       );
       return;
     }
 
     if (result === "nativeModuleUnavailable") {
       Alert.alert(
-        "앱 재설치 필요",
-        "클립보드 붙여넣기를 사용하려면 expo-clipboard가 포함된 개발용 앱을 다시 빌드해서 설치해야 해요.",
+        translate("stickers.nativeModuleTitle"),
+        translate("stickers.nativeModuleMessage"),
       );
       return;
     }
 
     if (result === "failed") {
-      Alert.alert("등록 실패", "클립보드 이미지를 스티커로 저장하지 못했어요.");
+      Alert.alert(
+        translate("stickers.registerFailedTitle"),
+        translate("stickers.registerClipboardFailedMessage"),
+      );
     }
   };
 
@@ -166,7 +173,10 @@ export function StickerLibraryScreen() {
     const wasDeleted = await deleteUserSticker(asset.id);
 
     if (!wasDeleted) {
-      Alert.alert("삭제 실패", "스티커를 삭제하지 못했어요.");
+      Alert.alert(
+        translate("stickers.deleteFailedTitle"),
+        translate("stickers.deleteFailedMessage"),
+      );
       return false;
     }
 
@@ -214,15 +224,15 @@ export function StickerLibraryScreen() {
     }
 
     Alert.alert(
-      "스티커 삭제",
-      `선택한 스티커 ${selectedIds.length}개를 삭제할까요?`,
+      translate("stickers.deleteTitle"),
+      translate("stickers.deleteManyMessage", { count: selectedIds.length }),
       [
         {
-          text: "취소",
+          text: translate("common.cancel"),
           style: "cancel",
         },
         {
-          text: "삭제",
+          text: translate("common.delete"),
           style: "destructive",
           onPress: () => {
             void deleteUserStickers(selectedIds).then(
@@ -244,7 +254,10 @@ export function StickerLibraryScreen() {
                   return;
                 }
 
-                Alert.alert("삭제 실패", "일부 스티커를 삭제하지 못했어요.");
+                Alert.alert(
+                  translate("stickers.deleteFailedTitle"),
+                  translate("stickers.someDeleteFailedMessage"),
+                );
               },
             );
           },
@@ -256,7 +269,9 @@ export function StickerLibraryScreen() {
   return (
     <AppSafeAreaView>
       <AppBar>
-        <AppBar.Title variant="large">Stickers</AppBar.Title>
+        <AppBar.Title variant="large">
+          {translate("screen.stickers")}
+        </AppBar.Title>
         {!isLoading && userStickerAssets.length > 0 && (
           <StickerRegistrationMenu
             disabled={isSelectionMode || isSaving}
@@ -270,7 +285,7 @@ export function StickerLibraryScreen() {
             <View
               accessible
               accessibilityRole="button"
-              accessibilityLabel="스티커 등록 메뉴 열기"
+              accessibilityLabel={translate("stickers.registerMenu")}
               accessibilityState={{
                 busy: isSaving,
                 disabled: isSelectionMode || isSaving,
@@ -301,7 +316,9 @@ export function StickerLibraryScreen() {
         {isLoading ? (
           <View style={styles.loadingState}>
             <ActivityIndicator color={appColors.black} size="small" />
-            <Text style={styles.loadingText}>스티커를 불러오는 중이에요.</Text>
+            <Text style={styles.loadingText}>
+              {translate("stickers.loading")}
+            </Text>
           </View>
         ) : userStickerAssets.length === 0 ? (
           <StickerEmptyState
@@ -368,9 +385,11 @@ function StickerEmptyState(props: {
         size={56}
       />
       <View style={styles.emptyStateCopy}>
-        <Text style={styles.emptyStateTitle}>아직 스티커가 없어요</Text>
+        <Text style={styles.emptyStateTitle}>
+          {translate("stickers.emptyTitle")}
+        </Text>
         <Text style={styles.emptyStateDescription}>
-          리캡을 꾸밀 때 사용할 스티커를 등록해보세요.
+          {translate("stickers.emptyDescription")}
         </Text>
       </View>
       <StickerRegistrationMenu
@@ -381,7 +400,7 @@ function StickerEmptyState(props: {
         <View
           accessible
           accessibilityRole="button"
-          accessibilityLabel="스티커 등록 메뉴 열기"
+          accessibilityLabel={translate("stickers.registerMenu")}
           accessibilityState={{ busy: isSaving, disabled: isSaving }}
           style={[
             styles.emptyStateRegistrationButton,
@@ -394,7 +413,7 @@ function StickerEmptyState(props: {
             <>
               <ReiconIcon color={appColors.white} name="Add" size={20} />
               <Text style={styles.emptyStateRegistrationButtonLabel}>
-                스티커 등록
+                {translate("stickers.register")}
               </Text>
             </>
           )}
@@ -435,16 +454,25 @@ function StickerSelectionActionBar(props: {
         exiting={ACTION_BAR_EXITING}
         style={styles.selectionBar}
       >
-        <SelectionActionButton label="취소" onPress={onCancel} />
         <SelectionActionButton
-          label={allSelected ? "모두 해제" : "모두 선택"}
+          label={translate("common.cancel")}
+          onPress={onCancel}
+        />
+        <SelectionActionButton
+          label={
+            allSelected
+              ? translate("stickers.clearAll")
+              : translate("stickers.selectAll")
+          }
           onPress={allSelected ? onClearAll : onSelectAll}
         />
         <SelectionActionButton
-          accessibilityLabel={`선택한 스티커 ${selectedCount}개 삭제`}
+          accessibilityLabel={translate("stickers.deleteManyAccessibility", {
+            count: selectedCount,
+          })}
           disabled={isSaving}
           isLoading={isSaving}
-          label="삭제"
+          label={translate("common.delete")}
           onPress={onDelete}
         />
       </Animated.View>

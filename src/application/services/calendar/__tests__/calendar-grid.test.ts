@@ -1,10 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
 import { buildCalendarMonth } from "@/application/services/calendar/calendar-grid";
+import { configureAppLocale } from "@/application/services/localization/app-i18n";
 import { dayjs } from "@/shared/date/dayjs";
 
 describe("buildCalendarMonth", () => {
+  beforeEach(() => {
+    configureAppLocale("en");
+  });
+
   it("builds the current month grid without photos", () => {
     const calendar = buildCalendarMonth(
       dayjs("2026-04-01").toDate(),

@@ -1,3 +1,5 @@
+import { translate } from "@/application/services/localization/app-i18n";
+
 export const ShareSaveToastState = {
   failed: "failed",
   hidden: "hidden",
@@ -10,15 +12,15 @@ export type ShareSaveToastState =
 
 export function toShareSaveToastMessage(state: ShareSaveToastState) {
   if (state === ShareSaveToastState.saving) {
-    return "저장 중";
+    return translate("sharing.saving");
   }
 
   if (state === ShareSaveToastState.saved) {
-    return "이미지를 갤러리에 저장했어요.";
+    return translate("sharing.saved");
   }
 
   if (state === ShareSaveToastState.failed) {
-    return "이미지를 저장하지 못했어요.";
+    return translate("sharing.saveFailed");
   }
 
   return "";

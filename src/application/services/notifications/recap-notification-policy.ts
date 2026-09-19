@@ -2,6 +2,10 @@ import {
   canCreateRecapForMonth,
   RecapAvailabilityMode,
 } from "@/application/services/recap/recap-month-list";
+import {
+  formatAppMonthName,
+  translate,
+} from "@/application/services/localization/app-i18n";
 import { dayjs } from "@/shared/date/dayjs";
 
 export const MONTHLY_RECAP_NOTIFICATION_KIND = "monthly-recap";
@@ -92,8 +96,8 @@ export function createMonthlyRecapNotificationPlan({
   }
 
   const destination = MonthlyRecapNotificationDestination.detail;
-  const monthLabel = toKoreanMonthLabel(month);
-  const body = `${monthLabel} 리캡이 준비됐어요.`;
+  const monthLabel = formatAppMonthName(dayjs(`${month}-01`).toDate());
+  const body = translate("notifications.recapBody", { month: monthLabel });
 
   return {
     body,
@@ -106,7 +110,7 @@ export function createMonthlyRecapNotificationPlan({
     destination,
     identifier: createMonthlyRecapNotificationIdentifier(month),
     month,
-    title: "월간 리캡",
+    title: translate("notifications.recapTitle"),
     triggerDate,
   };
 }
@@ -163,8 +167,4 @@ function isMonthKey(value: unknown): value is string {
   const parsed = dayjs(`${value}-01`);
 
   return parsed.isValid() && parsed.format("YYYY-MM") === value;
-}
-
-function toKoreanMonthLabel(month: string): string {
-  return dayjs(`${month}-01`).format("M월");
 }

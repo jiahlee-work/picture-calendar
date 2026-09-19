@@ -1,9 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
+import { configureAppLocale } from "@/application/services/localization/app-i18n";
 import { createRecapCanvasAssetInsertion } from "@/application/services/recap/recap-canvas-asset";
 import type { StickerAsset } from "@/application/services/stickers/types";
 
 describe("recap canvas asset insertion", () => {
+  beforeEach(() => {
+    configureAppLocale("ko");
+  });
+
   it("creates a sticker element without closing the picker", () => {
     expect(
       createRecapCanvasAssetInsertion({

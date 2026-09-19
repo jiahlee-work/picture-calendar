@@ -2,6 +2,7 @@ import { Modal, Pressable, StyleSheet, View } from "react-native";
 
 import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
+import { translate } from "@/application/services/localization/app-i18n";
 import { toMediaLibraryPermissionMessage } from "@/presentation/helpers/permissions/media-library-permission-message";
 import { appColors } from "@/presentation/theme/colors";
 
@@ -29,7 +30,7 @@ export function MediaLibraryPermissionAlert(
   return (
     <Modal animationType="fade" transparent visible onRequestClose={onClose}>
       <Pressable
-        accessibilityLabel="저장 권한 안내 닫기"
+        accessibilityLabel={translate("permissions.closeStorageNotice")}
         style={styles.backdrop}
         onPress={onClose}
       >
@@ -37,20 +38,26 @@ export function MediaLibraryPermissionAlert(
           style={styles.card}
           onPress={(event) => event.stopPropagation()}
         >
-          <Text style={styles.title}>저장 권한 필요</Text>
+          <Text style={styles.title}>
+            {translate("permissions.storageRequired")}
+          </Text>
           <Text style={styles.message}>
             {toMediaLibraryPermissionMessage(canAskAgain)}
           </Text>
           <View style={styles.actions}>
             <Pressable style={styles.secondaryButton} onPress={onClose}>
-              <Text style={styles.secondaryButtonText}>확인</Text>
+              <Text style={styles.secondaryButtonText}>
+                {translate("common.confirm")}
+              </Text>
             </Pressable>
             {!canAskAgain && (
               <Pressable
                 style={styles.primaryButton}
                 onPress={handleOpenSettings}
               >
-                <Text style={styles.primaryButtonText}>설정 열기</Text>
+                <Text style={styles.primaryButtonText}>
+                  {translate("permissions.openSettings")}
+                </Text>
               </Pressable>
             )}
           </View>

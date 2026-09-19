@@ -1,0 +1,10 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Pical",
+    "NSPhotoLibraryAddUsageDescription": "共有画像を写真ライブラリに保存するため、写真へのアクセスを許可してください。",
+    "NSPhotoLibraryUsageDescription": "写真の選択と保存のため、写真ライブラリへのアクセスを許可してください。"
+  },
+  "android": {
+    "app_name": "Pical"
+  }
+}

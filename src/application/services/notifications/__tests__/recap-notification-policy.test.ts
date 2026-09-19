@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
+import { configureAppLocale } from "@/application/services/localization/app-i18n";
 import {
   createMonthlyRecapNotificationPlan,
   getNextMonthlyRecapNotificationWindow,
@@ -9,6 +10,10 @@ import { dayjs } from "@/shared/date/dayjs";
 
 describe("monthly recap notification policy", () => {
   const triggerDate = dayjs("2026-07-01T09:00:00").toDate();
+
+  beforeEach(() => {
+    configureAppLocale("ko");
+  });
 
   it("does not notify when there are no recap photos", () => {
     expect(
@@ -43,5 +48,20 @@ describe("monthly recap notification policy", () => {
         dayjs("2026-07-01T08:30:00").toDate(),
       ).month,
     ).toBe("2026-06");
+  });
+
+  it("localizes notification copy", () => {
+    configureAppLocale("ja");
+
+    expect(
+      createMonthlyRecapNotificationPlan({
+        month: "2026-06",
+        photoCount: 1,
+        triggerDate,
+      }),
+    ).toMatchObject({
+      body: "6月のリキャップができました。",
+      title: "月間リキャップ",
+    });
   });
 });

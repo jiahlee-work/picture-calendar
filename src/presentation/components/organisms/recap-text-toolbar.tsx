@@ -16,6 +16,7 @@ import {
   type RecapTextStyleActionId,
   type RecapTextStyleUpdate,
 } from "@/application/services/recap/recap-canvas-text";
+import { translate } from "@/application/services/localization/app-i18n";
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import { TextStyleIcon } from "@/presentation/components/atoms/text-style-icon";
 import { RecapTextMenuButton } from "@/presentation/components/molecules/recap-text-menu-button";
@@ -54,23 +55,7 @@ type LayerAction = {
   title: string;
 };
 
-const STYLE_ACTIONS: StyleAction[] = [
-  {
-    id: "bold",
-    icon: "bold",
-    title: "굵게",
-  },
-  {
-    id: "italic",
-    icon: "italic",
-    title: "기울임",
-  },
-  {
-    id: "underline",
-    icon: "underline",
-    title: "밑줄",
-  },
-];
+const STYLE_ACTION_IDS = ["bold", "italic", "underline"] as const;
 
 const TEXT_TOOLBAR_WIDTH = 320;
 const TEXT_TOOLBAR_ICON_SIZE = 24;
@@ -78,36 +63,48 @@ const TEXT_TOOLBAR_TEXT_STYLE_ICON_SIZE = 28;
 const TEXT_TOOLBAR_BUTTON_PADDING = 10;
 const TEXT_TOOLBAR_HORIZONTAL_PADDING = 10;
 
-const ALIGN_ACTIONS: AlignAction[] = [
-  {
-    id: "left",
-    icon: "alignLeft",
-    title: "왼쪽 정렬",
-  },
-  {
-    id: "center",
-    icon: "alignCenter",
-    title: "가운데 정렬",
-  },
-  {
-    id: "right",
-    icon: "alignRight",
-    title: "오른쪽 정렬",
-  },
-];
+function createStyleActions(): StyleAction[] {
+  return STYLE_ACTION_IDS.map((id) => ({
+    id,
+    icon: id,
+    title: translate(`editorControls.${id}`),
+  }));
+}
 
-const LAYER_ACTIONS: LayerAction[] = [
-  {
-    id: "forward",
-    icon: "layerForward",
-    title: "앞으로",
-  },
-  {
-    id: "backward",
-    icon: "layerBackward",
-    title: "뒤로",
-  },
-];
+function createAlignActions(): AlignAction[] {
+  return [
+    {
+      id: "left",
+      icon: "alignLeft",
+      title: translate("editorControls.alignLeft"),
+    },
+    {
+      id: "center",
+      icon: "alignCenter",
+      title: translate("editorControls.alignCenter"),
+    },
+    {
+      id: "right",
+      icon: "alignRight",
+      title: translate("editorControls.alignRight"),
+    },
+  ];
+}
+
+function createLayerActions(): LayerAction[] {
+  return [
+    {
+      id: "forward",
+      icon: "layerForward",
+      title: translate("editorControls.layerForward"),
+    },
+    {
+      id: "backward",
+      icon: "layerBackward",
+      title: translate("editorControls.layerBackward"),
+    },
+  ];
+}
 
 export function RecapTextToolbar(props: RecapTextToolbarProps) {
   const {
@@ -121,8 +118,11 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
     onUpdateTextStyle,
     textElement,
   } = props;
+  const styleActions = createStyleActions();
+  const alignActions = createAlignActions();
+  const layerActions = createLayerActions();
   const styleMenuActions = orderNativeMenuActions(
-    STYLE_ACTIONS.map((action) => ({
+    styleActions.map((action) => ({
       id: action.id,
       icon: action.icon,
       selected: isRecapTextStyleSelected(textElement, action.id),
@@ -130,7 +130,7 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
     })),
   );
   const alignMenuActions = orderNativeMenuActions(
-    ALIGN_ACTIONS.map((action) => ({
+    alignActions.map((action) => ({
       id: action.id,
       icon: action.icon,
       selected: isRecapTextAlignmentSelected(textElement, action.id),
@@ -138,7 +138,7 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
     })),
   );
   const layerMenuActions = orderNativeMenuActions(
-    LAYER_ACTIONS.map((action) => ({
+    layerActions.map((action) => ({
       disabled: action.id === "forward" ? !canMoveForward : !canMoveBackward,
       id: action.id,
       icon: action.icon,
@@ -146,7 +146,7 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
     })),
   );
   const handleStyleMenuAction = (actionId: string) => {
-    const selectedAction = STYLE_ACTIONS.find(
+    const selectedAction = styleActions.find(
       (action) => action.id === actionId,
     );
 
@@ -159,7 +159,7 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
     );
   };
   const handleAlignMenuAction = (actionId: string) => {
-    const selectedAction = ALIGN_ACTIONS.find(
+    const selectedAction = alignActions.find(
       (action) => action.id === actionId,
     );
 
@@ -188,7 +188,7 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
     >
       <View style={styles.toolbar}>
         <ToolbarButton
-          accessibilityLabel="서체와 글자 크기 선택"
+          accessibilityLabel={translate("editorControls.typography")}
           onPress={onOpenTypographyPicker}
         >
           <ReiconIcon
@@ -198,7 +198,7 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
           />
         </ToolbarButton>
         <RecapTextMenuButton
-          accessibilityLabel="텍스트 스타일 선택"
+          accessibilityLabel={translate("editorControls.style")}
           actions={styleMenuActions}
           onPressAction={handleStyleMenuAction}
         >
@@ -208,7 +208,7 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
           />
         </RecapTextMenuButton>
         <RecapTextMenuButton
-          accessibilityLabel="텍스트 정렬 선택"
+          accessibilityLabel={translate("editorControls.alignment")}
           actions={alignMenuActions}
           onPressAction={handleAlignMenuAction}
         >
@@ -219,14 +219,14 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
           />
         </RecapTextMenuButton>
         <RecapTextMenuButton
-          accessibilityLabel="텍스트 레이어 순서 선택"
+          accessibilityLabel={translate("editorControls.layerOrder")}
           actions={layerMenuActions}
           onPressAction={handleLayerMenuAction}
         >
           <ReiconIcon name="Layers" size={TEXT_TOOLBAR_ICON_SIZE} />
         </RecapTextMenuButton>
         <ToolbarButton
-          accessibilityLabel="텍스트 색상 선택"
+          accessibilityLabel={translate("editorControls.textColor")}
           onPress={onOpenColorPicker}
         >
           <View
@@ -236,7 +236,10 @@ export function RecapTextToolbar(props: RecapTextToolbarProps) {
         <View style={styles.dividerSlot}>
           <View style={styles.divider} />
         </View>
-        <ToolbarButton accessibilityLabel="텍스트 삭제" onPress={onDelete}>
+        <ToolbarButton
+          accessibilityLabel={translate("editorControls.textDelete")}
+          onPress={onDelete}
+        >
           <ReiconIcon
             color={appColors.black}
             name="Trash5"

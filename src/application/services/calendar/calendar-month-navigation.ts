@@ -1,4 +1,8 @@
 import { dayjs } from "@/shared/date/dayjs";
+import {
+  formatAppMonthYearShort,
+  translate,
+} from "@/application/services/localization/app-i18n";
 
 export const CALENDAR_START_MONTH_KEY = "2026-01";
 export const CALENDAR_PICKER_FUTURE_YEAR_COUNT = 10;
@@ -53,10 +57,14 @@ export function createCalendarMonthOptions(
 ): CalendarMonthOption[] {
   return Array.from({ length: 12 }, (_, monthIndex) => {
     return {
-      label: `${monthIndex + 1}월`,
+      label: translate("calendar.month", { month: monthIndex + 1 }),
       monthIndex,
     };
   });
+}
+
+export function formatCalendarPageTitle(date: Date): string {
+  return formatAppMonthYearShort(date, "en");
 }
 
 export function createNavigableCalendarMonth(

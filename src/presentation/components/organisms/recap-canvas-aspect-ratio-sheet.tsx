@@ -10,6 +10,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { AppText as Text } from "@/presentation/components/atoms/app-text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { translate } from "@/application/services/localization/app-i18n";
 import { AppBottomSheetBackdrop } from "@/presentation/components/atoms/app-bottom-sheet-backdrop";
 import { appColors } from "@/presentation/theme/colors";
 import { appLayers } from "@/presentation/theme/layers";
@@ -31,36 +32,38 @@ type RecapCanvasAspectRatioSheetProps = {
   onClose: () => void;
 };
 
-const OPTIONS = [
-  {
-    description: "화면을 가득 채우는 비율이에요.",
-    id: RecapCanvasAspectRatio.device,
-    label: "full",
-  },
-  {
-    description: "피드에 올리기 좋은 비율이에요.",
-    id: RecapCanvasAspectRatio.portraitFourFive,
-    label: "4:5",
-  },
-  {
-    description: "스토리에 올리기 좋은 비율이에요.",
-    id: RecapCanvasAspectRatio.portraitNineSixteen,
-    label: "9:16",
-  },
-] as const;
+function createOptions() {
+  return [
+    {
+      description: translate("aspectRatio.deviceDescription"),
+      id: RecapCanvasAspectRatio.device,
+      label: "full",
+    },
+    {
+      description: translate("aspectRatio.feedDescription"),
+      id: RecapCanvasAspectRatio.portraitFourFive,
+      label: "4:5",
+    },
+    {
+      description: translate("aspectRatio.storyDescription"),
+      id: RecapCanvasAspectRatio.portraitNineSixteen,
+      label: "9:16",
+    },
+  ] as const;
+}
 
 export function RecapCanvasAspectRatioSheet(
   props: RecapCanvasAspectRatioSheetProps,
 ) {
   const {
-    confirmLabel = "완료",
+    confirmLabel = translate("common.done"),
     onClose,
     onCancel,
     onConfirm,
     onSelect,
     required = false,
-    subtitle = "리캡의 캔버스 비율을 먼저 선택해 주세요.\n상단의 더보기를 통해 언제든 변경할 수 있어요.",
-    title = "캔버스 비율 선택",
+    subtitle = translate("aspectRatio.subtitle"),
+    title = translate("aspectRatio.title"),
     value,
     visible,
   } = props;
@@ -111,7 +114,7 @@ export function RecapCanvasAspectRatioSheet(
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
         <View style={styles.options}>
-          {OPTIONS.map((option) => (
+          {createOptions().map((option) => (
             <AspectRatioOption
               key={option.id}
               description={option.description}
@@ -131,7 +134,9 @@ export function RecapCanvasAspectRatioSheet(
             onPress={onCancel}
           >
             <Text style={styles.cancelButtonLabel}>
-              {required ? "리캡 목록으로" : "취소"}
+              {required
+                ? translate("aspectRatio.requiredCancel")
+                : translate("common.cancel")}
             </Text>
           </Pressable>
           <Pressable

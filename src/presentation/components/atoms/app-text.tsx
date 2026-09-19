@@ -8,6 +8,7 @@ import {
   type TextStyle,
 } from "react-native";
 
+import { getCurrentAppLocale } from "@/application/services/localization/app-i18n";
 import { resolveAppFontFamily } from "@/presentation/theme/app-typography";
 
 export const AppText = forwardRef<ComponentRef<typeof NativeText>, TextProps>(
@@ -39,6 +40,12 @@ function applyAppFontFamily(
   style: TextProps["style"] | TextInputProps["style"],
 ) {
   const flattenedStyle = StyleSheet.flatten(style) as TextStyle | undefined;
+  const locale = getCurrentAppLocale();
+
+  if (!flattenedStyle?.fontFamily && (locale === "ja" || locale === "zh")) {
+    return style;
+  }
+
   const fontFamily = resolveAppFontFamily({
     fontFamily: flattenedStyle?.fontFamily,
     fontWeight: flattenedStyle?.fontWeight,

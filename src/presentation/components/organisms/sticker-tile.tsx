@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet } from "react-native";
 
 import type { StickerAsset } from "@/application/services/stickers/types";
+import { translate } from "@/application/services/localization/app-i18n";
 import { SelectionCheckbox } from "@/presentation/components/atoms/selection-checkbox";
 import { StickerAssetPreview } from "@/presentation/components/organisms/sticker-asset-preview";
 import { appColors } from "@/presentation/theme/colors";
@@ -29,17 +30,17 @@ export function StickerTile(props: StickerTileProps) {
     showsSelectionControl = selectionMode && isSelectable,
     tileSize,
   } = props;
-  const title = asset.name ?? "Sticker";
+  const title = getStickerAssetTitle(asset);
   const canOpenDetails = Boolean(onOpenDetails);
   const accessibilityHint =
     selectionMode && isSelectable
-      ? "탭하여 선택 상태 변경"
+      ? translate("stickers.selectionHint")
       : isSelectable && canOpenDetails
-        ? "탭하여 크게 보기, 길게 눌러 선택"
+        ? translate("stickers.tapOrLongPressHint")
         : isSelectable
-          ? "탭하여 선택"
+          ? translate("stickers.selectItem", { title })
           : canOpenDetails
-            ? "탭하여 크게 보기"
+            ? translate("stickers.tapHint")
             : undefined;
 
   const handlePress = () => {
@@ -82,7 +83,9 @@ export function StickerTile(props: StickerTileProps) {
       {showsSelectionControl && (
         <StickerTileSelectionControl
           accessibilityLabel={
-            isSelectable ? `${title} 선택` : `${title} 선택 불가`
+            isSelectable
+              ? translate("stickers.selectItem", { title })
+              : translate("stickers.selectionUnavailable", { title })
           }
           disabled={!isSelectable}
           isSelected={isSelected}
@@ -91,6 +94,21 @@ export function StickerTile(props: StickerTileProps) {
       )}
     </Pressable>
   );
+}
+
+function getStickerAssetTitle(asset: StickerAsset): string {
+  if (asset.source === "sticker") {
+    return asset.name ?? "Sticker";
+  }
+
+  const titleKeyByVariant = {
+    calendar: "widgets.calendar",
+    polaroidFrame: "widgets.polaroid",
+    polaroidFramePortrait: "widgets.portraitPolaroid",
+    speechBubble: "widgets.speechBubble",
+  } as const;
+
+  return translate(titleKeyByVariant[asset.variant]);
 }
 
 function StickerTileSelectionControl(props: {

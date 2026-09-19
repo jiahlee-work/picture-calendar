@@ -3,14 +3,16 @@ import { StyleSheet, View } from "react-native";
 
 import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
+import { translate } from "@/application/services/localization/app-i18n";
+
 export function NotFoundScreen() {
   return (
     <>
       <Stack.Screen options={{ title: "Not found" }} />
       <View style={styles.container}>
-        <Text style={styles.title}>화면을 찾을 수 없어요.</Text>
+        <Text style={styles.title}>{translate("notFound.title")}</Text>
         <Link href="/" style={styles.link}>
-          캘린더로 돌아가기
+          {translate("notFound.action")}
         </Link>
       </View>
     </>

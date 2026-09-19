@@ -14,6 +14,7 @@ import { AppText as Text } from "@/presentation/components/atoms/app-text";
 import { useStickerLibrary } from "@/application/hooks/use-sticker-library";
 import { useMonthlyRecapCanvas } from "@/application/hooks/use-monthly-recap-canvas";
 import { useMonthlyRecapDetail } from "@/application/hooks/use-monthly-recap-detail";
+import { translate } from "@/application/services/localization/app-i18n";
 import { normalizeRecapCanvasBackgroundColor } from "@/application/services/recap/recap-canvas-background";
 import { hasRecapCanvasContent } from "@/application/services/recap/recap-canvas-content";
 import {
@@ -94,18 +95,20 @@ type RecapDecoratingMode = "default" | "layout";
 type ActiveRecapTextSheet = "color" | "typography" | null;
 
 const DEFAULT_LAYOUT_ID = RecapCanvasLayoutId.twoColumns;
-const RECAP_MENU_ACTIONS = [
-  {
-    icon: "share",
-    id: "share",
-    title: "공유하기",
-  },
-  {
-    icon: "aspectRatio",
-    id: "aspectRatio",
-    title: "캔버스 비율",
-  },
-] satisfies NativeActionMenuAction[];
+function createRecapMenuActions(): NativeActionMenuAction[] {
+  return [
+    {
+      icon: "share",
+      id: "share",
+      title: translate("common.shareAction"),
+    },
+    {
+      icon: "aspectRatio",
+      id: "aspectRatio",
+      title: translate("recapEditor.aspectRatio"),
+    },
+  ];
+}
 
 export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   const { month, year } = props;
@@ -294,10 +297,10 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
   });
   const emptyCanvasMessage =
     mode === "layout" && !visibleLayout
-      ? "레이아웃 미적용"
+      ? translate("recapEditor.noLayout")
       : hasCanvasContent
         ? null
-        : "한 달 동안의 기억을 한 장의 페이지로 만들어보세요.";
+        : translate("recapEditor.emptyMessage");
   const requiresInitialAspectRatioSelection =
     !isCanvasLoading &&
     entryMonthKey === monthKey &&
@@ -326,7 +329,10 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
       setIsBackgroundColorSheetVisible(false);
       setTextSheetElementId(null);
     } catch {
-      Alert.alert("저장 실패", "꾸민 내용을 저장하지 못했습니다.");
+      Alert.alert(
+        translate("recapEditor.saveFailedTitle"),
+        translate("recapEditor.saveFailedMessage"),
+      );
     }
   };
 
@@ -337,18 +343,18 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
     return new Promise<boolean>((resolve) =>
       Alert.alert(
-        "변경사항을 저장하지 않고 나갈까요?",
-        "지금 나가면 꾸민 내용이 저장되지 않습니다.",
+        translate("recapEditor.leaveTitle"),
+        translate("recapEditor.leaveMessage"),
         [
           {
             onPress: () => resolve(false),
             style: "cancel",
-            text: "취소",
+            text: translate("common.cancel"),
           },
           {
             onPress: () => resolve(true),
             style: "destructive",
-            text: "나가기",
+            text: translate("recapEditor.leaveAction"),
           },
         ],
         {
@@ -535,7 +541,10 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
         width: size.width,
       });
     } catch {
-      Alert.alert("크롭 실패", "사진을 크롭하지 못했습니다.");
+      Alert.alert(
+        translate("recapEditor.cropFailedTitle"),
+        translate("recapEditor.cropFailedMessage"),
+      );
     }
   };
 
@@ -639,17 +648,17 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
   const handleCancelLayoutPress = () => {
     Alert.alert(
-      "레이아웃 적용을 취소하시겠습니까?",
-      "선택한 레이아웃과 사진 변경 사항이 사라집니다.",
+      translate("recapEditor.cancelLayoutTitle"),
+      translate("recapEditor.cancelLayoutMessage"),
       [
         {
           onPress: discardLayoutDraft,
           style: "destructive",
-          text: "취소하기",
+          text: translate("recapEditor.cancelLayoutAction"),
         },
         {
           style: "cancel",
-          text: "계속 편집",
+          text: translate("recapEditor.continueEditing"),
         },
       ],
     );
@@ -749,8 +758,8 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
       if (selectedPhotosWithSize.length === 0) {
         Alert.alert(
-          "사진을 불러오지 못했어요",
-          "사진의 원본 크기를 확인한 뒤 다시 시도해 주세요.",
+          translate("recapEditor.loadPhotoFailedTitle"),
+          translate("recapEditor.loadPhotoFailedMessage"),
         );
         return;
       }
@@ -770,8 +779,8 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
       if (selectedPhotosWithSize.length < photoIdsToAdd.length) {
         Alert.alert(
-          "일부 사진을 불러오지 못했어요",
-          "크기를 확인할 수 있는 사진만 캔버스에 추가했습니다.",
+          translate("recapEditor.loadSomePhotosFailedTitle"),
+          translate("recapEditor.loadSomePhotosFailedMessage"),
         );
       }
     } finally {
@@ -819,7 +828,10 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
     const result = await registerFromLibrary();
 
     if (result === "failed") {
-      Alert.alert("등록 실패", "스티커 이미지를 저장하지 못했어요.");
+      Alert.alert(
+        translate("stickers.registerFailedTitle"),
+        translate("stickers.registerFailedMessage"),
+      );
     }
   };
 
@@ -828,30 +840,33 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
 
     if (result === "empty") {
       Alert.alert(
-        "이미지 없음",
-        "기기 클립보드에서 붙여넣을 이미지를 찾지 못했어요.",
+        translate("stickers.imageMissingTitle"),
+        translate("stickers.clipboardMissingMessage"),
       );
       return;
     }
 
     if (result === "denied") {
       Alert.alert(
-        "권한 필요",
-        "클립보드 이미지를 읽을 수 있도록 붙여넣기 권한을 허용해 주세요.",
+        translate("stickers.permissionTitle"),
+        translate("stickers.clipboardDeniedMessage"),
       );
       return;
     }
 
     if (result === "nativeModuleUnavailable") {
       Alert.alert(
-        "앱 재설치 필요",
-        "클립보드 붙여넣기를 사용하려면 expo-clipboard가 포함된 개발용 앱을 다시 빌드해서 설치해야 해요.",
+        translate("stickers.nativeModuleTitle"),
+        translate("stickers.nativeModuleMessage"),
       );
       return;
     }
 
     if (result === "failed") {
-      Alert.alert("등록 실패", "클립보드 이미지를 스티커로 저장하지 못했어요.");
+      Alert.alert(
+        translate("stickers.registerFailedTitle"),
+        translate("stickers.registerClipboardFailedMessage"),
+      );
     }
   };
 
@@ -861,7 +876,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
         <AppSafeAreaView edges={["top"]} variant="inset">
           <AppBar>
             <AppBar.BackAction
-              accessibilityLabel="리캡 목록으로 돌아가기"
+              accessibilityLabel={translate("recapEditor.back")}
               fallbackHref="/recap"
             />
             <AppBar.Spacer />
@@ -911,7 +926,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
           {mode === "default" ? (
             <>
               <Pressable
-                accessibilityLabel="캔버스 빈 영역"
+                accessibilityLabel={translate("recapEditor.blankCanvas")}
                 accessibilityRole="button"
                 style={styles.canvasDismissLayer}
                 onPress={() => handleSelectElement(null)}
@@ -946,13 +961,13 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
         <AppBar pointerEvents="box-none" variant="overlay">
           {mode === "layout" ? (
             <AppBar.Action
-              accessibilityLabel="레이아웃 선택 취소"
+              accessibilityLabel={translate("recapEditor.cancelLayout")}
               icon="X"
               onPress={handleCancelLayoutPress}
             />
           ) : (
             <AppBar.BackAction
-              accessibilityLabel="리캡 목록으로 돌아가기"
+              accessibilityLabel={translate("recapEditor.back")}
               fallbackHref="/recap"
               onBeforeBack={handleBeforeBackPress}
             />
@@ -960,7 +975,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
           <AppBar.Spacer />
           {mode === "layout" ? (
             <AppBar.Action
-              accessibilityLabel="레이아웃 선택 완료"
+              accessibilityLabel={translate("recapEditor.completeLayout")}
               disabled={!isLayoutSelectionComplete}
               icon="Check"
               onPress={handleCompleteLayoutPress}
@@ -971,7 +986,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
                 <>
                   <ShareCaptureMenu
                     ref={shareCaptureMenuRef}
-                    accessibilityLabel="리캡 공유 버튼"
+                    accessibilityLabel={translate("recapEditor.shareButton")}
                     captureHeight={canvasDimensions.height}
                     captureRef={shareCaptureRef}
                     captureWidth={canvasDimensions.width}
@@ -983,9 +998,9 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
                     }
                     disabledMessage={
                       !hasCanvasContent
-                        ? "리캡을 만든 후 공유할 수 있어요."
+                        ? translate("recapEditor.shareEmpty")
                         : hasUnsavedDecoratingChanges
-                          ? "공유하려면 먼저 꾸미기 완료를 눌러 저장해 주세요."
+                          ? translate("recapEditor.shareUnsaved")
                           : undefined
                     }
                     fileName={monthKey}
@@ -993,8 +1008,8 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
                     presentation="controller"
                   />
                   <NativeActionMenu
-                    accessibilityLabel="더보기"
-                    actions={RECAP_MENU_ACTIONS.map((action) => ({
+                    accessibilityLabel={translate("common.more")}
+                    actions={createRecapMenuActions().map((action) => ({
                       ...action,
                       disabled:
                         action.id === "share" &&
@@ -1025,7 +1040,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
                 </>
               ) : null}
               <AppBar.Action
-                accessibilityLabel="꾸미기 완료"
+                accessibilityLabel={translate("recapEditor.complete")}
                 disabled={
                   !hasUnsavedDecoratingChanges ||
                   isCanvasLoading ||
@@ -1167,7 +1182,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
         onClose={handleCloseTextSheet}
       />
       <RecapColorSheet
-        title="텍스트 색상"
+        title={translate("recapEditor.textColor")}
         value={textSheetElement?.color ?? DEFAULT_RECAP_TEXT_COLOR}
         visible={activeTextSheet === "color"}
         onChangeColor={(color) =>
@@ -1178,7 +1193,7 @@ export function RecapDecoratingScreen(props: RecapDecoratingScreenProps) {
         onClose={handleCloseTextSheet}
       />
       <RecapColorSheet
-        title="배경색"
+        title={translate("recapEditor.backgroundColor")}
         value={committedBackgroundColor}
         visible={isBackgroundColorSheetVisible}
         onChangeColor={(color) =>

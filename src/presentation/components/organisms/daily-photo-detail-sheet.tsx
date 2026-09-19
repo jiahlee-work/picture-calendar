@@ -13,6 +13,7 @@ import { AppText as Text } from "@/presentation/components/atoms/app-text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { DailyPhoto } from "@/application/services/daily-photo/types";
+import { translate } from "@/application/services/localization/app-i18n";
 import { AppBottomSheetBackdrop } from "@/presentation/components/atoms/app-bottom-sheet-backdrop";
 import { DailyPhotoImage } from "@/presentation/components/atoms/daily-photo-image";
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
@@ -104,7 +105,7 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
           </View>
           {showActions ? (
             <Pressable
-              accessibilityLabel="사진 삭제"
+              accessibilityLabel={translate("photo.delete")}
               style={[styles.overlaySurface, styles.iconButton]}
               onPress={onDeletePhoto}
             >
@@ -117,12 +118,12 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
         {showActions && isToday && (
           <View style={[styles.bottomOverlay, { bottom: insets.bottom + 16 }]}>
             <Pressable
-              accessibilityLabel="사진 변경"
+              accessibilityLabel={translate("photo.change")}
               style={[styles.overlaySurface, styles.changePanel]}
               onPress={onChangePhoto}
             >
               <Text style={styles.policyText}>
-                오늘 안에는 사진을 바꿀 수 있어요.
+                {translate("photo.changeTodayHint")}
               </Text>
               <ReiconIcon color="#ffffff" name="AngleRight" size={24} />
             </Pressable>

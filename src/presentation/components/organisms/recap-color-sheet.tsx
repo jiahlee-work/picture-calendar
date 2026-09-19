@@ -18,6 +18,7 @@ import Svg, {
   Stop,
 } from "react-native-svg";
 
+import { translate } from "@/application/services/localization/app-i18n";
 import { AppBottomSheetBackdrop } from "@/presentation/components/atoms/app-bottom-sheet-backdrop";
 import { appColors } from "@/presentation/theme/colors";
 import { appLayers } from "@/presentation/theme/layers";
@@ -127,7 +128,9 @@ export function RecapColorSheet(props: RecapColorSheetProps) {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={
-            isCustomPickerVisible ? "기본 색상만 보기" : "색상 더 보기"
+            isCustomPickerVisible
+              ? translate("editorControls.basicColors")
+              : translate("editorControls.moreColors")
           }
           style={({ pressed }) => [
             styles.moreButton,
@@ -141,7 +144,9 @@ export function RecapColorSheet(props: RecapColorSheetProps) {
             <View style={[styles.moreButtonDot, styles.blueDot]} />
           </View>
           <Text style={styles.moreButtonText}>
-            {isCustomPickerVisible ? "기본 색상만 보기" : "색상 더 보기"}
+            {isCustomPickerVisible
+              ? translate("editorControls.basicColors")
+              : translate("editorControls.moreColors")}
           </Text>
         </Pressable>
       </BottomSheetView>
@@ -159,7 +164,7 @@ function ColorChip(props: {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${color} 색상 선택`}
+      accessibilityLabel={translate("editorControls.selectColor", { color })}
       accessibilityState={{ selected: isSelected }}
       style={({ pressed }) => [
         styles.colorButton,

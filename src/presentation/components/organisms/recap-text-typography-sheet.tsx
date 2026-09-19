@@ -21,6 +21,7 @@ import {
 import { AppText as Text } from "@/presentation/components/atoms/app-text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { translate } from "@/application/services/localization/app-i18n";
 import { AppBottomSheetBackdrop } from "@/presentation/components/atoms/app-bottom-sheet-backdrop";
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import { appColors } from "@/presentation/theme/colors";
@@ -54,7 +55,7 @@ type TypographyPopoverFrame = {
 const RECAP_TEXT_FONT_OPTIONS: RecapTextFontOption[] = [
   {
     id: "system",
-    label: "기본 서체",
+    label: "System",
   },
   createFontOption("PretendardLight", "프리텐다드 Light"),
   createFontOption("PretendardRegular", "프리텐다드 Regular"),
@@ -120,7 +121,17 @@ export function RecapTextTypographySheet(props: RecapTextTypographySheetProps) {
   );
   const [popoverFrame, setPopoverFrame] =
     useState<TypographyPopoverFrame | null>(null);
-  const selectedFontOption = getFontOption(fontFamily);
+  const fontOptions = useMemo(
+    () => [
+      {
+        ...RECAP_TEXT_FONT_OPTIONS[0],
+        label: translate("editorControls.defaultFont"),
+      },
+      ...RECAP_TEXT_FONT_OPTIONS.slice(1),
+    ],
+    [],
+  );
+  const selectedFontOption = getFontOption(fontOptions, fontFamily);
   const popoverStyle = getPopoverStyle(
     activePopover,
     popoverFrame,
@@ -196,7 +207,7 @@ export function RecapTextTypographySheet(props: RecapTextTypographySheetProps) {
           <View ref={fontFamilyRowRef} collapsable={false}>
             <TypographyRow
               isActive={activePopover === "fontFamily"}
-              label="서체"
+              label={translate("editorControls.font")}
               value={selectedFontOption.label}
               onPress={() =>
                 handleTogglePopover("fontFamily", fontFamilyRowRef)
@@ -206,7 +217,7 @@ export function RecapTextTypographySheet(props: RecapTextTypographySheetProps) {
           <View ref={fontSizeRowRef} collapsable={false}>
             <TypographyRow
               isActive={activePopover === "fontSize"}
-              label="글자 크기"
+              label={translate("editorControls.fontSize")}
               value={String(fontSize)}
               onPress={() => handleTogglePopover("fontSize", fontSizeRowRef)}
             />
@@ -222,14 +233,14 @@ export function RecapTextTypographySheet(props: RecapTextTypographySheetProps) {
         <View style={styles.modalRoot} pointerEvents="box-none">
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="서체와 글자 크기 옵션 닫기"
+            accessibilityLabel={translate("editorControls.closeTypography")}
             style={StyleSheet.absoluteFill}
             onPress={closePopover}
           />
           {activePopover === "fontFamily" ? (
             <View style={[styles.floatingPopover, popoverStyle]}>
               <ScrollView nestedScrollEnabled showsVerticalScrollIndicator>
-                {RECAP_TEXT_FONT_OPTIONS.map((option) => {
+                {fontOptions.map((option) => {
                   const isSelected = option.id === selectedFontOption.id;
 
                   return (
@@ -286,7 +297,7 @@ function TypographyRow(props: {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${label} 옵션 열기`}
+      accessibilityLabel={translate("editorControls.openOption", { label })}
       accessibilityState={{ selected: isActive }}
       style={({ pressed }) => [
         styles.row,
@@ -312,7 +323,7 @@ function TypographyOption(props: {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${label} 선택`}
+      accessibilityLabel={translate("editorControls.selectOption", { label })}
       accessibilityState={{ selected: isSelected }}
       style={({ pressed }) => [styles.option, pressed && styles.pressedOption]}
       onPress={onPress}
@@ -338,11 +349,12 @@ function createFontOption(
   };
 }
 
-function getFontOption(fontFamily: string | undefined): RecapTextFontOption {
+function getFontOption(
+  options: RecapTextFontOption[],
+  fontFamily: string | undefined,
+): RecapTextFontOption {
   return (
-    RECAP_TEXT_FONT_OPTIONS.find(
-      (option) => option.fontFamily === fontFamily,
-    ) ?? RECAP_TEXT_FONT_OPTIONS[0]
+    options.find((option) => option.fontFamily === fontFamily) ?? options[0]
   );
 }
 

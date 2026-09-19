@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
+import { configureAppLocale } from "@/application/services/localization/app-i18n";
 import {
   createRecapPhotoElement,
   createRecapStickerElement,
@@ -16,6 +17,10 @@ import {
 import type { RecapCanvasElement } from "@/shared/recap/types";
 
 describe("recap canvas elements", () => {
+  beforeEach(() => {
+    configureAppLocale("ko");
+  });
+
   it("sizes a photo element from its original aspect ratio", () => {
     expect(getRecapPhotoElementSize(1200, 1200)).toEqual({
       height: 164,

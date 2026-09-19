@@ -9,6 +9,7 @@ import {
 import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import { useRecapMonthList } from "@/application/hooks/use-recap-month-list";
+import { translate } from "@/application/services/localization/app-i18n";
 import {
   RecapMonthStatus,
   type RecapMonthSummary,
@@ -55,9 +56,11 @@ export function RecapMonthListScreen() {
       >
         <AppBar>
           <View style={styles.headerCopy}>
-            <AppBar.Title variant="large">Recap</AppBar.Title>
+            <AppBar.Title variant="large">
+              {translate("screen.recap")}
+            </AppBar.Title>
             <Text style={styles.description}>
-              한 달의 기억을 한 장에 담는 리캡을 만들어보세요.
+              {translate("recap.emptyDescription")}
             </Text>
           </View>
         </AppBar>

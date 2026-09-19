@@ -12,6 +12,7 @@ import {
   DEFAULT_RECAP_TEXT_WIDTH,
   normalizeRecapCanvasTextElement,
 } from "@/application/services/recap/recap-canvas-text";
+import { translate } from "@/application/services/localization/app-i18n";
 
 export type CreateRecapTextElementOptions = {
   id: string;
@@ -93,7 +94,7 @@ export function createRecapTextElement(
   return {
     id,
     color: DEFAULT_RECAP_TEXT_COLOR,
-    content: DEFAULT_RECAP_TEXT_CONTENT,
+    content: translate("editorControls.defaultText"),
     fontSize: DEFAULT_RECAP_TEXT_FONT_SIZE,
     fontStyle: "normal",
     fontWeight: "normal",
@@ -167,7 +168,7 @@ export function createRecapWidgetElement(
   if (variant === "speechBubble") {
     return {
       ...base,
-      text: text ?? DEFAULT_RECAP_WIDGET_SPEECH_BUBBLE_TEXT,
+      text: text ?? translate("editorControls.defaultSpeech"),
       variant,
     };
   }

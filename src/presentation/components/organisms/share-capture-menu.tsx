@@ -12,6 +12,7 @@ import {
   useShareCapture,
 } from "@/application/hooks/use-share-capture";
 import { openDeviceAppSettings } from "@/application/services/device/open-device-app-settings";
+import { translate } from "@/application/services/localization/app-i18n";
 import { runtimePlatform } from "@/infrastructure/device/runtime-platform";
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
 import { SymbolIconButton } from "@/presentation/components/atoms/symbol-icon-button";
@@ -48,18 +49,20 @@ type PermissionAlertState = {
   visible: boolean;
 };
 
-const SHARE_MENU_ACTIONS = [
-  {
-    icon: "download",
-    id: "save",
-    title: "이미지 저장",
-  },
-  {
-    icon: "share",
-    id: "share",
-    title: "공유하기",
-  },
-] satisfies NativeActionMenuAction[];
+function createShareMenuActions(): NativeActionMenuAction[] {
+  return [
+    {
+      icon: "download",
+      id: "save",
+      title: translate("common.saveImage"),
+    },
+    {
+      icon: "share",
+      id: "share",
+      title: translate("common.shareAction"),
+    },
+  ];
+}
 
 export const ShareCaptureMenu = forwardRef<
   ShareCaptureMenuHandle,
@@ -98,7 +101,7 @@ export const ShareCaptureMenu = forwardRef<
       return;
     }
 
-    Alert.alert("저장 필요", disabledMessage);
+    Alert.alert(translate("sharing.notReadyTitle"), disabledMessage);
   };
 
   const handleSaveImage = async () => {
@@ -142,11 +145,14 @@ export const ShareCaptureMenu = forwardRef<
     const result = await shareImage();
 
     if (result === ShareCapturedImageResult.unavailable) {
-      Alert.alert("공유 불가", "이 기기에서는 공유 기능을 사용할 수 없어요.");
+      Alert.alert(
+        translate("sharing.notAvailableTitle"),
+        translate("sharing.notAvailableMessage"),
+      );
     } else if (result === ShareCapturedImageResult.failed) {
       Alert.alert(
-        "공유 실패",
-        "이미지를 공유하지 못했어요. 잠시 후 다시 시도해 주세요.",
+        translate("sharing.shareFailedTitle"),
+        translate("sharing.shareFailedMessage"),
       );
     } else if (result === ShareCapturedImageResult.notReady) {
       showCaptureNotReadyAlert();
@@ -215,7 +221,7 @@ export const ShareCaptureMenu = forwardRef<
       ) : shouldShowActionMenu && !isBlockedWithMessage ? (
         <NativeActionMenu
           accessibilityLabel={accessibilityLabel}
-          actions={SHARE_MENU_ACTIONS.map((action) => ({
+          actions={createShareMenuActions().map((action) => ({
             ...action,
             disabled: isProcessing,
           }))}

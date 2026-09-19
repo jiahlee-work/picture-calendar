@@ -1,13 +1,14 @@
 import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 
+import { translate } from "@/application/services/localization/app-i18n";
 import { AppText } from "@/presentation/components/atoms/app-text";
 
 export function PhotoStorageNoticeBanner() {
   return (
     <View
       accessible
-      accessibilityLabel="사진은 이 기기에만 저장돼요. 앱 캐시나 데이터를 삭제하면 업로드한 사진과 스티커가 사라져요."
+      accessibilityLabel={translate("storageNotice.accessibility")}
       style={styles.banner}
     >
       <Image
@@ -19,7 +20,7 @@ export function PhotoStorageNoticeBanner() {
         style={StyleSheet.absoluteFill}
       />
       <AppText adjustsFontSizeToFit numberOfLines={1} style={styles.title}>
-        사진은 이 기기에만 저장돼요
+        {translate("storageNotice.title")}
       </AppText>
       <View style={styles.descriptionContainer}>
         <AppText
@@ -27,7 +28,7 @@ export function PhotoStorageNoticeBanner() {
           numberOfLines={2}
           style={styles.description}
         >
-          {"앱 캐시나 데이터를 삭제하면\n업로드한 사진과 스티커가 사라져요."}
+          {translate("storageNotice.description")}
         </AppText>
       </View>
     </View>

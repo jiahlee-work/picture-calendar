@@ -89,7 +89,7 @@ export function createExpoLocalNotificationAdapter(
           MONTHLY_RECAP_NOTIFICATION_CHANNEL_ID,
           {
             importance: Notifications.AndroidImportance.DEFAULT,
-            name: "월간 리캡",
+            name: "Pical Recap",
             showBadge: false,
             sound: null,
           },

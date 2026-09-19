@@ -11,6 +11,7 @@ import { font as fontModifier, scaleEffect } from "@expo/ui/swift-ui/modifiers";
 import type { ReactNode } from "react";
 
 import { appNativeFontFamily } from "@/presentation/theme/app-typography";
+import { translate } from "@/application/services/localization/app-i18n";
 
 type StickerRegistrationMenuProps = {
   children: ReactNode;
@@ -58,7 +59,7 @@ export function StickerRegistrationMenu(props: StickerRegistrationMenuProps) {
                 }),
               ]}
             >
-              클립보드 붙여넣기
+              {translate("stickers.registerFromClipboard")}
             </Text>
           </HStack>
         </Button>
@@ -76,7 +77,7 @@ export function StickerRegistrationMenu(props: StickerRegistrationMenuProps) {
                 }),
               ]}
             >
-              갤러리에서 등록
+              {translate("stickers.registerFromGallery")}
             </Text>
           </HStack>
         </Button>

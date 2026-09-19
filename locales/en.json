@@ -1,0 +1,10 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Pical",
+    "NSPhotoLibraryAddUsageDescription": "Allow access to save shared images to your photo library.",
+    "NSPhotoLibraryUsageDescription": "Allow access to choose and save photos in your photo library."
+  },
+  "android": {
+    "app_name": "Pical"
+  }
+}

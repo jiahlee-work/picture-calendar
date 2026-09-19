@@ -23,6 +23,7 @@ import Animated, {
 
 import { partitionStickerAssets } from "@/application/services/stickers/sticker-assets";
 import type { StickerAsset } from "@/application/services/stickers/types";
+import { translate } from "@/application/services/localization/app-i18n";
 import {
   ReiconIcon,
   type ReiconName,
@@ -115,13 +116,13 @@ export function StickerPickerSheet(props: StickerPickerSheetProps) {
       <View style={styles.header}>
         <View style={styles.assetTypeActions}>
           <AssetTypeButton
-            accessibilityLabel="스티커 보기"
+            accessibilityLabel={translate("stickers.showStickers")}
             icon="StickerSmile"
             isSelected={assetTypeValue === "stickers"}
             onPress={() => setAssetTypeValue("stickers")}
           />
           <AssetTypeButton
-            accessibilityLabel="위젯 보기"
+            accessibilityLabel={translate("stickers.showWidgets")}
             icon="Widget6"
             isSelected={assetTypeValue === "widgets"}
             onPress={() => setAssetTypeValue("widgets")}
@@ -136,7 +137,7 @@ export function StickerPickerSheet(props: StickerPickerSheetProps) {
             <View
               accessible
               accessibilityRole="button"
-              accessibilityLabel="스티커 등록 메뉴 열기"
+              accessibilityLabel={translate("stickers.registerMenu")}
               accessibilityState={{ disabled: isRegistering }}
               style={[
                 styles.assetTypeButton,
@@ -164,7 +165,7 @@ export function StickerPickerSheet(props: StickerPickerSheetProps) {
             assets={widgetAssets}
             cardGap={cardGap}
             cardWidth={cardWidth}
-            emptyText="사용할 수 있는 위젯이 없습니다."
+            emptyText={translate("stickers.emptyWidgets")}
             isLoading={false}
             onSelectSticker={onSelectSticker}
           />
@@ -173,7 +174,7 @@ export function StickerPickerSheet(props: StickerPickerSheetProps) {
             assets={stickerAssets}
             cardGap={cardGap}
             cardWidth={cardWidth}
-            emptyText="등록된 스티커가 없습니다."
+            emptyText={translate("stickers.emptyPicker")}
             isLoading={isLoading}
             onSelectSticker={onSelectSticker}
           />
@@ -198,7 +199,7 @@ function StickerPickerGrid(props: {
     return (
       <View style={styles.loadingState}>
         <ActivityIndicator color={appColors.black} size="small" />
-        <Text style={styles.emptyText}>스티커를 불러오는 중이에요.</Text>
+        <Text style={styles.emptyText}>{translate("stickers.loading")}</Text>
       </View>
     );
   }
@@ -294,7 +295,7 @@ function StickerPickerSheetBackdrop(props: BottomSheetBackdropProps) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="스티커 선택창 닫기"
+      accessibilityLabel={translate("common.close")}
       style={[StyleSheet.absoluteFill, style, styles.backdropTouchTarget]}
       onPress={() => close()}
     >

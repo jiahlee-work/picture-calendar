@@ -4,6 +4,7 @@ import { AppText as Text } from "@/presentation/components/atoms/app-text";
 
 import { useRecapNotificationSettings } from "@/application/hooks/use-recap-notification-settings";
 import { openAppUpdate } from "@/application/services/device/open-app-update";
+import { translate } from "@/application/services/localization/app-i18n";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
 import { AppSwitch } from "@/presentation/components/atoms/app-switch";
 import { PhotoStorageNoticeBanner } from "@/presentation/components/molecules/photo-storage-notice-banner";
@@ -18,14 +19,19 @@ export function SettingsScreen() {
 
   const handleUpdateAppVersion = () => {
     void openAppUpdate().catch(() => {
-      Alert.alert("스토어를 열 수 없어요", "잠시 후 다시 시도해 주세요.");
+      Alert.alert(
+        translate("settings.storeErrorTitle"),
+        translate("settings.storeErrorMessage"),
+      );
     });
   };
 
   return (
     <AppSafeAreaView>
       <AppBar>
-        <AppBar.Title variant="large">Settings</AppBar.Title>
+        <AppBar.Title variant="large">
+          {translate("screen.settings")}
+        </AppBar.Title>
       </AppBar>
       <ScrollView
         contentContainerStyle={styles.content}
@@ -33,16 +39,20 @@ export function SettingsScreen() {
       >
         <PhotoStorageNoticeBanner />
         <View>
-          <Text style={styles.sectionTitle}>설정</Text>
+          <Text style={styles.sectionTitle}>
+            {translate("settings.sectionTitle")}
+          </Text>
           <View style={styles.settingItem}>
             <View style={styles.settingCopy}>
-              <Text style={styles.settingTitle}>리캡</Text>
+              <Text style={styles.settingTitle}>
+                {translate("settings.recap")}
+              </Text>
               <Text style={styles.settingSubtitle}>
-                리캡 업데이트 정보를 알려드려요
+                {translate("settings.recapDescription")}
               </Text>
             </View>
             <AppSwitch
-              accessibilityLabel="리캡 알림"
+              accessibilityLabel={translate("settings.recapNotification")}
               disabled={isLoading || !isSupported}
               value={isEnabled}
               onValueChange={setEnabled}
@@ -52,16 +62,22 @@ export function SettingsScreen() {
           {isAppUpdateActionVisible ? (
             <View style={styles.settingItem}>
               <View style={styles.settingCopy}>
-                <Text style={styles.settingTitle}>앱 버전</Text>
-                <Text style={styles.settingSubtitle}>최신 버전</Text>
+                <Text style={styles.settingTitle}>
+                  {translate("settings.appVersion")}
+                </Text>
+                <Text style={styles.settingSubtitle}>
+                  {translate("settings.latestVersion")}
+                </Text>
               </View>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="업데이트"
+                accessibilityLabel={translate("common.update")}
                 style={styles.update}
                 onPress={handleUpdateAppVersion}
               >
-                <Text style={styles.updateLabel}>업데이트</Text>
+                <Text style={styles.updateLabel}>
+                  {translate("common.update")}
+                </Text>
               </Pressable>
             </View>
           ) : null}
