@@ -30,6 +30,9 @@ type DailyPhotoDetailSheetProps = {
   onDeletePhoto: () => void;
 };
 
+const OVERLAY_BACKGROUND_COLOR = "rgba(18,18,18,0.72)";
+const OVERLAY_BORDER_COLOR = "rgba(255,255,255,0.18)";
+
 export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
   const {
     dateLabel,
@@ -94,11 +97,15 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
         <DailyPhotoImage imagePath={photo.imagePath} />
         <View style={styles.topOverlay}>
           <View style={styles.topSpacer} />
-          <Text style={styles.dateText}>{dateLabel}</Text>
+          <View style={styles.dateContainer}>
+            <View style={[styles.overlaySurface, styles.dateBadge]}>
+              <Text style={styles.dateText}>{dateLabel}</Text>
+            </View>
+          </View>
           {showActions ? (
             <Pressable
               accessibilityLabel="사진 삭제"
-              style={styles.iconButton}
+              style={[styles.overlaySurface, styles.iconButton]}
               onPress={onDeletePhoto}
             >
               <ReiconIcon color="#ffffff" name="Trash5" size={20} />
@@ -111,7 +118,7 @@ export function DailyPhotoDetailSheet(props: DailyPhotoDetailSheetProps) {
           <View style={[styles.bottomOverlay, { bottom: insets.bottom + 16 }]}>
             <Pressable
               accessibilityLabel="사진 변경"
-              style={styles.changePanel}
+              style={[styles.overlaySurface, styles.changePanel]}
               onPress={onChangePhoto}
             >
               <Text style={styles.policyText}>
@@ -162,11 +169,20 @@ const styles = StyleSheet.create({
   },
   dateText: {
     color: "#ffffff",
-    flex: 1,
     fontSize: 16,
     fontWeight: "800",
     lineHeight: 24,
     textAlign: "center",
+  },
+  dateContainer: {
+    alignItems: "center",
+    flex: 1,
+  },
+  dateBadge: {
+    borderRadius: 20,
+    justifyContent: "center",
+    minHeight: 40,
+    paddingHorizontal: 16,
   },
   topSpacer: {
     height: 44,
@@ -174,10 +190,7 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     alignItems: "center",
-    backgroundColor: appColors.blackOverlay34,
-    borderColor: "rgba(255,255,255,0.24)",
     borderRadius: 22,
-    borderWidth: 1,
     elevation: 3,
     height: 40,
     justifyContent: "center",
@@ -194,16 +207,18 @@ const styles = StyleSheet.create({
   },
   changePanel: {
     alignItems: "center",
-    backgroundColor: appColors.blackOverlay34,
-    borderColor: "transparent",
     borderRadius: 16,
-    borderWidth: 1,
     flexDirection: "row",
     gap: 14,
     justifyContent: "space-between",
     minHeight: 54,
     paddingLeft: 18,
     paddingRight: 10,
+  },
+  overlaySurface: {
+    backgroundColor: OVERLAY_BACKGROUND_COLOR,
+    borderColor: OVERLAY_BORDER_COLOR,
+    borderWidth: 1,
   },
   policyText: {
     color: "#ffffff",
