@@ -44,6 +44,25 @@ export async function listStickerAssets(
   return [...WIDGET_ASSETS, ...userAssets];
 }
 
+export function prependUserStickerAsset(
+  assets: StickerAsset[],
+  userSticker: Extract<StickerAsset, { source: "sticker" }>,
+): StickerAsset[] {
+  const firstUserStickerIndex = assets.findIndex(
+    (asset) => asset.source === "sticker",
+  );
+
+  if (firstUserStickerIndex === -1) {
+    return [...assets, userSticker];
+  }
+
+  return [
+    ...assets.slice(0, firstUserStickerIndex),
+    userSticker,
+    ...assets.slice(firstUserStickerIndex),
+  ];
+}
+
 export function partitionStickerAssets(assets: StickerAsset[]): {
   stickers: Extract<StickerAsset, { source: "sticker" }>[];
   widgets: Extract<StickerAsset, { source: "widget" }>[];

@@ -3,6 +3,7 @@ import { createStickerFileStoreForRuntime } from "@/application/services/sticker
 import { createStickerRepositoryForRuntime } from "@/application/services/stickers/sticker-repository-factory";
 import {
   listStickerAssets,
+  prependUserStickerAsset,
   WIDGET_ASSETS,
 } from "@/application/services/stickers/sticker-assets";
 import { toDefaultStickerName } from "@/application/services/stickers/sticker-name";
@@ -236,15 +237,14 @@ export function useStickerLibrary() {
         sourceUri: pickedImage.uri,
       });
 
-      await repository.saveUserAsset({
+      const savedSticker = await repository.saveUserAsset({
         userId: LOCAL_USER_ID,
         imagePath: storedFile.imagePath,
         storageKey: storedFile.storageKey,
         name: toDefaultStickerName(pickedImage.fileName),
       });
-      const loadedStickers = await listStickerAssets(repository, LOCAL_USER_ID);
 
-      setStickers(loadedStickers);
+      setStickers((current) => prependUserStickerAsset(current, savedSticker));
 
       return "saved";
     } catch (error) {

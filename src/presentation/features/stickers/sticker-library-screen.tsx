@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Pressable,
   ScrollView,
@@ -306,7 +307,7 @@ export function StickerLibraryScreen() {
         <AppBar.Title variant="large">Library</AppBar.Title>
         {activeTabValue === "sticker" ? (
           <StickerRegistrationMenu
-            disabled={isSelectionMode}
+            disabled={isSelectionMode || isSaving}
             onRegisterFromClipboard={() => {
               void handleRegisterFromClipboard();
             }}
@@ -318,13 +319,21 @@ export function StickerLibraryScreen() {
               accessible
               accessibilityRole="button"
               accessibilityLabel="스티커 등록 메뉴 열기"
-              accessibilityState={{ disabled: isSelectionMode }}
+              accessibilityState={{
+                busy: isSaving,
+                disabled: isSelectionMode || isSaving,
+              }}
               style={[
                 styles.registrationMenuTrigger,
-                isSelectionMode && styles.registrationMenuTriggerDisabled,
+                (isSelectionMode || isSaving) &&
+                  styles.registrationMenuTriggerDisabled,
               ]}
             >
-              <ReiconIcon color={appColors.white} name="Add" size={24} />
+              {isSaving ? (
+                <ActivityIndicator color={appColors.white} size="small" />
+              ) : (
+                <ReiconIcon color={appColors.white} name="Add" size={24} />
+              )}
             </View>
           </StickerRegistrationMenu>
         ) : (
@@ -367,12 +376,6 @@ export function StickerLibraryScreen() {
                 onToggleSelection={handleToggleStickerSelection}
               />
             ))}
-          </View>
-        )}
-
-        {isSaving && (
-          <View style={styles.savingPanel}>
-            <Text style={styles.savingText}>스티커를 저장하는 중이에요.</Text>
           </View>
         )}
       </ScrollView>
@@ -439,6 +442,7 @@ function StickerSelectionActionBar(props: {
         <SelectionActionButton
           accessibilityLabel={`선택한 스티커 ${selectedCount}개 삭제`}
           disabled={isSaving}
+          isLoading={isSaving}
           label="삭제"
           onPress={onDelete}
         />
@@ -450,15 +454,23 @@ function StickerSelectionActionBar(props: {
 function SelectionActionButton(props: {
   accessibilityLabel?: string;
   disabled?: boolean;
+  isLoading?: boolean;
   label: string;
   onPress: () => void;
 }) {
-  const { accessibilityLabel, disabled = false, label, onPress } = props;
+  const {
+    accessibilityLabel,
+    disabled = false,
+    isLoading = false,
+    label,
+    onPress,
+  } = props;
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={{ busy: isLoading, disabled }}
       disabled={disabled}
       style={({ pressed }) => [
         styles.selectionActionButton,
@@ -467,7 +479,11 @@ function SelectionActionButton(props: {
       ]}
       onPress={onPress}
     >
-      <Text style={styles.selectionActionButtonLabel}>{label}</Text>
+      {isLoading ? (
+        <ActivityIndicator color={appColors.black} size="small" />
+      ) : (
+        <Text style={styles.selectionActionButtonLabel}>{label}</Text>
+      )}
     </Pressable>
   );
 }
@@ -519,14 +535,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     textAlign: "center",
   },
-  savingPanel: {
-    alignItems: "center",
-    backgroundColor: appColors.black,
-    borderCurve: "continuous",
-    borderRadius: 18,
-    justifyContent: "center",
-    padding: 14,
-  },
   selectionActionButton: {
     alignItems: "center",
     backgroundColor: "rgba(255,255,255,0.68)",
@@ -575,11 +583,5 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 0,
     zIndex: appLayers.bottomNavigation,
-  },
-  savingText: {
-    color: appColors.white,
-    fontSize: 14,
-    fontWeight: "900",
-    lineHeight: 20,
   },
 });

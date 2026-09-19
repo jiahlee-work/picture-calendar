@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 
@@ -20,18 +21,28 @@ export function StickerAssetPreview(props: StickerAssetPreviewProps) {
       ]}
     >
       {asset.source === "sticker" ? (
-        <Image
-          cachePolicy="none"
-          contentFit="contain"
-          source={{ uri: asset.imagePath }}
-          style={styles.userStickerImage}
-        />
+        <UserStickerImage imagePath={asset.imagePath} />
       ) : (
         <WidgetPreview asset={asset} size={size} />
       )}
     </View>
   );
 }
+
+const UserStickerImage = memo(function UserStickerImage(props: {
+  imagePath: string;
+}) {
+  const { imagePath } = props;
+
+  return (
+    <Image
+      cachePolicy="memory-disk"
+      contentFit="contain"
+      source={imagePath}
+      style={styles.userStickerImage}
+    />
+  );
+});
 
 const styles = StyleSheet.create({
   detailRoot: {
