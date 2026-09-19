@@ -10,14 +10,22 @@ type CalendarAppBarStoryProps = {
   viewportWidth: number;
 };
 
+const COMPACT_CALENDAR_TITLE_MAX_WIDTH = 389;
+
 function CalendarAppBarStoryView(props: CalendarAppBarStoryProps) {
   const { title, viewportWidth } = props;
+  const calendarTitleStyle =
+    viewportWidth <= COMPACT_CALENDAR_TITLE_MAX_WIDTH
+      ? styles.compactCalendarTitle
+      : undefined;
 
   return (
     <View style={[styles.viewport, { width: viewportWidth }]}>
       <AppBar>
         <AppBar.Title
           accessibilityLabel="연월 선택 열기"
+          shouldTruncate={false}
+          style={calendarTitleStyle}
           variant="large"
           onPress={() => undefined}
         >
@@ -62,35 +70,35 @@ type Story = StoryObj<typeof meta>;
 
 export const Width370: Story = {
   args: {
-    title: "May 2026",
+    title: "Sep 2026",
     viewportWidth: 370,
   },
 };
 
 export const Width390: Story = {
   args: {
-    title: "May 2026",
+    title: "Sep 2026",
     viewportWidth: 390,
   },
 };
 
 export const Width402: Story = {
   args: {
-    title: "May 2026",
+    title: "Sep 2026",
     viewportWidth: 402,
   },
 };
 
 export const Width420: Story = {
   args: {
-    title: "May 2026",
+    title: "Sep 2026",
     viewportWidth: 420,
   },
 };
 
 export const Width440: Story = {
   args: {
-    title: "May 2026",
+    title: "Sep 2026",
     viewportWidth: 440,
   },
 };
@@ -99,6 +107,10 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: "row",
     gap: 10,
+  },
+  compactCalendarTitle: {
+    fontSize: 30,
+    lineHeight: 36,
   },
   canvas: {
     alignItems: "center",

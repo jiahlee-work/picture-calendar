@@ -1,5 +1,11 @@
 import { useRef, useState } from "react";
-import { Alert, type LayoutChangeEvent, StyleSheet, View } from "react-native";
+import {
+  Alert,
+  type LayoutChangeEvent,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
 import { useTodayPhotoFlow } from "@/application/hooks/use-today-photo-flow";
 import {
@@ -33,7 +39,10 @@ type ShareContentLayout = {
   width: number;
 };
 
+const COMPACT_CALENDAR_TITLE_MAX_WIDTH = 389;
+
 export function MonthlyCalendarScreen() {
+  const { width: windowWidth } = useWindowDimensions();
   const shareCaptureRef = useRef<View>(null);
   const shareCaptureMenuRef = useRef<ShareCaptureMenuHandle>(null);
   const pendingShareFlowRef = useRef<"actions" | "share" | null>(null);
@@ -63,6 +72,10 @@ export function MonthlyCalendarScreen() {
     handleDeleteSelectedPhoto,
     handleSelectDate,
   } = useTodayPhotoFlow(activeMonth);
+  const calendarTitleStyle =
+    windowWidth <= COMPACT_CALENDAR_TITLE_MAX_WIDTH
+      ? styles.compactCalendarTitle
+      : undefined;
   const isShareReady = calendar.days.length > 0;
   const shareFileName = dayjs(activeMonth).format("YYYY-MM");
   const shareCanvasDimensions = shareContentLayout
@@ -192,6 +205,8 @@ export function MonthlyCalendarScreen() {
         <AppBar>
           <AppBar.Title
             accessibilityLabel="연월 선택 열기"
+            shouldTruncate={false}
+            style={calendarTitleStyle}
             variant="large"
             onPress={handleOpenYearMonthPicker}
           >
@@ -237,7 +252,13 @@ export function MonthlyCalendarScreen() {
         >
           <View style={styles.shareCalendarContent}>
             <AppBar>
-              <AppBar.Title variant="large">{calendar.title}</AppBar.Title>
+              <AppBar.Title
+                shouldTruncate={false}
+                style={calendarTitleStyle}
+                variant="large"
+              >
+                {calendar.title}
+              </AppBar.Title>
             </AppBar>
             <View style={styles.content}>
               <MonthlyCalendar
@@ -296,6 +317,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: appColors.background,
+  },
+  compactCalendarTitle: {
+    fontSize: 30,
+    lineHeight: 36,
   },
   content: {
     flex: 1,

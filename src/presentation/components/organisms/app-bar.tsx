@@ -30,6 +30,7 @@ type AppBarTitleProps = {
   accessibilityLabel?: string;
   children: ReactNode;
   onPress?: (event: GestureResponderEvent) => void;
+  shouldTruncate?: boolean;
   style?: StyleProp<TextStyle>;
   variant?: "large" | "medium" | "small";
 };
@@ -84,12 +85,16 @@ function AppBarTitle(props: AppBarTitleProps) {
     accessibilityLabel,
     children,
     onPress,
+    shouldTruncate = true,
     style,
     variant = "medium",
   } = props;
   const variantStyle = TITLE_VARIANT_STYLES[variant];
   const title = (
-    <Text style={[styles.title, variantStyle, style]} numberOfLines={1}>
+    <Text
+      style={[styles.title, variantStyle, style]}
+      numberOfLines={shouldTruncate ? 1 : undefined}
+    >
       {children}
     </Text>
   );
