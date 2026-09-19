@@ -1,10 +1,16 @@
 import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 
-import { translate } from "@/application/services/localization/app-i18n";
 import { AppText } from "@/presentation/components/atoms/app-text";
+import { translate } from "@/application/services/localization/app-i18n";
+import {
+  photoStorageNoticeImageSource,
+  usePhotoStorageNoticeImage,
+} from "@/presentation/providers/photo-storage-notice-image-provider";
 
 export function PhotoStorageNoticeBanner() {
+  const image = usePhotoStorageNoticeImage();
+
   return (
     <View
       accessible
@@ -16,7 +22,8 @@ export function PhotoStorageNoticeBanner() {
         contentFit="fill"
         pointerEvents="none"
         priority="high"
-        source={require("../../../../assets/images/photo-storage-notice.png")}
+        source={image ?? photoStorageNoticeImageSource}
+        transition={0}
         style={StyleSheet.absoluteFill}
       />
       <AppText adjustsFontSizeToFit numberOfLines={1} style={styles.title}>
