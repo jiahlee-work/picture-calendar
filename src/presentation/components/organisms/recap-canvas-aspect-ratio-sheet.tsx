@@ -19,8 +19,10 @@ import {
 } from "@/shared/recap/types";
 
 type RecapCanvasAspectRatioSheetProps = {
+  confirmLabel?: string;
   required?: boolean;
   subtitle?: string;
+  title?: string;
   value: RecapCanvasAspectRatioType;
   visible: boolean;
   onCancel: () => void;
@@ -31,7 +33,7 @@ type RecapCanvasAspectRatioSheetProps = {
 
 const OPTIONS = [
   {
-    description: "화면 전체를 빈 공간 없이 가득 채워 사용하는 비율이에요.",
+    description: "화면을 가득 채우는 비율이에요.",
     id: RecapCanvasAspectRatio.device,
     label: "full",
   },
@@ -51,12 +53,14 @@ export function RecapCanvasAspectRatioSheet(
   props: RecapCanvasAspectRatioSheetProps,
 ) {
   const {
+    confirmLabel = "완료",
     onClose,
     onCancel,
     onConfirm,
     onSelect,
     required = false,
     subtitle = "리캡의 캔버스 비율을 먼저 선택해 주세요.\n상단의 더보기를 통해 언제든 변경할 수 있어요.",
+    title = "캔버스 비율 선택",
     value,
     visible,
   } = props;
@@ -104,7 +108,7 @@ export function RecapCanvasAspectRatioSheet(
       <BottomSheetView
         style={[styles.content, { paddingBottom: Math.max(insets.bottom, 18) }]}
       >
-        <Text style={styles.title}>캔버스 비율 선택</Text>
+        <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
         <View style={styles.options}>
           {OPTIONS.map((option) => (
@@ -138,7 +142,7 @@ export function RecapCanvasAspectRatioSheet(
             ]}
             onPress={onConfirm}
           >
-            <Text style={styles.confirmButtonLabel}>선택 완료</Text>
+            <Text style={styles.confirmButtonLabel}>{confirmLabel}</Text>
           </Pressable>
         </View>
       </BottomSheetView>

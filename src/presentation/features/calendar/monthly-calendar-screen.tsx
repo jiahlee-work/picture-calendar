@@ -253,7 +253,11 @@ export function MonthlyCalendarScreen() {
       )}
       <DailyPhotoPolicyDialog dialog={policyDialog} onCancel={dismissDialog} />
       <RecapCanvasAspectRatioSheet
-        subtitle="사진으로 채운 캘린더의 캔버스 비율을 선택해 주세요."
+        confirmLabel="공유"
+        subtitle={
+          "이번 달 캘린더를 원하는 비율의 이미지로 공유할 수 있어요.\n공유할 비율을 선택해 주세요."
+        }
+        title="캘린더 이미지 공유"
         value={pendingShareAspectRatio}
         visible={isShareAspectRatioSheetVisible}
         onCancel={handleCancelShareAspectRatio}

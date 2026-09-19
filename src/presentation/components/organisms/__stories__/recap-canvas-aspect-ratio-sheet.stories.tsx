@@ -12,12 +12,21 @@ import {
 } from "@/shared/recap/types";
 
 type StoryProps = {
+  confirmLabel?: string;
   required: boolean;
+  subtitle?: string;
+  title?: string;
   value: RecapCanvasAspectRatioType;
 };
 
 function RecapCanvasAspectRatioSheetStory(props: StoryProps) {
-  const { required, value: initialValue } = props;
+  const {
+    confirmLabel,
+    required,
+    subtitle,
+    title,
+    value: initialValue,
+  } = props;
   const [value, setValue] = useState(initialValue);
   const [visible, setVisible] = useState(true);
 
@@ -31,7 +40,10 @@ function RecapCanvasAspectRatioSheetStory(props: StoryProps) {
           </Pressable>
         ) : null}
         <RecapCanvasAspectRatioSheet
+          confirmLabel={confirmLabel}
           required={required}
+          subtitle={subtitle}
+          title={title}
           value={value}
           visible={visible}
           onCancel={() => setVisible(false)}
@@ -72,6 +84,17 @@ export const Optional: Story = {
 export const Required: Story = {
   args: {
     required: true,
+    value: RecapCanvasAspectRatio.device,
+  },
+};
+
+export const CalendarShare: Story = {
+  args: {
+    confirmLabel: "공유",
+    required: false,
+    subtitle:
+      "이번 달 캘린더를 원하는 비율의 이미지로 공유할 수 있어요.\n공유할 비율을 선택해 주세요.",
+    title: "캘린더 이미지 공유",
     value: RecapCanvasAspectRatio.device,
   },
 };
