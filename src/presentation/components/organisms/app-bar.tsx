@@ -246,9 +246,9 @@ const styles = StyleSheet.create({
   },
   titleRow: {
     alignItems: "center",
+    alignSelf: "stretch",
     flexDirection: "row",
     gap: 6,
-    width: "100%",
   },
   title: {
     color: appColors.black,
