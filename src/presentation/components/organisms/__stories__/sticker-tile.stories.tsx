@@ -9,6 +9,8 @@ import { appColors } from "@/presentation/theme/colors";
 
 const STICKER_ASSETS = {
   widget: WIDGET_ASSETS[0],
+  widgetPolaroid: WIDGET_ASSETS[1],
+  widgetSpeechBubble: WIDGET_ASSETS[3],
   sticker: {
     id: "story-user-sticker",
     source: "sticker",
@@ -83,6 +85,24 @@ type Story = StoryObj<typeof meta>;
 export const Widget: Story = {
   args: {
     assetType: "widget",
+    isSelected: false,
+    selectionMode: false,
+    tileSize: 144,
+  },
+};
+
+export const WidgetPolaroid: Story = {
+  args: {
+    assetType: "widgetPolaroid",
+    isSelected: false,
+    selectionMode: false,
+    tileSize: 144,
+  },
+};
+
+export const WidgetSpeechBubble: Story = {
+  args: {
+    assetType: "widgetSpeechBubble",
     isSelected: false,
     selectionMode: false,
     tileSize: 144,

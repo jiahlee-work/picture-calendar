@@ -31,6 +31,7 @@ export function WidgetPreview(props: WidgetPreviewProps) {
       <View
         style={[
           styles.calendarPreview,
+          size === "tile" && styles.tileCalendarPreview,
           size === "detail" && styles.detailCalendarPreview,
         ]}
       >
@@ -42,13 +43,16 @@ export function WidgetPreview(props: WidgetPreviewProps) {
   if (asset.variant === "speechBubble") {
     return (
       <MessageRecapBubble
+        tailScale={size === "tile" ? 0.65 : 1}
         text="안녕하세요"
         style={[
           styles.speechBubblePreview,
+          size === "tile" && styles.tileSpeechBubblePreview,
           size === "detail" && styles.detailSpeechBubblePreview,
         ]}
         textStyle={[
           styles.speechBubbleText,
+          size === "tile" && styles.tileSpeechBubbleText,
           size === "detail" && styles.detailSpeechBubbleText,
         ]}
       />
@@ -70,7 +74,7 @@ export function WidgetPreview(props: WidgetPreviewProps) {
         <ReiconIcon
           color={appColors.blackOverlay34}
           name="GalleryAdd"
-          size={24}
+          size={size === "tile" ? 18 : 24}
         />
       </View>
     </View>
@@ -219,7 +223,7 @@ const styles = StyleSheet.create({
     boxShadow: "none",
     flexGrow: 0,
     justifyContent: "flex-start",
-    paddingBottom: 0,
+    paddingBottom: 10,
     paddingHorizontal: 18,
     paddingTop: 10,
     width: 240,
@@ -235,7 +239,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
     justifyContent: "center",
-    minHeight: 64,
+    minHeight: 30,
   },
   miniCalendarDayBadge: {
     alignItems: "center",
@@ -249,10 +253,10 @@ const styles = StyleSheet.create({
   },
   miniCalendarDayText: {
     color: appColors.black,
-    fontSize: 16,
+    fontSize: 9,
     fontWeight: "500",
-    lineHeight: 22,
-    transform: [{ translateY: -8 }],
+    lineHeight: 12,
+    transform: [{ translateY: -1 }],
   },
   miniCalendarGrid: {
     width: "100%",
@@ -261,17 +265,17 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 18,
+    marginBottom: 8,
   },
   miniCalendarMonthText: {
     color: appColors.black,
-    fontSize: 28,
+    fontSize: 18,
     fontWeight: "900",
-    lineHeight: 34,
+    lineHeight: 23,
   },
   miniCalendarWeek: {
     flexDirection: "row",
-    minHeight: 64,
+    minHeight: 30,
   },
   miniCalendarWeekDivider: {
     borderBottomColor: "#D1D1D1",
@@ -279,9 +283,9 @@ const styles = StyleSheet.create({
   },
   miniCalendarYearText: {
     color: appColors.blackOverlay34,
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "800",
-    lineHeight: 20,
+    lineHeight: 16,
   },
   miniWeekdayRow: {
     borderBottomColor: "#D1D1D1",
@@ -300,7 +304,7 @@ const styles = StyleSheet.create({
   },
   polaroidPreview: {
     backgroundColor: "#fffdfa",
-    boxShadow: "none",
+    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.18)",
     height: "72%",
     paddingBottom: 14,
     paddingHorizontal: 7,
@@ -319,15 +323,32 @@ const styles = StyleSheet.create({
     width: "72%",
   },
   speechBubblePreview: {
+    alignSelf: "center",
     maxWidth: 280,
     minHeight: 46,
-    minWidth: 72,
     paddingHorizontal: 18,
     paddingVertical: 11,
-    transform: [{ scale: 0.55 }],
   },
   speechBubbleText: {
     fontSize: 16,
     lineHeight: 22,
+  },
+  tileSpeechBubblePreview: {
+    minHeight: 30,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  tileSpeechBubbleText: {
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  tileCalendarPreview: {
+    backgroundColor: appColors.white,
+    borderCurve: "continuous",
+    borderRadius: 4,
+    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.18)",
+    height: "80%",
+    overflow: "visible",
+    paddingVertical: 0,
   },
 });
