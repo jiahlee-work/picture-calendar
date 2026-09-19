@@ -45,7 +45,8 @@
 ## Git Workflow
 
 - Follow `docs/engineering/git-workflow.md`.
-- Direct commits and pushes to `main` or `master` are forbidden.
+- Direct commits and pushes to `main` or `master` are allowed.
+- Use a separate branch for experimental, high-risk, or review-heavy changes.
 - Use Conventional Commits with optional scope:
   `<type>[optional scope]: <description>`.
 - English and Korean commit descriptions are both allowed.

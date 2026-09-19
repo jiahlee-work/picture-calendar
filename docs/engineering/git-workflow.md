@@ -12,9 +12,10 @@ This document defines common Git rules for agents.
 
 ## Branch Policy
 
-- Direct commits and pushes to `main` or `master` are forbidden.
-- Work on a feature branch unless the user explicitly gives a different branch
-  workflow.
+- Direct commits and pushes to `main` or `master` are allowed.
+- A separate branch is optional for routine, low-risk work.
+- Use a separate branch for experimental, high-risk, or review-heavy changes,
+  or when the user explicitly requests one.
 - Tooling may block protected branch pushes when the repository installs Husky
   branch guards.
 
