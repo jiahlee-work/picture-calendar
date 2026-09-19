@@ -1,10 +1,15 @@
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { AppText as Text } from "@/presentation/components/atoms/app-text";
+import {
+  ReiconIcon,
+  type ReiconName,
+} from "@/presentation/components/atoms/reicon-icon";
 
 import { appColors } from "@/presentation/theme/colors";
 
 export type SegmentedTabOption<Value extends string> = {
+  icon?: ReiconName;
   label: string;
   value: Value;
 };
@@ -38,6 +43,13 @@ export function SegmentedTabs<Value extends string>(
             ]}
             onPress={() => onValueChange(option.value)}
           >
+            {option.icon ? (
+              <ReiconIcon
+                color={isSelected ? appColors.white : appColors.black}
+                name={option.icon}
+                size={20}
+              />
+            ) : null}
             <Text
               style={[
                 styles.tabText,
@@ -68,7 +80,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   inactiveTabText: {
-    color: "#8A8A8A",
+    color: appColors.black,
   },
   pressedTab: {
     opacity: 0.72,
@@ -81,6 +93,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderCurve: "continuous",
     borderRadius: 999,
+    flexDirection: "row",
+    gap: 8,
     justifyContent: "center",
     minHeight: 40,
     minWidth: 68,

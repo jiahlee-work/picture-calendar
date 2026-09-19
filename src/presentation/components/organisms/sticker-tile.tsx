@@ -23,24 +23,33 @@ export function StickerTile(props: StickerTileProps) {
     onOpenDetails,
     onToggleSelection,
     selectionMode = false,
-    showsSelectionControl = isSelectable,
+    showsSelectionControl = selectionMode && isSelectable,
     tileSize,
   } = props;
   const title = asset.name ?? "Sticker";
   const canOpenDetails = Boolean(onOpenDetails);
   const accessibilityHint =
-    isSelectable && canOpenDetails
-      ? "탭하여 스티커 선택, 길게 눌러 스티커 상세보기"
-      : isSelectable
-        ? "탭하여 스티커 선택"
-        : selectionMode
-          ? "스티커 선택 상태 변경"
+    selectionMode && isSelectable
+      ? "탭하여 선택 상태 변경"
+      : isSelectable && canOpenDetails
+        ? "탭하여 크게 보기, 길게 눌러 선택"
+        : isSelectable
+          ? "탭하여 선택"
           : canOpenDetails
-            ? "길게 눌러 스티커 상세보기"
+            ? "탭하여 크게 보기"
             : undefined;
 
   const handlePress = () => {
-    if (isSelectable) {
+    if (isSelectable && (selectionMode || !canOpenDetails)) {
+      onToggleSelection?.(asset);
+      return;
+    }
+
+    onOpenDetails?.(asset);
+  };
+
+  const handleLongPress = () => {
+    if (!selectionMode && isSelectable && canOpenDetails) {
       onToggleSelection?.(asset);
     }
   };
@@ -50,7 +59,9 @@ export function StickerTile(props: StickerTileProps) {
       accessibilityRole="button"
       accessibilityLabel={title}
       accessibilityHint={accessibilityHint}
-      accessibilityState={{ selected: isSelected }}
+      accessibilityState={{
+        selected: selectionMode ? isSelected : undefined,
+      }}
       delayLongPress={260}
       style={({ pressed }) => [
         styles.root,
@@ -62,7 +73,7 @@ export function StickerTile(props: StickerTileProps) {
         },
       ]}
       onPress={handlePress}
-      onLongPress={onOpenDetails ? () => onOpenDetails(asset) : undefined}
+      onLongPress={isSelectable && canOpenDetails ? handleLongPress : undefined}
     >
       <StickerAssetPreview asset={asset} />
       {showsSelectionControl && (

@@ -22,17 +22,24 @@ const STICKER_ASSETS = {
 
 type StickerTileStoryProps = {
   assetType: keyof typeof STICKER_ASSETS;
+  isSelected: boolean;
+  selectionMode: boolean;
   tileSize: number;
 };
 
 function StickerTileStory(props: StickerTileStoryProps) {
-  const { assetType, tileSize } = props;
+  const { assetType, isSelected, selectionMode, tileSize } = props;
+  const isSelectable = assetType === "sticker";
 
   return (
     <StickerTile
       asset={STICKER_ASSETS[assetType]}
+      isSelectable={isSelectable}
+      isSelected={isSelected}
+      selectionMode={selectionMode}
       tileSize={tileSize}
       onOpenDetails={() => {}}
+      onToggleSelection={() => {}}
     />
   );
 }
@@ -42,6 +49,12 @@ const meta = {
     assetType: {
       control: "select",
       options: Object.keys(STICKER_ASSETS),
+    },
+    isSelected: {
+      control: "boolean",
+    },
+    selectionMode: {
+      control: "boolean",
     },
     tileSize: {
       control: {
@@ -70,6 +83,8 @@ type Story = StoryObj<typeof meta>;
 export const Widget: Story = {
   args: {
     assetType: "widget",
+    isSelected: false,
+    selectionMode: false,
     tileSize: 144,
   },
 };
@@ -77,6 +92,26 @@ export const Widget: Story = {
 export const Sticker: Story = {
   args: {
     assetType: "sticker",
+    isSelected: false,
+    selectionMode: false,
+    tileSize: 144,
+  },
+};
+
+export const StickerSelectionMode: Story = {
+  args: {
+    assetType: "sticker",
+    isSelected: false,
+    selectionMode: true,
+    tileSize: 144,
+  },
+};
+
+export const StickerSelected: Story = {
+  args: {
+    assetType: "sticker",
+    isSelected: true,
+    selectionMode: true,
     tileSize: 144,
   },
 };

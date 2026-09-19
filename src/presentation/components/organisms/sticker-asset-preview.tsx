@@ -46,7 +46,7 @@ const UserStickerImage = memo(function UserStickerImage(props: {
 
 const styles = StyleSheet.create({
   detailRoot: {
-    height: 260,
+    height: "100%",
     width: "100%",
   },
   root: {

@@ -21,7 +21,6 @@ const STICKER_ASSETS = {
     storageKey: null,
     name: "사용자 스티커",
     createdAt: "2026-07-01T00:00:00.000Z",
-    isFavorite: true,
   },
 } satisfies Record<string, StickerAsset>;
 
@@ -48,7 +47,6 @@ function StickerDetailSheetStory(props: StickerDetailSheetStoryProps) {
           visible={visible}
           onClose={() => setVisible(false)}
           onDeleteUserSticker={async () => true}
-          onToggleUserStickerFavorite={async () => true}
         />
       </View>
     </BottomSheetModalProvider>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import * as Haptics from "expo-haptics";
 import {
   ActivityIndicator,
   Alert,
@@ -37,10 +38,12 @@ import { appSpacing } from "@/presentation/theme/spacing";
 
 const STICKER_TAB_OPTIONS = [
   {
+    icon: "StickerSmile",
     label: "Sticker",
     value: "sticker",
   },
   {
+    icon: "Widget6",
     label: "Widget",
     value: "widget",
   },
@@ -67,7 +70,6 @@ export function StickerLibraryScreen() {
     deleteUserStickers,
     registerFromClipboard,
     registerFromLibrary,
-    updateUserStickerFavorite,
   } = useStickerLibrary();
   const [selectedSticker, setSelectedSticker] = useState<StickerAsset | null>(
     null,
@@ -111,6 +113,10 @@ export function StickerLibraryScreen() {
     activeTabValue === "widget"
       ? "사용할 수 있는 위젯이 없습니다."
       : "등록된 스티커가 없습니다.";
+  const tabDescription =
+    activeTabValue === "widget"
+      ? "리캡을 꾸밀 때 사용할 수 있는 기본 위젯을 확인해보세요."
+      : "리캡을 꾸밀 때 사용할 스티커를 등록하고 관리해보세요.";
   const userStickerIdSet = useMemo(
     () => new Set(userStickerIds),
     [userStickerIds],
@@ -199,24 +205,13 @@ export function StickerLibraryScreen() {
     return true;
   };
 
-  const handleToggleStickerFavorite = async (asset: UserStickerAsset) => {
-    const updatedSticker = await updateUserStickerFavorite(
-      asset.id,
-      !asset.isFavorite,
-    );
-
-    if (!updatedSticker) {
-      Alert.alert("저장 실패", "즐겨찾기 상태를 저장하지 못했어요.");
-      return false;
-    }
-
-    setSelectedSticker(updatedSticker);
-    return true;
-  };
-
   const handleToggleStickerSelection = (asset: StickerAsset) => {
     if (asset.source !== "sticker") {
       return;
+    }
+
+    if (!isSelectionMode) {
+      void Haptics.selectionAsync();
     }
 
     setIsSelectionMode(true);
@@ -348,20 +343,21 @@ export function StickerLibraryScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <SegmentedTabs
-          options={STICKER_TAB_OPTIONS}
-          value={activeTabValue}
-          onValueChange={handleChangeTab}
-        />
+        <View style={styles.tabHeader}>
+          <SegmentedTabs
+            options={STICKER_TAB_OPTIONS}
+            value={activeTabValue}
+            onValueChange={handleChangeTab}
+          />
+          <Text numberOfLines={1} style={styles.tabDescription}>
+            {tabDescription}
+          </Text>
+        </View>
 
         {isLoading ? (
-          <View style={styles.emptyPanel}>
-            <Text style={styles.emptyText}>스티커를 불러오는 중이에요.</Text>
-          </View>
+          <Text style={styles.emptyText}>스티커를 불러오는 중이에요.</Text>
         ) : visibleAssets.length === 0 ? (
-          <View style={styles.emptyPanel}>
-            <Text style={styles.emptyText}>{emptyText}</Text>
-          </View>
+          <Text style={styles.emptyText}>{emptyText}</Text>
         ) : (
           <View style={[styles.grid, { gap: cardGap }]}>
             {visibleAssets.map((asset) => (
@@ -385,7 +381,6 @@ export function StickerLibraryScreen() {
         visible={Boolean(selectedSticker)}
         onClose={handleCloseStickerDetails}
         onDeleteUserSticker={handleDeleteStickerFromDetails}
-        onToggleUserStickerFavorite={handleToggleStickerFavorite}
       />
       {isSelectionMode && (
         <StickerSelectionActionBar
@@ -517,22 +512,12 @@ const styles = StyleSheet.create({
   registrationMenuTriggerDisabled: {
     opacity: 0.38,
   },
-  emptyPanel: {
-    alignItems: "center",
-    backgroundColor: appColors.white,
-    borderColor: "#ECEFF3",
-    borderCurve: "continuous",
-    borderRadius: 18,
-    borderWidth: StyleSheet.hairlineWidth,
-    justifyContent: "center",
-    minHeight: 132,
-    padding: 20,
-  },
   emptyText: {
     color: "#6B7280",
     fontSize: 14,
     fontWeight: "800",
     lineHeight: 20,
+    paddingVertical: 36,
     textAlign: "center",
   },
   selectionActionButton: {
@@ -583,5 +568,15 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 0,
     zIndex: appLayers.bottomNavigation,
+  },
+  tabDescription: {
+    color: "#6B7280",
+    fontSize: 13,
+    fontWeight: "600",
+    height: 20,
+    lineHeight: 20,
+  },
+  tabHeader: {
+    gap: 12,
   },
 });

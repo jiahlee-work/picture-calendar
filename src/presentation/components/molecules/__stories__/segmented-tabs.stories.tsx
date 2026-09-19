@@ -7,17 +7,19 @@ import { appColors } from "@/presentation/theme/colors";
 
 const stickerTabOptions = [
   {
-    label: "All",
-    value: "all",
+    icon: "StickerSmile",
+    label: "Sticker",
+    value: "sticker",
   },
   {
-    label: "Recents",
-    value: "recents",
+    icon: "Widget6",
+    label: "Widget",
+    value: "widget",
   },
 ] as const;
 
 function SegmentedTabsStoryView() {
-  const [currentValue, setCurrentValue] = useState("all");
+  const [currentValue, setCurrentValue] = useState("sticker");
 
   return (
     <SegmentedTabs
