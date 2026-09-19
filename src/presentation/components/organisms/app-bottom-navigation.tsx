@@ -55,7 +55,7 @@ const NAVIGATION_ITEMS: NavigationItem[] = [
     route: "/recap",
   },
   {
-    accessibilityLabel: "라이브러리로 이동",
+    accessibilityLabel: "스티커로 이동",
     icon: "StickerSmile",
     route: "/stickers",
   },

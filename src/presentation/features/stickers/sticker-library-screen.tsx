@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import * as Haptics from "expo-haptics";
 import {
   ActivityIndicator,
   Alert,
@@ -25,7 +24,6 @@ import type {
 } from "@/application/services/stickers/types";
 import { AppSafeAreaView } from "@/presentation/components/atoms/app-safe-area-view";
 import { ReiconIcon } from "@/presentation/components/atoms/reicon-icon";
-import { SegmentedTabs } from "@/presentation/components/molecules/segmented-tabs";
 import { StickerRegistrationMenu } from "@/presentation/components/molecules/sticker-registration-menu";
 import { AppBar } from "@/presentation/components/organisms/app-bar";
 import { StickerDetailSheet } from "@/presentation/components/organisms/sticker-detail-sheet";
@@ -36,20 +34,7 @@ import { appColors } from "@/presentation/theme/colors";
 import { appLayers } from "@/presentation/theme/layers";
 import { appSpacing } from "@/presentation/theme/spacing";
 
-const STICKER_TAB_OPTIONS = [
-  {
-    icon: "StickerSmile",
-    label: "Sticker",
-    value: "sticker",
-  },
-  {
-    icon: "Widget6",
-    label: "Widget",
-    value: "widget",
-  },
-] as const;
-
-type StickerTabValue = (typeof STICKER_TAB_OPTIONS)[number]["value"];
+const EMPTY_STATE_FOREGROUND_COLOR = "rgba(18,18,18,0.54)";
 
 const ACTION_BAR_ENTERING = FadeInDown.duration(350)
   .easing(Easing.bezier(0.22, 1, 0.36, 1))
@@ -77,8 +62,6 @@ export function StickerLibraryScreen() {
   const [selectedStickerIdSet, setSelectedStickerIds] = useState<Set<string>>(
     () => new Set(),
   );
-  const [activeTabValue, setActiveTabValue] =
-    useState<StickerTabValue>("sticker");
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -103,20 +86,6 @@ export function StickerLibraryScreen() {
       ),
     [stickers],
   );
-  const widgetAssets = useMemo(
-    () => stickers.filter((sticker) => sticker.source === "widget"),
-    [stickers],
-  );
-  const visibleAssets =
-    activeTabValue === "widget" ? widgetAssets : userStickerAssets;
-  const emptyText =
-    activeTabValue === "widget"
-      ? "사용할 수 있는 위젯이 없습니다."
-      : "등록된 스티커가 없습니다.";
-  const tabDescription =
-    activeTabValue === "widget"
-      ? "리캡을 꾸밀 때 사용할 수 있는 기본 위젯을 확인해보세요."
-      : "리캡을 꾸밀 때 사용할 스티커를 등록하고 관리해보세요.";
   const userStickerIdSet = useMemo(
     () => new Set(userStickerIds),
     [userStickerIds],
@@ -210,10 +179,6 @@ export function StickerLibraryScreen() {
       return;
     }
 
-    if (!isSelectionMode) {
-      void Haptics.selectionAsync();
-    }
-
     setIsSelectionMode(true);
     setSelectedStickerIds((current) => {
       const nextSelectedStickerIds = new Set(current);
@@ -226,14 +191,6 @@ export function StickerLibraryScreen() {
 
       return nextSelectedStickerIds;
     });
-  };
-
-  const handleChangeTab = (value: StickerTabValue) => {
-    setActiveTabValue(value);
-
-    if (value === "widget") {
-      handleCancelSelection();
-    }
   };
 
   const handleCancelSelection = () => {
@@ -299,8 +256,8 @@ export function StickerLibraryScreen() {
   return (
     <AppSafeAreaView>
       <AppBar>
-        <AppBar.Title variant="large">Library</AppBar.Title>
-        {activeTabValue === "sticker" ? (
+        <AppBar.Title variant="large">Stickers</AppBar.Title>
+        {!isLoading && userStickerAssets.length > 0 && (
           <StickerRegistrationMenu
             disabled={isSelectionMode || isSaving}
             onRegisterFromClipboard={() => {
@@ -331,8 +288,6 @@ export function StickerLibraryScreen() {
               )}
             </View>
           </StickerRegistrationMenu>
-        ) : (
-          <View style={styles.appBarActionPlaceholder} />
         )}
       </AppBar>
 
@@ -343,24 +298,24 @@ export function StickerLibraryScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.tabHeader}>
-          <SegmentedTabs
-            options={STICKER_TAB_OPTIONS}
-            value={activeTabValue}
-            onValueChange={handleChangeTab}
-          />
-          <Text numberOfLines={1} style={styles.tabDescription}>
-            {tabDescription}
-          </Text>
-        </View>
-
         {isLoading ? (
-          <Text style={styles.emptyText}>스티커를 불러오는 중이에요.</Text>
-        ) : visibleAssets.length === 0 ? (
-          <Text style={styles.emptyText}>{emptyText}</Text>
+          <View style={styles.loadingState}>
+            <ActivityIndicator color={appColors.black} size="small" />
+            <Text style={styles.loadingText}>스티커를 불러오는 중이에요.</Text>
+          </View>
+        ) : userStickerAssets.length === 0 ? (
+          <StickerEmptyState
+            isSaving={isSaving}
+            onRegisterFromClipboard={() => {
+              void handleRegisterFromClipboard();
+            }}
+            onRegisterFromLibrary={() => {
+              void handleRegisterFromLibrary();
+            }}
+          />
         ) : (
           <View style={[styles.grid, { gap: cardGap }]}>
-            {visibleAssets.map((asset) => (
+            {userStickerAssets.map((asset) => (
               <StickerTile
                 key={asset.id}
                 asset={asset}
@@ -395,6 +350,57 @@ export function StickerLibraryScreen() {
         />
       )}
     </AppSafeAreaView>
+  );
+}
+
+function StickerEmptyState(props: {
+  isSaving: boolean;
+  onRegisterFromClipboard: () => void;
+  onRegisterFromLibrary: () => void;
+}) {
+  const { isSaving, onRegisterFromClipboard, onRegisterFromLibrary } = props;
+
+  return (
+    <View style={styles.emptyState}>
+      <ReiconIcon
+        color={EMPTY_STATE_FOREGROUND_COLOR}
+        name="EmojiCircle"
+        size={56}
+      />
+      <View style={styles.emptyStateCopy}>
+        <Text style={styles.emptyStateTitle}>아직 스티커가 없어요</Text>
+        <Text style={styles.emptyStateDescription}>
+          리캡을 꾸밀 때 사용할 스티커를 등록해보세요.
+        </Text>
+      </View>
+      <StickerRegistrationMenu
+        disabled={isSaving}
+        onRegisterFromClipboard={onRegisterFromClipboard}
+        onRegisterFromLibrary={onRegisterFromLibrary}
+      >
+        <View
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel="스티커 등록 메뉴 열기"
+          accessibilityState={{ busy: isSaving, disabled: isSaving }}
+          style={[
+            styles.emptyStateRegistrationButton,
+            isSaving && styles.registrationMenuTriggerDisabled,
+          ]}
+        >
+          {isSaving ? (
+            <ActivityIndicator color={appColors.white} size="small" />
+          ) : (
+            <>
+              <ReiconIcon color={appColors.white} name="Add" size={20} />
+              <Text style={styles.emptyStateRegistrationButtonLabel}>
+                스티커 등록
+              </Text>
+            </>
+          )}
+        </View>
+      </StickerRegistrationMenu>
+    </View>
   );
 }
 
@@ -484,12 +490,8 @@ function SelectionActionButton(props: {
 }
 
 const styles = StyleSheet.create({
-  appBarActionPlaceholder: {
-    height: 40,
-    width: 40,
-  },
   content: {
-    gap: 28,
+    flexGrow: 1,
     paddingBottom: appSpacing.screenContentBottomPadding,
     paddingHorizontal: appSpacing.screenHorizontalPadding,
     paddingTop: appSpacing.screenContentTopPadding,
@@ -500,6 +502,45 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
+  },
+  emptyState: {
+    alignItems: "center",
+    gap: 24,
+    paddingTop: 72,
+  },
+  emptyStateCopy: {
+    alignItems: "center",
+    gap: 6,
+  },
+  emptyStateDescription: {
+    color: EMPTY_STATE_FOREGROUND_COLOR,
+    fontSize: 14,
+    fontWeight: "500",
+    lineHeight: 20,
+    textAlign: "center",
+  },
+  emptyStateRegistrationButton: {
+    alignItems: "center",
+    backgroundColor: appColors.black,
+    borderRadius: 22,
+    flexDirection: "row",
+    gap: 8,
+    height: 44,
+    justifyContent: "center",
+    minWidth: 144,
+    paddingHorizontal: 20,
+  },
+  emptyStateRegistrationButtonLabel: {
+    color: appColors.white,
+    fontSize: 14,
+    fontWeight: "800",
+    lineHeight: 18,
+  },
+  emptyStateTitle: {
+    color: EMPTY_STATE_FOREGROUND_COLOR,
+    fontSize: 17,
+    fontWeight: "800",
+    lineHeight: 24,
   },
   registrationMenuTrigger: {
     alignItems: "center",
@@ -512,12 +553,16 @@ const styles = StyleSheet.create({
   registrationMenuTriggerDisabled: {
     opacity: 0.38,
   },
-  emptyText: {
+  loadingState: {
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 72,
+  },
+  loadingText: {
     color: "#6B7280",
     fontSize: 14,
-    fontWeight: "800",
+    fontWeight: "600",
     lineHeight: 20,
-    paddingVertical: 36,
     textAlign: "center",
   },
   selectionActionButton: {
@@ -568,15 +613,5 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 0,
     zIndex: appLayers.bottomNavigation,
-  },
-  tabDescription: {
-    color: "#6B7280",
-    fontSize: 13,
-    fontWeight: "600",
-    height: 20,
-    lineHeight: 20,
-  },
-  tabHeader: {
-    gap: 12,
   },
 });

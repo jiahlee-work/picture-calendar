@@ -3,6 +3,9 @@ import { Pressable, StyleSheet } from "react-native";
 import type { StickerAsset } from "@/application/services/stickers/types";
 import { SelectionCheckbox } from "@/presentation/components/atoms/selection-checkbox";
 import { StickerAssetPreview } from "@/presentation/components/organisms/sticker-asset-preview";
+import { appColors } from "@/presentation/theme/colors";
+
+const STICKER_TILE_SELECTION_CONTROL_SIZE = 22;
 
 export type StickerTileProps = {
   asset: StickerAsset;
@@ -103,6 +106,7 @@ function StickerTileSelectionControl(props: {
       accessibilityLabel={accessibilityLabel}
       disabled={disabled}
       isSelected={isSelected}
+      size={STICKER_TILE_SELECTION_CONTROL_SIZE}
       style={styles.selectionControl}
       onPress={onPress}
     />
@@ -115,8 +119,11 @@ const styles = StyleSheet.create({
   },
   root: {
     alignItems: "center",
+    backgroundColor: appColors.white,
+    borderRadius: 20,
     justifyContent: "center",
-    overflow: "visible",
+    overflow: "hidden",
+    padding: 12,
     position: "relative",
   },
   rootSelected: {
@@ -124,7 +131,7 @@ const styles = StyleSheet.create({
   },
   selectionControl: {
     position: "absolute",
-    right: 4,
-    top: 4,
+    right: 8,
+    top: 8,
   },
 });

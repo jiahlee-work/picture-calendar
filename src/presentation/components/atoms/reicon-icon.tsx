@@ -19,6 +19,7 @@ import CloseCircleIcon from "reicon-react-native/icons/CloseCircle";
 import ColorsSquareIcon from "reicon-react-native/icons/ColorsSquare";
 import Crop2Icon from "reicon-react-native/icons/Crop2";
 import DownloadIcon from "reicon-react-native/icons/Download";
+import EmojiCircleIcon from "reicon-react-native/icons/EmojiCircle";
 import FolderIcon from "reicon-react-native/icons/Folder";
 import GalleryIcon from "reicon-react-native/icons/Gallery";
 import GearIcon from "reicon-react-native/icons/Gear";
@@ -64,6 +65,7 @@ const REICON_COMPONENTS = {
   ColorsSquare: ColorsSquareIcon,
   Crop2: Crop2Icon,
   Download: DownloadIcon,
+  EmojiCircle: EmojiCircleIcon,
   Folder: FolderIcon,
   Gallery: GalleryIcon,
   Gear: GearIcon,
