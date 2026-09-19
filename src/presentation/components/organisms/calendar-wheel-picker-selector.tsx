@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   actionText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "900",
     lineHeight: 24,
   },
